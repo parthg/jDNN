@@ -16,7 +16,7 @@ import es.upv.prhlt.sentence.Splitter;
 import es.upv.prhlt.sentence.SplitterFactory;
 import random.RandomUtils;
 
-public class RandSentences implements Channel {
+public class RandSentences extends Channel {
   Map<String, Integer> tokenFreq;
   Map<String, Integer> tokenIndex;
   Map<Integer, String> docIndex;
@@ -95,6 +95,11 @@ public class RandSentences implements Channel {
   public void setTokensIndex(Map<String, Integer> _tokens) {
   	this.tokenIndex = _tokens;
   }
+
+  public Map<Integer, Integer> getVector(String text) {
+    return super.getVector(text);
+  }
+  
   public Map<Integer, Map<Integer, Integer>> getMatrix() {
     try {
       if(this.tokenIndex.equals(null))
@@ -109,7 +114,8 @@ public class RandSentences implements Channel {
   	int docid = 0;
   	for(String sent: randSent) {
       sent = sent.trim();
-			String text = this.tokeniser.parse(sent);
+      Map<Integer, Integer> inner = this.getVector(sent);
+/*			String text = this.tokeniser.parse(sent);
 			text = this.tokeniser.clean(text);
 			String[] tokens = text.split("_");
 			Map<Integer, Integer> inner = new HashMap<Integer, Integer>();
@@ -121,7 +127,7 @@ public class RandSentences implements Channel {
 					else
 						inner.put(tid, inner.get(tid)+1);
 				}
-			}
+			}*/
 			if(inner.size()>=2) {
 				matrix.put(docid, inner);
 				this.docIndex.put(docid, sent.trim());

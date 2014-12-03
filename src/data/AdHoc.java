@@ -16,7 +16,7 @@ import es.upv.prhlt.sentence.Splitter;
 import es.upv.prhlt.sentence.SplitterFactory;
 import random.RandomUtils;
 
-public class DocCollection extends Channel {
+public class AdHoc extends Channel {
   Map<String, Integer> tokenFreq;
   Map<String, Integer> tokenIndex;
   Map<Integer, String> docIndex;

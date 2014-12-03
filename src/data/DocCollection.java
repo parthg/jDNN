@@ -16,7 +16,7 @@ import es.upv.prhlt.sentence.Splitter;
 import es.upv.prhlt.sentence.SplitterFactory;
 import random.RandomUtils;
 
-public class DocCollection implements Channel {
+public class DocCollection extends Channel {
   Map<String, Integer> tokenFreq;
   Map<String, Integer> tokenIndex;
   Map<Integer, String> docIndex;
@@ -63,9 +63,15 @@ public class DocCollection implements Channel {
     }
     return this.tokenFreq;
   }
+  
   public void setTokensIndex(Map<String, Integer> _tokens) {
   	this.tokenIndex = _tokens;
   }
+  
+  public Map<Integer, Integer> getVector(String text) {
+    return super.getVector(text);
+  }
+
   public Map<Integer, Map<Integer, Integer>> getMatrix() {
     try {
       if(this.tokenIndex.equals(null))
@@ -82,7 +88,8 @@ public class DocCollection implements Channel {
     for(String f: files) {
 			String title = this.parser.parse(f).getTitle().trim();
 			
-			String text = this.tokeniser.parse(title);
+      Map<Integer, Integer> inner = this.getVector(title);
+/*			String text = this.tokeniser.parse(title);
 			text = this.tokeniser.clean(text);
 			String[] tokens = text.split("_");
 			Map<Integer, Integer> inner = new HashMap<Integer, Integer>();
@@ -94,7 +101,7 @@ public class DocCollection implements Channel {
 					else
 						inner.put(tid, inner.get(tid)+1);
 				}
-			}
+			}*/
 			if(inner.size()>=2) {
 				matrix.put(docid, inner);
 				this.docIndex.put(docid, new File(f).getName()+"__"+title);
