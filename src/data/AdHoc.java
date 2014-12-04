@@ -6,14 +6,8 @@ import es.upv.nlel.corpus.NEWSDocType;
 import es.upv.nlel.parser.FIREParserInterface;
 
 public class AdHoc extends Channel {
-  Map<Integer, String> docIndex;
-  String dataPath;
-  FIREParserInterface parser;
-  String ext;
-  
-  public AdHoc(String path_to_data, String _ext) {
-    this.dataPath = path_to_data;
-    this.ext = _ext;
+
+  public AdHoc() {
   }
   
   public void setParser(NEWSDocType type) {

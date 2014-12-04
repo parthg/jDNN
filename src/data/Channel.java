@@ -4,6 +4,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+
 import es.upv.nlel.corpus.NEWSDocType;
 import es.upv.nlel.utils.Language;
 
@@ -34,6 +39,16 @@ public abstract class Channel {
   	this.tokenIndex = _tokens;
   }
 
+  public void loadTokenIndex(String indexFile) throws IOException{
+    this.tokenIndex = new HashMap<String, Integer>();
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(indexFile),"UTF-8"));
+    String line = "";
+    while((line = br.readLine())!=null) {
+      String[] cols = line.split("\t");
+      this.tokenIndex.put(cols[0].trim(), Integer.parseInt(cols[1].trim()));
+    }
+    br.close();
+  }
 
   public Map<Integer, Integer> getVector(String text) {
     text = this.tokeniser.parse(text);

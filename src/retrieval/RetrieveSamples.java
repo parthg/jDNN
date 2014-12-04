@@ -71,12 +71,18 @@ public class RetrieveSamples {
     System.out.println("Drawing Samples...");
     BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(dataFile), "UTF-8"));
     String line = "";
+    
+//    Map<Integer, String> dataIds = new HashMap<Integer, String>();
 
-    int id = 1;
+    int sampleSize = 4;
+    int id = 0;
     while((line = br.readLine())!=null) {
-      Sample sample = ret.getSample(line.trim(), 2, 2, tempSentDir);
-      sampleMap.put(id, sample);
-      id++;
+      Sample sample = ret.getSample(line.trim(), sampleSize, sampleSize, tempSentDir);
+//      if(sample.getPosSize==sampleSize && sample.getNegSize == sampleSize) {
+        sampleMap.put(id, sample);
+//        dataIds.put(id, line.trim());
+        id++;
+//      }
     }
     br.close();
     // read query file line by line
