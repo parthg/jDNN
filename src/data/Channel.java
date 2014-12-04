@@ -1,5 +1,6 @@
 package data;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,15 +13,26 @@ import es.upv.nlel.utils.Language;
  * @author Parth Gupta
  */
 public abstract class Channel {
+  Map<String, Integer> tokenFreq;
+	Map<String, Integer> tokenIndex;
+	Map<Integer, String> docIndex;
+	Tokeniser tokeniser;
+	Language lang;
 	public abstract void setParser(NEWSDocType type);
 	
-  public abstract void setup(TokenType tokenType, Language _lang, String path_to_terrier, List<PreProcessTerm> pipeline);
+	public void setup(TokenType tokenType, Language _lang, String path_to_terrier, List<PreProcessTerm> pipeline) {
+  	this.lang = _lang;
+  	this.tokeniser = TokeniserFactory.getTokeniser(tokenType);
+  	this.tokeniser.setup(_lang, path_to_terrier, pipeline);
+  }
   
   /** It would parse the input data and create the lexicon with frequency info. */
   public abstract Map<String, Integer> getTokensFreq();
   
   /** It would setup an index of the tokens from an external source. Note that Channel doesn't provide to create an index on its own.*/
-	public abstract void setTokensIndex(Map<String, Integer> _tokens);
+  public void setTokensIndex(Map<String, Integer> _tokens) {
+  	this.tokenIndex = _tokens;
+  }
 
 
   public Map<Integer, Integer> getVector(String text) {
@@ -43,6 +55,7 @@ public abstract class Channel {
   /** Parses the channel again and creates matrix based on the porivded index. The starting index is from 0.*/
 	public abstract Map<Integer, Map<Integer, Integer>> getMatrix();
 	
-  public abstract Map<Integer, String> getDataIndex();
-//	public String[] getRandomSentences(int n);
+  public Map<Integer, String> getDataIndex() {
+    return this.docIndex;
+  }
 }

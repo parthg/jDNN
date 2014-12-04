@@ -11,43 +11,28 @@ import es.upv.nlel.corpus.NEWSDocType;
 import es.upv.nlel.parser.FIREParserFactory;
 import es.upv.nlel.parser.FIREParserInterface;
 import es.upv.nlel.utils.FileIO;
-import es.upv.nlel.utils.Language;
 import es.upv.prhlt.sentence.Splitter;
 import es.upv.prhlt.sentence.SplitterFactory;
 import random.RandomUtils;
 
 public class RandSentences extends Channel {
-  Map<String, Integer> tokenFreq;
-  Map<String, Integer> tokenIndex;
-  Map<Integer, String> docIndex;
   String dataPath;
-  Tokeniser tokeniser;
   FIREParserInterface parser;
   String ext;
-  Language lang;
   int sampleSize=-1;
   List<String> sentences;
   List<String> randSent;
+  
   public RandSentences(String path_to_data, String _ext, int _sampleSize) {
     this.dataPath = path_to_data;
     this.ext = _ext;
     this.sampleSize = _sampleSize;
   }
+  
   public void setParser(NEWSDocType type) {
   	this.parser = FIREParserFactory.getParser(type);
   }
-  public void setup(TokenType tokenType, Language _lang, String path_to_terrier, List<PreProcessTerm> pipeline) {
-  	this.lang = _lang;
-  	this.tokeniser = TokeniserFactory.getTokeniser(tokenType);
-  	this.tokeniser.setup(_lang, path_to_terrier, pipeline);
-  }
-  /** In this case the docindex is actually the sentence itself mapped to the id.
-   * 
-   * @return
-   */
-  public Map<Integer, String> getDataIndex() {
-    return this.docIndex;
-  }
+
   public Map<String, Integer> getTokensFreq() {
     this.tokenFreq = new HashMap<String, Integer>();
     this.sentences = new ArrayList<String>();
@@ -92,13 +77,6 @@ public class RandSentences extends Channel {
   	}
     return this.tokenFreq;
   }
-  public void setTokensIndex(Map<String, Integer> _tokens) {
-  	this.tokenIndex = _tokens;
-  }
-
-  public Map<Integer, Integer> getVector(String text) {
-    return super.getVector(text);
-  }
   
   public Map<Integer, Map<Integer, Integer>> getMatrix() {
     try {
@@ -115,19 +93,6 @@ public class RandSentences extends Channel {
   	for(String sent: randSent) {
       sent = sent.trim();
       Map<Integer, Integer> inner = this.getVector(sent);
-/*			String text = this.tokeniser.parse(sent);
-			text = this.tokeniser.clean(text);
-			String[] tokens = text.split("_");
-			Map<Integer, Integer> inner = new HashMap<Integer, Integer>();
-			for(String tok: tokens) {
-				if(tokenIndex.containsKey(tok.trim())) {
-					int tid = this.tokenIndex.get(tok);
-					if(!inner.containsKey(tid))
-						inner.put(tid, 1);
-					else
-						inner.put(tid, inner.get(tid)+1);
-				}
-			}*/
 			if(inner.size()>=2) {
 				matrix.put(docid, inner);
 				this.docIndex.put(docid, sent.trim());
