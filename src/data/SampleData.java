@@ -35,6 +35,7 @@ public class SampleData {
   Channel ch;
 
   static boolean inflate = true;
+  static boolean randomise = true;
 
   public void loadData(String inFile) throws IOException {
     this.data = new HashMap<Integer, String>();
@@ -44,7 +45,7 @@ public class SampleData {
     int id = 0;
     while((line = br.readLine())!=null) {
       data.put(id, line.trim());
-      Map<Integer, Integer> dp = ch.getVector(this.data.get(line.trim()));
+      Map<Integer, Integer> dp = ch.getVector(line.trim());
       this.dataMatrix.add(dp);
       id++;
     }
@@ -113,10 +114,21 @@ public class SampleData {
     
     int id= 0;
     // print data
+    int[] indexes = new int[dataMatrix.size()];
+    Map<Integer, Integer> randMap = new HashMap<Integer, Integer>();
+    if(randomise) {
+      randMap = RandomUtils.randArray(dataMatrix.size());
+      for(int i=0; i< indexes.length; i++)
+        indexes[i] = randMap.get(i);
+    }
+    else {
+      for(int i=0; i< indexes.length; i++)
+        indexes[i]=i;
+    }
     for(int i=0; i<this.dataMatrix.size(); i++) {
-      Map<Integer, Integer> dp = this.dataMatrix.get(i);
-      List<Map<Integer, Integer>> pList = this.posMatrix.get(i);
-      List<Map<Integer, Integer>> nList = this.negMatrix.get(i);
+      Map<Integer, Integer> dp = this.dataMatrix.get(indexes[i]);
+      List<Map<Integer, Integer>> pList = this.posMatrix.get(indexes[i]);
+      List<Map<Integer, Integer>> nList = this.negMatrix.get(indexes[i]);
 
       if(pList.size()>0 && nList.size()>0) {
         for(int k: dp.keySet())
@@ -125,11 +137,11 @@ public class SampleData {
     
         // print pos        
         if(pList.size()<n && inflate) {
-          System.out.printf("[info] docid %d has %d positive samples hence inflating..\n",i, pList.size());
+          System.out.printf("[info] docid %d has %d positive samples hence inflating..\n",indexes[i], pList.size());
           randInflate(pList, n);
         }
         if(nList.size()<n && inflate) {
-          System.out.printf("[info] docid %d has %d negative samples hence inflating..\n",i, nList.size());
+          System.out.printf("[info] docid %d has %d negative samples hence inflating..\n",indexes[i], nList.size());
           randInflate(nList, n);
         }
         // print pos
@@ -145,10 +157,11 @@ public class SampleData {
           for(int k: inner.keySet())
             pNeg.println(id+"\t"+j+"\t"+k+"\t"+inner.get(k));
         }
-        pData.println(id+"\t"+this.data.get(i));
+        pData.println(id+"\t"+this.data.get(indexes[i]));
         id++; 
       }
     }
+    
     p.close();
     pPos.close();
     pNeg.close();
