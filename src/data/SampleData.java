@@ -28,18 +28,29 @@ import es.upv.nlel.utils.Language;
 public class SampleData {
   Map<Integer, String> data;
   Map<Integer, Sample> samples;
+
+  List<Map<Integer, Integer>> dataMatrix;
+  List<List<Map<Integer, Integer>>> posMatrix;
+  List<List<Map<Integer, Integer>>> negMatrix; 
   Channel ch;
+
+  static boolean inflate = true;
 
   public void loadData(String inFile) throws IOException {
     this.data = new HashMap<Integer, String>();
+    this.dataMatrix = new ArrayList<Map<Integer, Integer>>();
     BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inFile), "UTF-8"));
     String line;
     int id = 0;
     while((line = br.readLine())!=null) {
       data.put(id, line.trim());
+      Map<Integer, Integer> dp = ch.getVector(this.data.get(line.trim()));
+      this.dataMatrix.add(dp);
       id++;
     }
     br.close();
+
+
     System.out.println("Total " + this.data.size() + " data points loaded.");
   }
 
@@ -52,6 +63,29 @@ public class SampleData {
 
     ois.close();
     fis.close();
+
+    this.posMatrix = new ArrayList<List<Map<Integer, Integer>>>();
+    this.negMatrix = new ArrayList<List<Map<Integer, Integer>>>();
+
+    for(int i=0; i<this.samples.size(); i++) {
+      Sample s = this.samples.get(i);
+      
+      // pos samples 
+      List<Map<Integer, Integer>> sampleBuffer = new ArrayList<Map<Integer, Integer>>();
+      Iterator<String> it = s.getPos().iterator();
+      while(it.hasNext()) {
+        sampleBuffer.add(ch.getVector(it.next()));
+      }
+      this.posMatrix.add(sampleBuffer);
+
+      // neg samples
+      sampleBuffer = new ArrayList<Map<Integer, Integer>>();
+      it = s.getNeg().iterator();
+      while(it.hasNext()) {
+        sampleBuffer.add(ch.getVector(it.next()));
+      }
+      this.negMatrix.add(sampleBuffer);
+    }
   }
 
   public void getSampleStats() {
@@ -67,68 +101,58 @@ public class SampleData {
   public void prepareMatrixFiles(String dir, int n) throws IOException {
     dir += (dir.endsWith(File.separator)?"":File.separator);
     dir = dir.trim();
+
+    if(this.dataMatrix.size() != this.posMatrix.size() || this.dataMatrix.size() != this.negMatrix.size()) {
+      System.out.printf("The data size does not match. dataSize = %d posSize = %d negSize = %d. Exiting.. \n", this.dataMatrix.size(), this.posMatrix.size(), this.negMatrix.size());
+      System.exit(0);
+    }
     PrintWriter p = new PrintWriter(dir+"bp-matrix.dat");
     PrintWriter pPos = new PrintWriter(dir+"bp-pos-matrix.dat");
     PrintWriter pNeg = new PrintWriter(dir+"bp-neg-matrix.dat");
+    PrintWriter pData = new PrintWriter(dir+"bp-text-data.txt");
+    
+    int id= 0;
+    // print data
+    for(int i=0; i<this.dataMatrix.size(); i++) {
+      Map<Integer, Integer> dp = this.dataMatrix.get(i);
+      List<Map<Integer, Integer>> pList = this.posMatrix.get(i);
+      List<Map<Integer, Integer>> nList = this.negMatrix.get(i);
 
-    Map<Integer, String> newIdMap = new HashMap<Integer, String>();
-    int id = 0;
-    for(int i=0; i<this.samples.size(); i++) {
-
-      Map<Integer, Integer> dp = ch.getVector(this.data.get(i));
-      for(int j: dp.keySet())
-        p.println(id+"\t"+j+"\t"+dp.get(j));
-      
-      Sample s = this.samples.get(i);
-      Set<String> sp = s.getPos();
-      Set<String> sn = s.getNeg();
-      List<Map<Integer, Integer>> pList = new ArrayList<Map<Integer, Integer>>();
-      List<Map<Integer, Integer>> nList = new ArrayList<Map<Integer, Integer>>();
-      
-      if(sp.size()>0 && sn.size()>0) {
-
-
-        Iterator<String> it = sp.iterator();
-        while(it.hasNext())
-          pList.add(ch.getVector(it.next()));
-      
-        it = sn.iterator();
-        while(it.hasNext())
-          nList.add(ch.getVector(it.next()));
-
-
-        if(pList.size()<n) {
+      if(pList.size()>0 && nList.size()>0) {
+        for(int k: dp.keySet())
+          p.println(id+"\t"+k+"\t"+dp.get(k));
+    
+    
+        // print pos        
+        if(pList.size()<n && inflate) {
           System.out.printf("[info] docid %d has %d positive samples hence inflating..\n",i, pList.size());
           randInflate(pList, n);
         }
-        if(nList.size()<n) {
+        if(nList.size()<n && inflate) {
           System.out.printf("[info] docid %d has %d negative samples hence inflating..\n",i, nList.size());
           randInflate(nList, n);
         }
-
-        // write off the lists
+        // print pos
         for(int j=0; j<n; j++) {
           Map<Integer, Integer> inner = pList.get(j);
           for(int k: inner.keySet())
             pPos.println(id+"\t"+j+"\t"+k+"\t"+inner.get(k));
         }
 
+        // pring neg
         for(int j=0; j<n; j++) {
           Map<Integer, Integer> inner = nList.get(j);
           for(int k: inner.keySet())
             pNeg.println(id+"\t"+j+"\t"+k+"\t"+inner.get(k));
         }
-        newIdMap.put(id, this.data.get(i));
-        id++;
+        pData.println(id+"\t"+this.data.get(i));
+        id++; 
       }
     }
-
     p.close();
     pPos.close();
     pNeg.close();
-
-    CollectionUtils.printMap(newIdMap, new File(dir+"latest-index-data.txt")); 
-
+    pData.close();
   }
 
   public static <K> void randInflate(List<K> list, int n) {
