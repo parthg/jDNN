@@ -260,8 +260,8 @@ public class Retrieval {
 //		ret.loadProjectedData("etc/fire/projection/doc-projection.txt");
 		String dataObj = "obj/hi-nt-doc.obj";
 		if(!new File(dataObj).exists()) {
-		ret.projectData("etc/fire/data/whole/train-fire-navbharat-hi.txt", ret.ae.getNumLayers()/2);
-		ret.writeProjectedDataObject(dataObj);
+      ret.projectData("etc/fire/data/whole/train-fire-navbharat-hi.txt", ret.ae.getNumLayers()/2);
+      ret.writeProjectedDataObject(dataObj);
 		}
 		else {
 			ret.loadProjecteDataObject(dataObj);

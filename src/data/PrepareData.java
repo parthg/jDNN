@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import es.upv.nlel.corpus.NEWSDocType;
-import es.upv.nlel.utils.CollectionUtils;
+import util.CollectionUtils;
 import es.upv.nlel.utils.Language;
 
 public class PrepareData {

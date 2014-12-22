@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import java.io.File;
@@ -99,33 +100,60 @@ public class SampleData {
     System.out.printf("Total DataPoints = %d, Avg. Positive Samples = %.4f, Avg. Negative Samples = %.4f\n",totDataPoints, (double)((double)totPos/totDataPoints),(double) ((double)totNeg/totDataPoints));
   }
 
-  public void prepareMatrixFiles(String dir, int n) throws IOException {
+  public void prepareMatrixFiles(String dir, int n, int maxGB, int dim) throws IOException {
+    long subSampleSize = PartitionData.getSubSampleSize(maxGB, dim);
     dir += (dir.endsWith(File.separator)?"":File.separator);
-    dir = dir.trim();
+    dir = dir.trim()+"partition/";
+
+    new File(dir).mkdirs();
 
     if(this.dataMatrix.size() != this.posMatrix.size() || this.dataMatrix.size() != this.negMatrix.size()) {
       System.out.printf("The data size does not match. dataSize = %d posSize = %d negSize = %d. Exiting.. \n", this.dataMatrix.size(), this.posMatrix.size(), this.negMatrix.size());
       System.exit(0);
     }
-    PrintWriter p = new PrintWriter(dir+"bp-matrix.dat");
-    PrintWriter pPos = new PrintWriter(dir+"bp-pos-matrix.dat");
-    PrintWriter pNeg = new PrintWriter(dir+"bp-neg-matrix.dat");
-    PrintWriter pData = new PrintWriter(dir+"bp-text-data.txt");
+    PrintWriter p = null, pPos = null, pNeg = null, pData = null;
     
     int id= 0;
     // print data
     int[] indexes = new int[dataMatrix.size()];
     Map<Integer, Integer> randMap = new HashMap<Integer, Integer>();
+    Set<Integer> indexTestSet = new HashSet<Integer>();
+    for(int i =0; i<indexes.length; i++)
+      indexTestSet.add(i);
     if(randomise) {
       randMap = RandomUtils.randArray(dataMatrix.size());
-      for(int i=0; i< indexes.length; i++)
+      for(int i=0; i< indexes.length; i++) {
         indexes[i] = randMap.get(i);
+        indexTestSet.remove(indexes[i]);
+      }
     }
     else {
       for(int i=0; i< indexes.length; i++)
         indexes[i]=i;
     }
+
+    if(indexTestSet.size()==0)
+      System.out.println("Indexes correctly randomised.");
+    else
+      System.out.println("Indexes not correctly randomised.");
+
+    int file = 0;
     for(int i=0; i<this.dataMatrix.size(); i++) {
+      if((id+1)%subSampleSize==1) {
+        file++;
+        // if its not the first file
+        if(file != 1) {
+          p.close(); 
+          pPos.close();
+          pNeg.close();
+          pData.close();
+        }
+
+        p = new PrintWriter(dir+"train-bp-matrix-"+file+".txt");
+        pPos = new PrintWriter(dir+"bp-pos-matrix-"+file+".txt");
+        pNeg = new PrintWriter(dir+"bp-neg-matrix-"+file+".txt");
+        pData = new PrintWriter(dir+"bp-text-data-"+file+".txt");
+      }
       Map<Integer, Integer> dp = this.dataMatrix.get(indexes[i]);
       List<Map<Integer, Integer>> pList = this.posMatrix.get(indexes[i]);
       List<Map<Integer, Integer>> nList = this.negMatrix.get(indexes[i]);
@@ -147,15 +175,19 @@ public class SampleData {
         // print pos
         for(int j=0; j<n; j++) {
           Map<Integer, Integer> inner = pList.get(j);
-          for(int k: inner.keySet())
-            pPos.println(id+"\t"+j+"\t"+k+"\t"+inner.get(k));
+          for(int k: inner.keySet()) {
+//            pPos.println(id+"\t"+j+"\t"+k+"\t"+inner.get(k));
+            pPos.println(((n*id)+j)+"\t"+k+"\t"+inner.get(k));
+          }
         }
 
         // pring neg
         for(int j=0; j<n; j++) {
           Map<Integer, Integer> inner = nList.get(j);
-          for(int k: inner.keySet())
-            pNeg.println(id+"\t"+j+"\t"+k+"\t"+inner.get(k));
+          for(int k: inner.keySet()) {
+//            pNeg.println(id+"\t"+j+"\t"+k+"\t"+inner.get(k));
+            pNeg.println(((n*id)+j)+"\t"+k+"\t"+inner.get(k));
+          }
         }
         pData.println(id+"\t"+this.data.get(indexes[i]));
         id++; 
@@ -167,6 +199,7 @@ public class SampleData {
     pNeg.close();
     pData.close();
   }
+
 
   public static <K> void randInflate(List<K> list, int n) {
     while(list.size()<n)
@@ -195,6 +228,6 @@ public class SampleData {
     sd.loadSamples(args[1]);
     sd.getSampleStats();
 
-    sd.prepareMatrixFiles(new File(args[0]).getParent(), 2);
+    sd.prepareMatrixFiles(new File(args[0]).getParent(), 1, 10, 55861);
   }
 }

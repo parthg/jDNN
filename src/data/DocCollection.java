@@ -58,7 +58,10 @@ public class DocCollection extends Channel {
     this.docIndex = new HashMap<Integer, String>();
   	List<String> files = FileIO.getFilesRecursively(new File(this.dataPath), ".txt");
   	int docid = 0;
+    System.out.printf("\t\tThere are total %d files.\n",files.size());
     for(String f: files) {
+      if(docid%20000==0)
+        System.out.printf("Processed files: %d\n",docid);
 			String title = this.parser.parse(f).getTitle().trim();
 			
       Map<Integer, Integer> inner = this.getVector(title);

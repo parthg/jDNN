@@ -13,26 +13,24 @@ import java.util.Random;
 import es.upv.nlel.utils.Language;
 
 public class PartitionData {
-	Map<Integer, Map<Integer, Integer>> enMat = new HashMap<Integer, Map<Integer, Integer>>();
-//	Map<Integer, Map<Integer, Integer>> hiMat = new HashMap<Integer, Map<Integer, Integer>>();
+	Map<Integer, Map<Integer, Integer>> mat = new HashMap<Integer, Map<Integer, Integer>>();
+  
 	String outDir;
 	long totSubFiles;
 	long subSampleSize;
 	
 	public static void main(String[] args) throws IOException {
 		PartitionData pd = new PartitionData();
-//		pd.calculateStats(10, 171062, 36300);
-		pd.loadData("data/fire/hi/data-matrix-sorted.dat", Language.EN);
+		pd.loadData("data/fire/hi/data-matrix-sorted.dat");
 		pd.outDir = "data/fire/hi/partition/";
-//		pd.loadData("etc/hi_matrix.dat", Language.HI);
 		
-		pd.calculateStats(10, pd.enMat.size(), 55861);
+		pd.calculateStats(10, pd.mat.size(), 55861);
 		
-		int[] randArr = pd.randPermute(pd.enMat.size());
+		int[] randArr = pd.randPermute(pd.mat.size());
 		pd.partitionData(randArr);
 		
 	}
-	public void loadData(String inFile, Language lang) throws IOException {
+	public void loadData(String inFile) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inFile), "UTF-8"));
 		String line = "";
 		while((line = br.readLine())!=null) {
@@ -40,46 +38,33 @@ public class PartitionData {
 			int i = Integer.parseInt(cols[0].trim());
 			int j = Integer.parseInt(cols[1].trim());
 			int count = Integer.parseInt(cols[2].trim());
-			if(lang == Language.EN) {
-				if(!enMat.containsKey(i)) {
-					Map<Integer, Integer> inner = new HashMap<Integer, Integer>();
-					inner.put(j, count);
-					enMat.put(i, inner);
-				}
-				else {
-					Map<Integer, Integer> inner = enMat.get(i);
-					inner.put(j, count);
-					enMat.put(i, inner);
-				}
-			}
-/*			else if(lang == Language.HI){
-				if(!hiMat.containsKey(i)) {
-					Map<Integer, Integer> inner = new HashMap<Integer, Integer>();
-					inner.put(j, count);
-					hiMat.put(i, inner);
-				}
-				else {
-					Map<Integer, Integer> inner = hiMat.get(i);
-					inner.put(j, count);
-					hiMat.put(i, inner);
-				}
-			}*/
-				
+		
+      if(!mat.containsKey(i)) {
+        Map<Integer, Integer> inner = new HashMap<Integer, Integer>();
+        inner.put(j, count);
+        mat.put(i, inner);
+      }
+      else {
+        Map<Integer, Integer> inner = mat.get(i);
+        inner.put(j, count);
+        mat.put(i, inner);
+      }	
 		}
 		br.close();
 	}
 	public void calculateStats(int maxGB, int total, int dim) {
+		this.subSampleSize = getSubSampleSize(maxGB, dim);
+		this.totSubFiles = (total/this.subSampleSize) + 1;
+	}
+  public static long getSubSampleSize(int maxGB, int dim) {
 		double oneSampleSize = dim*8;
-//		double totBytes = total*dim*8;
-//		double totGB = totBytes/1000000000;
-//		totSubFiles = (int)(totGB/maxGB)+1;
 		long b = 1000000000;
 		long a = maxGB * b;
 		
 		long tempSubSampleSize = (long) (a / oneSampleSize);
-		subSampleSize = tempSubSampleSize - (tempSubSampleSize%100);
-		totSubFiles = (total/subSampleSize) + 1;
-	}
+		long subSampleSize = tempSubSampleSize - (tempSubSampleSize%100);
+    return subSampleSize;
+  }
 	/** It prints the indexes starting from 1.
 	 * 
 	 * @param outDir
@@ -87,8 +72,8 @@ public class PartitionData {
 	 * @throws IOException
 	 */
 	public void partitionData(int[] randArr) throws IOException {
-		FileOutputStream fos_en= null, fos_hi= null;
-		PrintStream p_en= null, p_hi= null;
+		FileOutputStream fos = null;
+		PrintStream p = null;
 		
 
 		int file = 0;
@@ -96,25 +81,19 @@ public class PartitionData {
 			if(i%subSampleSize==1) {
 				file++;
 				if(file != 1) {
-					p_en.close();
-					fos_en.close();
+					p.close();
+					fos.close();
 					
-/*					p_hi.close();
-					fos_hi.close();*/
 				}
-				fos_en = new FileOutputStream(this.outDir+"train-en-"+file+".txt");
-				p_en = new PrintStream(fos_en);
+				fos = new FileOutputStream(this.outDir+"train-en-"+file+".txt");
+				p = new PrintStream(fos);
 				
-/*				fos_hi = new FileOutputStream(outDir+"train-hi-"+file+".txt");
-				p_hi = new PrintStream(fos_hi);*/
 			}
-			for(int j: enMat.get(randArr[i-1]).keySet())
-				p_en.println(i+"\t"+(j+1)+"\t"+enMat.get(randArr[i-1]).get(j));
-/*			for(int j: hiMat.get(randArr[i-1]).keySet())
-				p_hi.println(i+"\t"+(j+1)+"\t"+hiMat.get(randArr[i-1]).get(j));*/
+			for(int j: mat.get(randArr[i-1]).keySet())
+				p.println(i+ "\t" + (j+1) + "\t" + mat.get(randArr[i-1]).get(j));
 		}
-		p_en.close();
-		fos_en.close();
+		p.close();
+		fos.close();
 	}
 	public int[] randPermute(int total) throws IOException {
 		int[] a = new int[total];
