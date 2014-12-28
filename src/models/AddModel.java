@@ -12,7 +12,7 @@ public class AddModel extends Model {
   public AddModel() {
     super();
   }
-  public DoubleMatrix output(Sentence sent) {
+  public DoubleMatrix fProp(Sentence sent) {
     DoubleMatrix rep = DoubleMatrix.zeros(1,super.outSize);
     Iterator<Integer> sentIt = sent.words.iterator();
     while(sentIt.hasNext()) {
@@ -30,12 +30,12 @@ public class AddModel extends Model {
   }
 
   public void backPropagate(Sentence s1, Sentence s2) {
-    // send s1 up -- use it as label
-    // send s2 up
-    // calculate error
+    // send s2 up -- use it as label
+    // send s1 up 
+    // calculate error (1-2)
     // backpropagate error
-    DoubleMatrix label = this.output(s2);
-    DoubleMatrix pred = this.output(s1);
+    DoubleMatrix label = this.fProp(s2);
+    DoubleMatrix pred = this.fProp(s1);
 
     DoubleMatrix error = pred.sub(label);
     ListIterator<Layer> layerIt = this.layers.listIterator(this.layers.size());

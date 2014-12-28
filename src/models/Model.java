@@ -41,10 +41,18 @@ public abstract class Model {
       tempInSize = l.getSize();
     }
   }
+  
+  public void clearModelGrads() {
+    Iterator<Layer> layerIt = this.layers.iterator();
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      l.clearGrads();
+    }
+  }
+  
   public double[] getParameters() {
     double[] params = new double[0];
     Iterator<Layer> layerIt = this.layers.iterator();
-    DoubleMatrix temp = input;
     while(layerIt.hasNext()) {
       Layer l = layerIt.next();
       double[] wParams = l.getWeights().toArray();
@@ -58,6 +66,22 @@ public abstract class Model {
     }
     return params;
   }
-  public abstract DoubleMatrix output(Sentence input);
+  public double[] getGradients() {
+    double[] grads = new double[0];
+    Iterator<Layer> layerIt = this.layers.iterator();
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      double[] wParams = l.getWeightGrads().toArray();
+      double[] bParams = l.getBiasGrads().toArray();
+
+      double[] lParams= new double[wParams.length+bParams.length];
+      System.arraycopy(wParams, 0, lParams, 0, wParams.length);
+      System.arraycopy(bParams, 0, lParams, wParams.length, bParams.length);
+
+      System.arraycopy(lParams, 0, grads, params.length, lParams.length);
+    }
+    return grads;
+  }
+  public abstract DoubleMatrix fProp(Sentence input);
   
 }
