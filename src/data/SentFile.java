@@ -9,7 +9,9 @@ import java.util.Map;
 
 import es.upv.nlel.corpus.NEWSDocType;
 
+
 public class SentFile extends Channel {
+  public static int MIN_WORD_LENGTH = 3;
   String dataPath;
   public SentFile(String path_to_data) {
     this.dataPath = path_to_data;
@@ -30,7 +32,7 @@ public class SentFile extends Channel {
 				text = this.tokeniser.clean(text);
 				String[] tokens = text.split("_");
 				for(String tok: tokens) {
-					if(tok.trim().equals("N") || tok.trim().length()>2) {
+					if(tok.trim().equals("N") || tok.trim().length()>MIN_WORD_LENGTH) {
 						if(!this.tokenFreq.containsKey(tok.trim()))
 							this.tokenFreq.put(tok.trim(), 1);
 						else

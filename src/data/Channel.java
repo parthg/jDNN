@@ -30,6 +30,10 @@ public abstract class Channel {
   	this.tokeniser = TokeniserFactory.getTokeniser(tokenType);
   	this.tokeniser.setup(_lang, path_to_terrier, pipeline);
   }
+
+  public Tokeniser getTokeniser() {
+    return this.tokeniser;
+  }
   
   /** It would parse the input data and create the lexicon with frequency info. */
   public abstract Map<String, Integer> getTokensFreq();
