@@ -22,4 +22,12 @@ public class Sentence {
     words.add(t);
     this.sentLength++;
   }
+
+  public String toString() {
+    StringBuffer sb = new StringBuffer();
+    for(int word: words)
+      sb.append(word+ " ");
+
+    return sb.toString();
+  }
 }

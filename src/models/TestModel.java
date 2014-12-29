@@ -17,6 +17,8 @@ import common.Sentence;
 import common.Corpus;
 import common.Dictionary;
 
+import optim.GradientCheck;
+
 import org.jblas.DoubleMatrix;
 
 import java.util.List;
@@ -40,19 +42,29 @@ public class TestModel {
     Dictionary enDict = new Dictionary();
     enCorp.load("sample/english",ch, enDict);
 
+
+		Channel chPos = new SentFile("sample/english-pos");
+		chPos.setup(TokenType.WORD, Language.EN, path_to_terrier, pipeline);
+		Corpus enPos = new Corpus();
+//    Dictionary enDict = new Dictionary();
+    enPos.load("sample/english-pos",ch, enDict);
+
     System.out.printf("#sentence = %d #tokens = %d\n", enCorp.getSize(), enDict.getSize());
 //    enDict.print();
 
     enModel.setDict(enDict);
-    Layer l = new LogisticLayer(5);
+    Layer l = new LogisticLayer(250);
     enModel.addHiddenLayer(l);
   
     enModel.init();
 
-    for(Sentence s: enCorp.getSentences()) {
-      DoubleMatrix rep = enModel.output(s);
+/*    for(Sentence s: enCorp.getSentences()) {
+      DoubleMatrix rep = enModel.fProp(s);
       rep.print();
-    }
+    }*/
+
+    GradientCheck test = new GradientCheck();
+    test.optimise(enModel, enCorp, enPos);
 
   }
 }
