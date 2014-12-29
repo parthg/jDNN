@@ -29,7 +29,7 @@ public class AddModel extends Model {
     return rep;
   }
 
-  public void backPropagate(Sentence s1, Sentence s2) {
+  public void bProp(Sentence s1, Sentence s2) {
     // send s2 up -- use it as label
     // send s1 up 
     // calculate error (1-2)

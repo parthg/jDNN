@@ -50,7 +50,7 @@ public class TestModel {
     enModel.init();
 
     for(Sentence s: enCorp.getSentences()) {
-      DoubleMatrix rep = enModel.output(s);
+      DoubleMatrix rep = enModel.fProp(s);
       rep.print();
     }
 
