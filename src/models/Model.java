@@ -36,7 +36,6 @@ public abstract class Model {
     }
     this.layers.add(l);
     this.outSize = l.getSize();
-    this.thetaSize += l.getThetaSize();
   }
 
   public int getThetaSize() {
@@ -48,6 +47,7 @@ public abstract class Model {
     for(Layer l: this.layers) {
       l.init(true, tempInSize, l.getSize());
       tempInSize = l.getSize();
+      this.thetaSize += l.getThetaSize();
     }
   }
   
@@ -80,6 +80,7 @@ public abstract class Model {
   }
 
   public double[] getParameters() {
+    System.out.printf("Total Parameters in Model = %d\n", this.getThetaSize());
     double[] params = new double[this.thetaSize];
     int start = 0;
     Iterator<Layer> layerIt = this.layers.iterator();
@@ -98,7 +99,26 @@ public abstract class Model {
     }
     return params;
   }
-  public double[] getGradients() {
+  public double[] getParamGradients() {
+    double[] paramGrads = new double[this.thetaSize];
+    int start = 0;
+    Iterator<Layer> layerIt = this.layers.iterator();
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+/*      double[] wParams = l.getWeights().toArray();
+      double[] bParams = l.getBiases().toArray();
+
+      double[] lParams = new double[l.getThetaSize()];*/
+      double[] lParams = l.getParamGradients();
+/*      System.arraycopy(wParams, 0, lParams, 0, wParams.length);
+      System.arraycopy(bParams, 0, lParams, wParams.length, bParams.length);*/
+
+      System.arraycopy(lParams, 0, paramGrads, start, lParams.length);
+      start = l.getThetaSize();
+    }
+    return paramGrads;
+  }
+/*  public double[] getGradients() {
     double[] grads = new double[0];
     Iterator<Layer> layerIt = this.layers.iterator();
     while(layerIt.hasNext()) {
@@ -113,7 +133,7 @@ public abstract class Model {
       System.arraycopy(lParams, 0, grads, grads.length, lParams.length);
     }
     return grads;
-  }
+  }*/
   public abstract DoubleMatrix fProp(Sentence input);
   public abstract void bProp(Sentence s1, Sentence s2);
 }

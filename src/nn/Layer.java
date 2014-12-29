@@ -22,10 +22,18 @@ public abstract class Layer {
   }
 
   public double[] getParameters() {
+    System.out.printf("Num of Parametrs in Layer = %d\n", this.getThetaSize());
     double[] params = new double[this.thetaSize];
     System.arraycopy(this.w.toArray(), 0, params, 0, this.wSize);
     System.arraycopy(this.b.toArray(), 0, params, this.wSize, this.bSize);
     return params;
+  }
+
+  public double[] getParamGradients() {
+    double[] paramGrads = new double[this.thetaSize];
+    System.arraycopy(this.dW.toArray(), 0, paramGrads, 0, this.wSize);
+    System.arraycopy(this.dB.toArray(), 0, paramGrads, this.wSize, this.bSize);
+    return paramGrads;
   }
 
   public void setParameters(double[] params) {

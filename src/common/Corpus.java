@@ -27,6 +27,8 @@ public class Corpus {
     this.corpusLength++;
   }
 
+  public Sentence get(int i) {return this.sents.get(i);}
+
   public List<Sentence> getSentences() {
     return this.sents;
   }
