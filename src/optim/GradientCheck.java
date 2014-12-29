@@ -6,18 +6,21 @@ import common.Sentence;
 import common.Corpus;
 
 public class GradientCheck {
-  BasicGradientCalc gradFunc;
+//  BasicGradientCalc gradFunc;
+  NoiseGradientCalc gradFunc;
   public GradientCheck() {
-    gradFunc = new BasicGradientCalc();
+//    gradFunc = new BasicGradientCalc();
+    gradFunc = new NoiseGradientCalc();
   }
-  public void optimise(Model model, Corpus c1, Corpus c2) {
+  public void optimise(Model model, Corpus c1, Corpus c2, Corpus c3) {
     this.gradFunc.setModel(model);
     for(int i=0; i<c1.getSize(); i++) {
       Sentence s1 = c1.get(i);
       Sentence s2 = c2.get(i);
+      Sentence s3 = c3.get(i);
 
-      gradFunc.setData(s1, s2);
-      System.out.printf("Processing Sentence: %d\ns1= %s \ns2 = %s\n\n", i, s1.toString(), s2.toString());
+      gradFunc.setData(s1, s2, s3);
+      System.out.printf("Processing Sentence: %d\ns1= %s \ns2 = %s\ns3 = %s\n\n", i, s1.toString(), s2.toString(), s3.toString());
 
       for(int j=0; j< model.getThetaSize(); j++) {
         double epsilon = 0.0001;

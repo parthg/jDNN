@@ -47,13 +47,19 @@ public class TestModel {
 		chPos.setup(TokenType.WORD, Language.EN, path_to_terrier, pipeline);
 		Corpus enPos = new Corpus();
 //    Dictionary enDict = new Dictionary();
-    enPos.load("sample/english-pos",ch, enDict);
+    enPos.load("sample/english-pos",chPos, enDict);
 
+		Channel chNeg = new SentFile("sample/english-neg");
+		chNeg.setup(TokenType.WORD, Language.EN, path_to_terrier, pipeline);
+		Corpus enNeg = new Corpus();
+//    Dictionary enDict = new Dictionary();
+    enNeg.load("sample/english-neg",chNeg, enDict);
+    
     System.out.printf("#sentence = %d #tokens = %d\n", enCorp.getSize(), enDict.getSize());
 //    enDict.print();
 
     enModel.setDict(enDict);
-    Layer l = new LogisticLayer(250);
+    Layer l = new LogisticLayer(5);
     enModel.addHiddenLayer(l);
   
     enModel.init();
@@ -64,7 +70,7 @@ public class TestModel {
     }*/
 
     GradientCheck test = new GradientCheck();
-    test.optimise(enModel, enCorp, enPos);
+    test.optimise(enModel, enCorp, enPos, enNeg);
 
   }
 }
