@@ -5,7 +5,7 @@ import org.jblas.DoubleMatrix;
 
 public abstract class Layer {
   DoubleMatrix w, b;
-  DoubleMatrix inData, data, grad;
+  DoubleMatrix inData, data, grad, allInData, allData;
   DoubleMatrix dW, dB;
 
   int wSize, bSize;
@@ -17,6 +17,7 @@ public abstract class Layer {
   }
   public Layer(int _size) {
     this.size = _size;
+    this.allData = DoubleMatrix.zeros(1, this.size);
     this.data = DoubleMatrix.zeros(1,this.size);
     this.grad = DoubleMatrix.zeros(1,this.size);
   }
@@ -43,6 +44,7 @@ public abstract class Layer {
 
   public void init(boolean rand, int _inSize, int outSize) {
     this.inSize = _inSize;
+    this.allInData = DoubleMatrix.zeros(1, this.inSize);
     if(rand) {
       this.w = DoubleMatrix.randn(this.inSize, outSize);
       this.b = DoubleMatrix.zeros(1, outSize);
@@ -62,6 +64,10 @@ public abstract class Layer {
   public void loadData(DoubleMatrix _data) {
     this.data = _data;
     this.grad = DoubleMatrix.zeros(this.data.rows,this.data.columns);
+  }
+
+  public void setData(DoubleMatrix _data) {
+    this.data = _data;
   }
 
   public DoubleMatrix getActivities() {
@@ -94,9 +100,17 @@ public abstract class Layer {
     this.dB = DoubleMatrix.zeros(1, this.size);
   }
 
+/*  public void clearData() {
+    this.data = DoubleMatrix.zeros(1, this.size);
+    this.allData = DoubleMatrix.zeros(1, this.size);
+    this.allInData = DoubleMatrix.zeros(1, this.inSize);
+  }*
+
   /** accumulates the weight and bias gradient values based on current gradients.
    */
   public void accumulateGradients(boolean add) {
+//    System.out.printf("All In data for this Sentence\n");
+//    this.allInData.print();
     if(add) {
       dW.addi(this.inData.transpose().mmul(this.grad));
       dB.addi(this.grad);
@@ -105,7 +119,6 @@ public abstract class Layer {
       dW.subi(this.inData.transpose().mmul(this.grad));
       dB.subi(this.grad);
     }
-
   }
   public abstract void applyNonLinearity();
   

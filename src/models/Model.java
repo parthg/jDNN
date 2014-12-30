@@ -58,8 +58,16 @@ public abstract class Model {
       l.clearGrads();
     }
   }
-  
-  
+
+/*  public void clearData() {
+    Iterator<Layer> layerIt = this.layers.iterator();
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      l.clearData();
+//      l.clearGrads();
+    }
+  }*/
+
   public void setParameters(double[] params) {
     int start = 0;
     Iterator<Layer> layerIt = this.layers.iterator();
