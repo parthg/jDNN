@@ -29,7 +29,7 @@ public class AddModel extends Model {
     return rep;
   }
 
-  public void bProp(Sentence s1, Sentence s2) {
+  public void bProp(Sentence s1, Sentence s2, boolean add) {
     // send s2 up -- use it as label
     // send s1 up 
     // calculate error (1-2)
@@ -42,7 +42,8 @@ public class AddModel extends Model {
     while(layerIt.hasPrevious()) {
       Layer l = layerIt.previous();
       l.bProp(error);
-      l.accumulateGradients();
+      l.accumulateGradients(add);
+      // CHECK BIAS ERROR
       error = l.getGradients().mmul(l.getWeights().transpose());
     }
   }

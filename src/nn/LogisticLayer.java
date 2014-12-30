@@ -25,6 +25,6 @@ public class LogisticLayer extends Layer {
   /** calculate the gradient based on the error provided to it
    */
   public void bProp(DoubleMatrix error) {
-    this.grad = error.mul(this.data.mul((this.data.mul(-1)).addi(1)));
+    this.grad = error.mul(this.data.mul((this.data.mul(-1)).add(1)));
   }
 }

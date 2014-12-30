@@ -135,5 +135,5 @@ public abstract class Model {
     return grads;
   }*/
   public abstract DoubleMatrix fProp(Sentence input);
-  public abstract void bProp(Sentence s1, Sentence s2);
+  public abstract void bProp(Sentence s1, Sentence s2, boolean add);
 }
