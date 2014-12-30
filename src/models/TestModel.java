@@ -69,8 +69,12 @@ public class TestModel {
       rep.print();
     }*/
 
+    List<Corpus> corp = new ArrayList<Corpus>();
+    corp.add(enCorp);
+    corp.add(enPos);
+    corp.add(enNeg);
     GradientCheck test = new GradientCheck();
-    test.optimise(enModel, enCorp, enPos, enNeg);
+    test.optimise(enModel, corp);
 
   }
 }
