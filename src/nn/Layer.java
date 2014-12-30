@@ -96,9 +96,16 @@ public abstract class Layer {
 
   /** accumulates the weight and bias gradient values based on current gradients.
    */
-  public void accumulateGradients() {
-    dW.addi(this.inData.transpose().mmul(this.grad));
-    dB.addi(this.grad);
+  public void accumulateGradients(boolean add) {
+    if(add) {
+      dW.addi(this.inData.transpose().mmul(this.grad));
+      dB.addi(this.grad);
+    }
+    else {
+      dW.subi(this.inData.transpose().mmul(this.grad));
+      dB.subi(this.grad);
+    }
+
   }
   public abstract void applyNonLinearity();
   
