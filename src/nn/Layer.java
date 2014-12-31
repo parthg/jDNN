@@ -5,8 +5,6 @@ import org.jblas.DoubleMatrix;
 
 public abstract class Layer {
   DoubleMatrix w, b;
-  DoubleMatrix inData, data, grad, allInData, allData;
-  DoubleMatrix dW, dB;
 
   int wSize, bSize;
   int thetaSize; // basically wSize+bSize
@@ -17,9 +15,6 @@ public abstract class Layer {
   }
   public Layer(int _size) {
     this.size = _size;
-    this.allData = DoubleMatrix.zeros(1, this.size);
-    this.data = DoubleMatrix.zeros(1,this.size);
-    this.grad = DoubleMatrix.zeros(1,this.size);
   }
 
   public double[] getParameters() {
@@ -30,10 +25,14 @@ public abstract class Layer {
     return params;
   }
 
-  public double[] getParamGradients() {
+  public double[] getParamGradients(DoubleMatrix myInData, DoubleMatrix mygrad) {
     double[] paramGrads = new double[this.thetaSize];
-    System.arraycopy(this.dW.toArray(), 0, paramGrads, 0, this.wSize);
-    System.arraycopy(this.dB.toArray(), 0, paramGrads, this.wSize, this.bSize);
+  
+    double[] mydW = (myInData.transpose().mmul(mygrad)).toArray();
+    double[] mydB = mygrad.toArray();
+
+    System.arraycopy(mydW, 0, paramGrads, 0, this.wSize);
+    System.arraycopy(mydB, 0, paramGrads, this.wSize, this.bSize);
     return paramGrads;
   }
 
@@ -44,7 +43,6 @@ public abstract class Layer {
 
   public void init(boolean rand, int _inSize, int outSize) {
     this.inSize = _inSize;
-    this.allInData = DoubleMatrix.zeros(1, this.inSize);
     if(rand) {
       this.w = DoubleMatrix.randn(this.inSize, outSize);
       this.b = DoubleMatrix.zeros(1, outSize);
@@ -55,23 +53,6 @@ public abstract class Layer {
     this.wSize = this.inSize * outSize;
     this.bSize = outSize;
     this.thetaSize = this.wSize + this.bSize;
-
-    this.dW = DoubleMatrix.zeros(this.inSize, outSize);
-    this.dB = DoubleMatrix.zeros(1, outSize);
-    this.grad = DoubleMatrix.zeros(1, outSize);
-  }
-
-  public void loadData(DoubleMatrix _data) {
-    this.data = _data;
-    this.grad = DoubleMatrix.zeros(this.data.rows,this.data.columns);
-  }
-
-  public void setData(DoubleMatrix _data) {
-    this.data = _data;
-  }
-
-  public DoubleMatrix getActivities() {
-    return this.data;
   }
 
   public DoubleMatrix getWeights() {
@@ -82,49 +63,12 @@ public abstract class Layer {
     return this.b;
   }
 
-  public DoubleMatrix getWeightGrads() {
-    return this.dW;
-  }
-
-  public DoubleMatrix getBiasGrads() {
-    return this.dB;
-  }
-
-  public DoubleMatrix getGradients() {
-    return this.grad;
-  }
-
-  public void clearGrads() {
-    this.grad = DoubleMatrix.zeros(1, this.size);
-    this.dW = DoubleMatrix.zeros(this.inSize, this.size);
-    this.dB = DoubleMatrix.zeros(1, this.size);
-  }
-
-/*  public void clearData() {
-    this.data = DoubleMatrix.zeros(1, this.size);
-    this.allData = DoubleMatrix.zeros(1, this.size);
-    this.allInData = DoubleMatrix.zeros(1, this.inSize);
-  }*
-
-  /** accumulates the weight and bias gradient values based on current gradients.
-   */
-  public void accumulateGradients(boolean add) {
-//    System.out.printf("All In data for this Sentence\n");
-//    this.allInData.print();
-    if(add) {
-      dW.addi(this.inData.transpose().mmul(this.grad));
-      dB.addi(this.grad);
-    }
-    else {
-      dW.subi(this.inData.transpose().mmul(this.grad));
-      dB.subi(this.grad);
-    }
-  }
-  public abstract void applyNonLinearity();
+  public abstract DoubleMatrix applyNonLinearity(DoubleMatrix input);
   
-  public abstract void fProp(DoubleMatrix input);
+  public abstract DoubleMatrix fProp(DoubleMatrix input);
 
-  public abstract void bProp(DoubleMatrix error);
+  // return the grads of this layers. Call subsequently getParaGradients() to get parameters gradients (flattened).
+  public abstract DoubleMatrix bProp(DoubleMatrix mydata, DoubleMatrix error);
 
   public int getWSize() {return this.wSize;}
   public int getBSize() {return this.bSize;}

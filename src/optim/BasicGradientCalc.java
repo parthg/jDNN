@@ -16,11 +16,11 @@ public class BasicGradientCalc extends GradientCalc {
 
   // df - gradient for this error
   public void getValueGradient (double[] buffer) {
-    // TODO: assert(buffer.length == this.model.getThetaSize());
-    this.model.clearModelGrads();
-    this.model.bProp(this.s.get(0), this.s.get(1), true);
-    this.model.bProp(this.s.get(1), this.s.get(0), true);
+    assert (buffer.length == this.model.getThetaSize());
+    DoubleMatrix grads = DoubleMatrix.zeros(1, buffer.length);
+    grads.addi(this.model.bProp(this.s.get(0), this.s.get(1)));
+    grads.addi(this.model.bProp(this.s.get(1), this.s.get(0)));
 
-    System.arraycopy(this.model.getParamGradients(), 0, buffer, 0, this.model.getThetaSize());
+    System.arraycopy(grads.toArray(), 0, buffer, 0, this.model.getThetaSize());
   }
 }

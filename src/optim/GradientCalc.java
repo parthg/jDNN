@@ -11,14 +11,6 @@ public abstract class GradientCalc implements Optimizable.ByGradientValue {
   List<Sentence> s;
   double[] params;
 
-/*  public BasicGradientCalc(Model _model, Sentence _s1, Sentence _s2) {
-    this.model = _model;
-    this.s1 = _s1;
-    this.s2 = _s2;
-
-    this.params = new double[this.model.getThetaSize()];
-  }*/
- 
   public void setModel(Model _model) { this.model = _model; this.params = this.model.getParameters();}
 
   public void setData(List<Sentence> _s) {this.s = _s;}
@@ -35,7 +27,7 @@ public abstract class GradientCalc implements Optimizable.ByGradientValue {
   public double getParameter(int n) { return params [n]; };
 
   public void setParameters(double[] doubleArray) {
-    // TODO: assert that size is equal
+    assert (doubleArray.length == this.params.length);
     System.arraycopy(doubleArray, 0, this.params, 0, this.getNumParameters());
     this.model.setParameters(this.params);
   }
@@ -44,9 +36,4 @@ public abstract class GradientCalc implements Optimizable.ByGradientValue {
     this.model.setParameters(this.params);
   }
 
-/*  // f - error 
-  public abstract double getValue ();
-
-  // df - gradient for this error
-  public abstract void getValueGradient (double[] buffer);*/
 }
