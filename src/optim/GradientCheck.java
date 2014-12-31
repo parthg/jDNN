@@ -9,12 +9,11 @@ import common.Sentence;
 import common.Corpus;
 
 public class GradientCheck {
-//  BasicGradientCalc gradFunc;
-//  NoiseGradientCalc gradFunc;
   GradientCalc gradFunc;
-  public GradientCheck() {
+  public GradientCheck(GradientCalc _gradFunc) {
 //    gradFunc = new BasicGradientCalc();
-    gradFunc = new NoiseGradientCalc();
+//    gradFunc = new NoiseGradientCalc();
+    gradFunc = _gradFunc;
   }
   public void optimise(Model model, List<Corpus> c) {
     this.gradFunc.setModel(model);

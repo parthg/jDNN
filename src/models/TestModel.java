@@ -18,6 +18,7 @@ import common.Corpus;
 import common.Dictionary;
 
 import optim.GradientCheck;
+import optim.NoiseGradientCalc;
 
 import org.jblas.DoubleMatrix;
 
@@ -59,7 +60,7 @@ public class TestModel {
 //    enDict.print();
 
     enModel.setDict(enDict);
-    Layer l = new LogisticLayer(5);
+    Layer l = new LogisticLayer(50);
     enModel.addHiddenLayer(l);
   
     enModel.init();
@@ -73,7 +74,7 @@ public class TestModel {
     corp.add(enCorp);
     corp.add(enPos);
     corp.add(enNeg);
-    GradientCheck test = new GradientCheck();
+    GradientCheck test = new GradientCheck(new NoiseGradientCalc());
     test.optimise(enModel, corp);
 
   }

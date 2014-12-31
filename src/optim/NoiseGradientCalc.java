@@ -19,7 +19,7 @@ public class NoiseGradientCalc extends GradientCalc {
 
   // df - gradient for this error
   public void getValueGradient (double[] buffer) {
-    // TODO: assert(buffer.length == this.model.getThetaSize());
+    assert (buffer.length == this.model.getThetaSize());
     this.model.clearModelGrads();
     // df/dA = (A-B) - (A-N)
     this.model.bProp(this.s.get(0), this.s.get(1), true);

@@ -13,7 +13,6 @@ public class AddModel extends Model {
     super();
   }
   public DoubleMatrix fProp(Sentence sent) {
-//    this.clearData();
     DoubleMatrix rep = DoubleMatrix.zeros(1,super.outSize);
     Iterator<Integer> sentIt = sent.words.iterator();
     while(sentIt.hasNext()) {
@@ -39,13 +38,13 @@ public class AddModel extends Model {
     DoubleMatrix pred = this.fProp(s1);
 
     DoubleMatrix error = pred.sub(label);
-    // This is important at this point because whenever you need to fProp, it better to clead the data to contains.
-//    this.clearData();
     Iterator<Integer> sentIt = s1.words.iterator();
+    // for each word
     while(sentIt.hasNext()) {
       DoubleMatrix input = this.dict.getRepresentation(sentIt.next());
       Iterator<Layer> layerIt = this.layers.iterator();
       DoubleMatrix temp = input;
+      // do fprop
       while(layerIt.hasNext()) {
         Layer l = layerIt.next();
         l.fProp(temp);
@@ -53,11 +52,11 @@ public class AddModel extends Model {
       }
       ListIterator<Layer> layerRevIt = this.layers.listIterator(this.layers.size());
       temp = error;
+      // backprop it
       while(layerRevIt.hasPrevious()) {
         Layer l = layerRevIt.previous();
         l.bProp(temp);
         l.accumulateGradients(add);
-      // CHECK BIAS ERROR
         temp = l.getGradients().mmul(l.getWeights().transpose());
       }
     }
