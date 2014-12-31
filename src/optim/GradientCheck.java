@@ -11,8 +11,6 @@ import common.Corpus;
 public class GradientCheck {
   GradientCalc gradFunc;
   public GradientCheck(GradientCalc _gradFunc) {
-//    gradFunc = new BasicGradientCalc();
-//    gradFunc = new NoiseGradientCalc();
     gradFunc = _gradFunc;
   }
   public void optimise(Model model, List<Corpus> c) {

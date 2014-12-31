@@ -18,19 +18,20 @@ public class NoiseGradientCalc extends GradientCalc {
   }
 
   // df - gradient for this error
+  // TODO: inefficient as it fProps several times
   public void getValueGradient (double[] buffer) {
     assert (buffer.length == this.model.getThetaSize());
-    this.model.clearModelGrads();
+    DoubleMatrix grads = DoubleMatrix.zeros(1, buffer.length);
     // df/dA = (A-B) - (A-N)
-    this.model.bProp(this.s.get(0), this.s.get(1), true);
-    this.model.bProp(this.s.get(0), this.s.get(2), false);
+    grads.addi(this.model.bProp(this.s.get(0), this.s.get(1)));
+    grads.subi(this.model.bProp(this.s.get(0), this.s.get(2)));
 
     // df/dB = (B-A)
-    this.model.bProp(this.s.get(1), this.s.get(0), true);
+    grads.addi(this.model.bProp(this.s.get(1), this.s.get(0)));
 
     // df/dN = - (N-A)
-    this.model.bProp(this.s.get(2), this.s.get(0), false);
+    grads.subi(this.model.bProp(this.s.get(2), this.s.get(0)));
 
-    System.arraycopy(this.model.getParamGradients(), 0, buffer, 0, this.model.getThetaSize());
+    System.arraycopy(grads.toArray(), 0, buffer, 0, this.model.getThetaSize());
   }
 }

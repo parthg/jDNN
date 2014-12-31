@@ -9,23 +9,22 @@ public class LogisticLayer extends Layer {
     super(_size);
   }
   
-  public void applyNonLinearity() {
-    this.data = ((MatrixFunctions.exp(this.data.mul(-1))).addi(1)).rdivi(1);
+  /** sigmoid f(x) = 1/ (1+ exp(-x))
+   */
+  public DoubleMatrix applyNonLinearity(DoubleMatrix data) {
+    return ((MatrixFunctions.exp(data.mul(-1))).addi(1)).rdivi(1);
   }
 
-  /** this will change the current data of the network
+  /** fprop
    */
-  public void fProp(DoubleMatrix input) {
-    this.inData = input; 
-//    this.allInData.addi(input);
-    this.data = input.mmul(this.w).addRowVector(this.b);
-    this.applyNonLinearity();
-//    this.allData.addi(this.data);
+  public DoubleMatrix fProp(DoubleMatrix input) {
+    DoubleMatrix data = input.mmul(this.w).addRowVector(this.b);
+    return this.applyNonLinearity(data);
   }
 
-  /** calculate the gradient based on the error provided to it
+  /** calculate the gradient based on the error and representation provided to it
    */
-  public void bProp(DoubleMatrix error) {
-    this.grad = error.mul(this.data.mul((this.data.mul(-1)).add(1)));
+  public DoubleMatrix bProp(DoubleMatrix data, DoubleMatrix error) {
+    return error.mul(data.mul((data.mul(-1)).add(1)));
   }
 }

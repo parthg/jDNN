@@ -5,6 +5,7 @@ import nn.Layer;
 import org.jblas.DoubleMatrix;
 import java.util.Iterator;
 import java.util.ListIterator;
+import java.util.Stack;
 
 import common.Sentence;
 
@@ -21,19 +22,19 @@ public class AddModel extends Model {
       DoubleMatrix temp = input;
       while(layerIt.hasNext()) {
         Layer l = layerIt.next();
-        l.fProp(temp);
-        temp = l.getActivities();
+        temp = l.fProp(temp);
       }
       rep.addi(temp);
     }
     return rep;
   }
 
-  public void bProp(Sentence s1, Sentence s2, boolean add) {
+  public DoubleMatrix bProp(Sentence s1, Sentence s2) {
     // send s2 up -- use it as label
     // send s1 up 
     // calculate error (1-2)
-    // backpropagate error
+    // backpropagate error -- for each word!
+    DoubleMatrix grads = DoubleMatrix.zeros(1, this.thetaSize); 
     DoubleMatrix label = this.fProp(s2);
     DoubleMatrix pred = this.fProp(s1);
 
@@ -41,25 +42,35 @@ public class AddModel extends Model {
     Iterator<Integer> sentIt = s1.words.iterator();
     // for each word
     while(sentIt.hasNext()) {
-      DoubleMatrix input = this.dict.getRepresentation(sentIt.next());
+      int start = 0;
+      double[] tempGrads = new double[this.thetaSize];
+      DoubleMatrix word = this.dict.getRepresentation(sentIt.next());
       Iterator<Layer> layerIt = this.layers.iterator();
-      DoubleMatrix temp = input;
-      // do fprop
+      DoubleMatrix rep = word;
+      Stack<DoubleMatrix> input = new Stack<DoubleMatrix>();
+      input.push(word);
+
+      // fprop and store the representations at each layer in stack
       while(layerIt.hasNext()) {
         Layer l = layerIt.next();
-        l.fProp(temp);
-        temp = l.getActivities();
+        rep = l.fProp(rep);
+        input.push(rep);
       }
       ListIterator<Layer> layerRevIt = this.layers.listIterator(this.layers.size());
-      temp = error;
+      DoubleMatrix tempError = error;
+      rep = input.pop();
       // backprop it
       while(layerRevIt.hasPrevious()) {
         Layer l = layerRevIt.previous();
-        l.bProp(temp);
-        l.accumulateGradients(add);
-        temp = l.getGradients().mmul(l.getWeights().transpose());
+        DoubleMatrix lGrads = l.bProp(rep, tempError);
+        double[] lParamGrads = l.getParamGradients(input.peek(), lGrads);
+        tempError = lGrads.mmul(l.getWeights().transpose());
+        rep = input.pop();
+        System.arraycopy(lParamGrads, 0, tempGrads, start, lParamGrads.length);
+        start = l.getThetaSize();
       }
+      grads.addi(new DoubleMatrix(1, this.thetaSize, tempGrads));
     }
+    return grads;
   }
-
 }
