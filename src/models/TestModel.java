@@ -16,6 +16,7 @@ import es.upv.nlel.utils.Language;
 import common.Sentence;
 import common.Corpus;
 import common.Dictionary;
+import common.Datum;
 
 import optim.GradientCheck;
 import optim.NoiseGradientCalc;
@@ -63,7 +64,7 @@ public class TestModel {
 //    enDict.print();
 
     enModel.setDict(enDict);
-    Layer l = new LogisticLayer(5);
+    Layer l = new LogisticLayer(64);
     enModel.addHiddenLayer(l);
   
     enModel.init();
@@ -77,8 +78,34 @@ public class TestModel {
     corp.add(enCorp);
     corp.add(enPos);
     corp.add(enNeg);
-    GradientCheck test = new GradientCheck(new NoiseGradientCalc());
-    test.optimise(enModel, corp);
+
+    List<Datum> instances = new ArrayList<Datum>();
+    for(int i=0; i<enCorp.getSize(); i++) {
+      Sentence s = enCorp.get(i);
+      Sentence sPos = enPos.get(i);
+      Sentence sNeg = enNeg.get(i);
+      List<Sentence> nSents = new ArrayList<Sentence>();
+      nSents.add(sNeg);
+      Datum d = new Datum(i, s, sPos, nSents);
+      instances.add(d);
+    }
+
+/*    for(int i=0; i<c.get(0).getSize(); i++) {
+      List<Sentence> s = new ArrayList<Sentence>();
+      for(int corp=0; corp<c.size(); corp++)
+        s.add(c.get(corp).get(i));
+
+      gradFunc.setData(s);*/
+
+    int batchsize = 1;
+    
+    for(int i=0; i<instances.size(); i+=2) {
+      List<Datum> batch = new ArrayList<Datum>();
+      batch.add(instances.get(i));
+      batch.add(instances.get(i+1));
+      GradientCheck test = new GradientCheck(new NoiseGradientCalc(batch));
+      test.optimise(enModel);
+    }
 
   }
 }
