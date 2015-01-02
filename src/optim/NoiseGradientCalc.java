@@ -4,6 +4,7 @@ import org.jblas.DoubleMatrix;
 import models.Model;
 import common.Sentence;
 import common.Datum;
+import parallel.Parallel;
 
 import java.util.List;
 
@@ -17,7 +18,19 @@ public class NoiseGradientCalc extends GradientCalc {
     double err = 0.0;
     int nDP = 1;
     // make it parallel
-    for(Datum d: this.data) {
+    final MonoNoiseCost costComputer = new MonoNoiseCost(this.model);
+    Parallel.For(this.data, new Parallel.Operation<Datum>() {
+      public void perform(int index, Datum datum) {
+        try {
+          costComputer.computeCost(datum);
+        } catch (Exception e) {
+          System.err.println(e.getMessage());
+        }
+      }
+    });
+    err = costComputer.getCost();
+    return err/this.dataSize();
+/*    for(Datum d: this.data) {
       DoubleMatrix s1_root = this.model.fProp(d.getData());
       DoubleMatrix s2_root = this.model.fProp(d.getPos());
       int nSamples = d.getNegSampleSize();
@@ -32,7 +45,11 @@ public class NoiseGradientCalc extends GradientCalc {
       err+=unitError;
     }
 //    double err = 0.5*((s1_root.sub(s2_root)).mul(s1_root.sub(s2_root))).sum() - 0.5*((s1_root.sub(s3_root)).mul(s1_root.sub(s3_root))).sum();
-    return err/(nDP*this.dataSize());
+    System.gc(); System.gc();
+    System.gc(); System.gc();
+    System.gc(); System.gc();
+    System.gc(); System.gc();
+    return err/(nDP*this.dataSize());*/
   }
 
   // df - gradient for this error
@@ -42,7 +59,20 @@ public class NoiseGradientCalc extends GradientCalc {
     DoubleMatrix grads = DoubleMatrix.zeros(1, buffer.length);
     int nDP = 1;
     // parallelise this
-    for(Datum d: this.data) {
+    final MonoNoiseCost costComputer = new MonoNoiseCost(this.model);
+    Parallel.For(this.data, new Parallel.Operation<Datum>() {
+      public void perform(int index, Datum datum) {
+        try {
+          costComputer.computeGrad(datum);
+        } catch (Exception e) {
+          System.err.println(e.getMessage());
+        }
+      }
+    });
+    grads.addi(costComputer.getGrads());
+    grads.muli(1.0/this.dataSize());
+
+/*    for(Datum d: this.data) {
       int nSamples = d.getNegSampleSize();
       nDP = nSamples;
       List<Sentence> neg = d.getNeg();
@@ -60,7 +90,7 @@ public class NoiseGradientCalc extends GradientCalc {
       }
     }
 
-    grads.muli(1.0/(nDP*this.dataSize()));
+    grads.muli(1.0/(nDP*this.dataSize()));*/
 
     System.arraycopy(grads.toArray(), 0, buffer, 0, this.model.getThetaSize());
   }

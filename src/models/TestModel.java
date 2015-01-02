@@ -32,9 +32,9 @@ public class TestModel {
     Model enModel = new AddModel();
     Model deMdel = new AddModel();
 
-    String file = "sample/english.short";
-    String posFile = "sample/english-pos.short";
-    String negFile = "sample/english-neg.short";
+    String file = "sample/english";
+    String posFile = "sample/english-pos";
+    String negFile = "sample/english-neg";
 
 		String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
 		List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
@@ -64,7 +64,7 @@ public class TestModel {
 //    enDict.print();
 
     enModel.setDict(enDict);
-    Layer l = new LogisticLayer(64);
+    Layer l = new LogisticLayer(128);
     enModel.addHiddenLayer(l);
   
     enModel.init();
@@ -97,12 +97,13 @@ public class TestModel {
 
       gradFunc.setData(s);*/
 
-    int batchsize = 1;
+    int batchsize = 3;
     
-    for(int i=0; i<instances.size(); i+=2) {
+    for(int i=0; i<instances.size(); i+=batchsize) {
       List<Datum> batch = new ArrayList<Datum>();
-      batch.add(instances.get(i));
-      batch.add(instances.get(i+1));
+      for(int j=0; j<batchsize; j++) {
+        batch.add(instances.get(i+j));
+      }
       GradientCheck test = new GradientCheck(new NoiseGradientCalc(batch));
       test.optimise(enModel);
     }
