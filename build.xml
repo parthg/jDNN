@@ -1,6 +1,6 @@
 <project name="cl-autoencoder" basedir=".">
     <description>
-        simple example build file
+       build file
     </description>
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
@@ -9,7 +9,7 @@
   <property name="docs" location="web/WEB-INF/html"/>
   <property name="webdir" location="web/WEB-INF"/>
   <property name="lib" location="web/WEB-INF/lib"/>
-  <property name="classpath" location="web/WEB-INF/classes:/home/parth/workspace/Nemo/web/WEB-INF/classes:/home/parth/workspace/cl-deep/bin/:${lib}/trove-3.0.1.jar:${lib}/jblas-1.2.3-SNAPSHOT.jar:${lib}/terrier-3.5-core.jar:${lib}/antlr.jar"/>
+  <property name="classpath" location="web/WEB-INF/classes:/home/parth/workspace/Nemo/web/WEB-INF/classes:/home/parth/workspace/cl-deep/bin/:${lib}/trove-3.0.1.jar:${lib}/jblas-1.2.3-SNAPSHOT.jar:${lib}/terrier-3.5-core.jar:${lib}/antlr.jar:${lib}/mallet.jar"/>
     
 
   <target name="init">
@@ -22,7 +22,9 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${bin}" classpath="${classpath}"/>
+    <javac srcdir="${src}" destdir="${bin}" classpath="${classpath}">
+      <compilerarg value="-Xlint:unchecked"/>
+    </javac>
   </target>
 
   <target name="dist" depends="compile"

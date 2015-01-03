@@ -56,6 +56,7 @@ public class SampleData {
     System.out.println("Total " + this.data.size() + " data points loaded.");
   }
 
+  @SuppressWarnings("unchecked")
   public void loadSamples(String sampleObjFile) throws IOException, ClassNotFoundException {
     System.out.printf("Loading the samples from object file..\n");
     FileInputStream fis = new FileInputStream(sampleObjFile);

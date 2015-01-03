@@ -4,6 +4,8 @@ package common;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.io.PrintWriter;
+import java.io.IOException;
 
 import org.jblas.DoubleMatrix;
 
@@ -52,6 +54,13 @@ public class Dictionary {
 
   public int getId(String t) {
     return this.str2id.containsKey(t)?this.str2id.get(t):-1;
+  }
+
+  public void save(String file) throws IOException {
+    PrintWriter p = new PrintWriter(file, "UTF-8");
+    for(int i=0; i<this.dictSize; i++)
+      p.printf("%d\t%s\n", i, this.id2str.get(i));
+    p.close();
   }
   
 }
