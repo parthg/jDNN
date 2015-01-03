@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Arrays;
 import org.jblas.DoubleMatrix;
+import java.io.PrintWriter;
+import java.io.IOException;
 
 import nn.Layer;
 import common.Sentence;
@@ -63,7 +65,7 @@ public abstract class Model {
   }
 
   public double[] getParameters() {
-    System.out.printf("Total Parameters in Model = %d\n", this.getThetaSize());
+//    System.out.printf("Total Parameters in Model = %d\n", this.getThetaSize());
     double[] params = new double[this.thetaSize];
     int start = 0;
     Iterator<Layer> layerIt = this.layers.iterator();
@@ -75,6 +77,23 @@ public abstract class Model {
       start = l.getThetaSize();
     }
     return params;
+  }
+  public void save(String modelFile) throws IOException {
+    PrintWriter p = new PrintWriter(modelFile);
+    p.printf("#numLayers=%d\n",this.layers.size());
+    Iterator<Layer> layerIt = this.layers.iterator();
+    int lId = 1;
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      p.printf("#Layer%d=%d %d\n", lId, l.getInSize(), l.getSize());
+    }
+    p.printf("#params=");
+    double[] params = this.getParameters();
+    for(int i=0; i<params.length; i++) {
+      p.printf("%f ", params[i]);
+    }
+    p.printf("\n");
+    p.close();
   }
   public abstract DoubleMatrix fProp(Sentence input);
   public abstract DoubleMatrix bProp(Sentence s1, Sentence s2);

@@ -5,6 +5,7 @@ import org.jblas.DoubleMatrix;
 import models.Model;
 import common.Sentence;
 import common.Datum;
+import cc.mallet.optimize.Optimizable;
 
 public abstract class GradientCalc implements Optimizable.ByGradientValue {
 
@@ -29,7 +30,8 @@ public abstract class GradientCalc implements Optimizable.ByGradientValue {
    */
 
   public void getParameters(double[] doubleArray) {
-    doubleArray = new double[this.model.getThetaSize()];
+//    doubleArray = new double[this.model.getThetaSize()];
+    assert doubleArray.length==this.getNumParameters();
     System.arraycopy(this.params, 0, doubleArray, 0, this.getNumParameters());
   }
 

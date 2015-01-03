@@ -39,7 +39,8 @@ public class MonoNoiseCost {
     for(int i=0; i<nSamples; i++) {
       DoubleMatrix s3_root = this.model.fProp(neg.get(i));
 
-      unitError += 0.5*Math.pow(s1_root.distance2(s2_root),2)-0.5*Math.pow(s1_root.distance2(s3_root),2);
+      // 1/2*(A-N)^2 - 1/2*(A-B)^2
+      unitError += -0.5*Math.pow(s1_root.distance2(s2_root),2)+0.5*Math.pow(s1_root.distance2(s3_root),2);
     }
     unitError = unitError/nSamples;
     lock.lock(); 
@@ -56,15 +57,15 @@ public class MonoNoiseCost {
     DoubleMatrix unitGrads = DoubleMatrix.zeros(1, this.model.getThetaSize());
 
     for(int i=0; i<nSamples; i++) {
-      // df/dA = (A-B) - (A-N)
-      unitGrads.addi(this.model.bProp(d.getData(), d.getPos()));
-      unitGrads.subi(this.model.bProp(d.getData(), neg.get(i)));
+      // df/dA = (A-N) - (A-B)
+      unitGrads.addi(this.model.bProp(d.getData(), neg.get(i)));
+      unitGrads.subi(this.model.bProp(d.getData(), d.getPos()));
 
-      // df/dB = (B-A)
-      unitGrads.addi(this.model.bProp(d.getPos(), d.getData()));
-
-      // df/dN = - (N-A)
-      unitGrads.subi(this.model.bProp(neg.get(i), d.getData()));
+      // df/dN = (N-A)
+      unitGrads.addi(this.model.bProp(neg.get(i), d.getData()));
+      
+      // df/dB = -(B-A)
+      unitGrads.subi(this.model.bProp(d.getPos(), d.getData()));
     }
     unitGrads.muli(1.0/nSamples);
     lock.lock();

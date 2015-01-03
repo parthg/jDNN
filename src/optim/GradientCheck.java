@@ -3,7 +3,6 @@ package optim;
 import java.util.List;
 import java.util.ArrayList;
 
-import optim.BasicGradientCalc;
 import models.Model;
 import common.Sentence;
 import common.Corpus;
