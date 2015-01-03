@@ -1,19 +1,35 @@
 package math;
 
 public class DMathTest {
-  public static void testAdd() {
-    DMatrix a = DMath.createOnesMatrix(2,10);
-    DMatrix b = DMath.createOnesMatrix(2,10);
+  public static void testAddi() {
+    DMatrix a = DMath.createOnesMatrix(2,5);
+    DMatrix b = DMath.createOnesMatrix(2,5);
 
     a.addi(b);
-
     a.print();
   }
 
-  public static void testCudaAdd() {
+  public static void testMMuli() {
+    DMatrix a = DMath.createOnesMatrix(2, 2);
+    DMatrix b = DMath.createOnesMatrix(2, 2);
+
+    a.mmuli(b);
+    a.print();
   }
+
+  public static void testMMul() {
+    DMatrix a = DMath.createOnesMatrix(2, 2000);
+    DMatrix b = DMath.createOnesMatrix(2000, 2);
+    DMatrix c = DMath.createMatrix(2, 2);
+
+    a.mmuli(b, c);
+    c.print();
+  }
+  
   public static void main(String[] args) {
     System.out.println(System.getProperty("use_cuda"));
-    testAdd();
+    testAddi();
+    testMMuli();
+    testMMul();
   }
 }

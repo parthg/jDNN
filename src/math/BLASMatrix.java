@@ -45,9 +45,11 @@ public class BLASMatrix extends DMatrix {
   }
 
   public DMatrix mul(DMatrix other) {
+    System.err.printf("TODO\n\n");
     return null;
   }
   public DMatrix muli(DMatrix other) {
+    System.err.printf("TODO\n\n");
     return null;
   }
 
@@ -58,4 +60,12 @@ public class BLASMatrix extends DMatrix {
     return null;
   }
 
+  public DMatrix mmul(DMatrix other) {
+    System.err.printf("TODO\n\n");
+    return null;
+  }
+  public DMatrix mmuli(DMatrix other) {
+    System.err.printf("TODO\n\n");
+    return null;
+  }
 }

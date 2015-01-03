@@ -58,4 +58,88 @@ public class SimpleCuBlas {
     getData(yC,yCPointer,Pointer.to(yC.data()));
     free(xCPointer,yCPointer);
   }
+
+   public static DMatrix gemv(DMatrix A, DMatrix B, DMatrix C, double alpha, double beta) {
+//     DataTypeValidation.assertDouble(A,B,C);
+     JCublas.cublasInit();
+
+     CUDAMatrix cA = (CUDAMatrix) A;
+     CUDAMatrix cB = (CUDAMatrix) B;
+     CUDAMatrix cC = (CUDAMatrix) C;
+     
+     Pointer cAPointer = alloc(cA);
+     Pointer cBPointer = alloc(cB);
+     Pointer cCPointer = alloc(cC);
+
+     JCublas.cublasDgemv(
+         'N',
+         A.rows(),
+         A.columns(),
+         alpha,
+         cAPointer,
+         A.rows(),
+         cBPointer,
+         1,
+         beta,
+         cCPointer,
+         1);
+
+     getData(cC,cCPointer,Pointer.to(cC.data()));
+     free(cAPointer,cBPointer,cCPointer);
+     
+     return C;
+   }
+
+  public static DMatrix gemm(DMatrix A, DMatrix B, DMatrix C,
+      double alpha, double beta) {
+//    DataTypeValidation.assertDouble(A,B,C);
+    JCublas.cublasInit();
+    
+    CUDAMatrix cA = (CUDAMatrix) A;
+    CUDAMatrix cB = (CUDAMatrix) B;
+    CUDAMatrix cC = (CUDAMatrix) C;
+    
+    Pointer cAPointer = alloc(cA);
+    Pointer cBPointer = alloc(cB);
+    Pointer cCPointer = alloc(cC);
+
+    JCublas.cublasDgemm(
+        'n', //trans
+        'n',
+        C.rows(), // m
+        C.columns(), // n
+        A.columns(), //k,
+        alpha,
+        cAPointer, // A
+        A.rows(), // lda
+        cBPointer, // x
+        B.rows(), // ldb
+        beta, // beta
+        cCPointer, // y
+        C.rows()); // incy
+    
+    getData(cC,cCPointer,Pointer.to(cC.data()));
+    free(cAPointer,cBPointer,cCPointer);
+    return C;
+  }
+
+  public static DMatrix copy(DMatrix A, DMatrix B) {
+    JCublas.cublasInit();
+
+    CUDAMatrix cA = (CUDAMatrix) A;
+    CUDAMatrix cB = (CUDAMatrix) B;
+
+    Pointer cAPointer = alloc(cA);
+    Pointer cBPointer = alloc(cB);
+
+    JCublas.cublasCcopy(A.length(), 
+        cAPointer, 
+        1, 
+        cBPointer, 
+        1);
+    getData(cB,cBPointer,Pointer.to(cB.data()));
+    free(cAPointer, cBPointer);
+    return B;
+  }
+
 }

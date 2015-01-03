@@ -34,6 +34,14 @@ public abstract class DMatrix {
     return this.offset;
   }
 
+  public int rows() {
+    return this.rows;
+  }
+
+  public int columns() {
+    return this.columns;
+  }
+
   public int length() {
     return this.length;
   }
@@ -56,6 +64,13 @@ public abstract class DMatrix {
     }
   }
 
+  public void resize(int newRows, int newColumns) {
+    rows = newRows;
+    columns = newColumns;
+    length = newRows * newColumns;
+    data = new double[rows * columns];
+  }
+
   public abstract DMatrix transpose();
 
   public abstract DMatrix add(DMatrix other);
@@ -67,4 +82,7 @@ public abstract class DMatrix {
   public abstract DMatrix mul(double v);
   public abstract DMatrix muli(double v);
 
+  public abstract DMatrix mmul(DMatrix other);
+  public abstract DMatrix mmuli(DMatrix other);
+  public abstract DMatrix mmuli(DMatrix other, DMatrix result);
 }

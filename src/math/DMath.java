@@ -8,6 +8,14 @@ public class DMath {
     if(System.getProperty("use_cuda").equals("true"))
       USE_CUDA = true;
   }
+  
+  public static DMatrix createMatrix(int r, int c) {
+    if(!USE_CUDA)
+      return new BLASMatrix(r, c);
+    else
+      return new CUDAMatrix(r, c);
+  }
+  
   public static DMatrix createMatrix(int r, int c, double[] d) {
     if(!USE_CUDA)
       return new BLASMatrix(r, c, d);
