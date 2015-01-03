@@ -3,24 +3,42 @@ package optim;
 import org.jblas.DoubleMatrix;
 import models.Model;
 import common.Sentence;
+import common.Datum;
+
+import java.util.List;
 
 public class BasicGradientCalc extends GradientCalc {
 
+  public BasicGradientCalc(List<Datum> _data) {
+    super(_data);
+    System.err.printf("\n\nThis is still minimizer - FIX IT!\n\n");
+    System.exit(0);
+  }
+
   // f - error 
   public double getValue () {
-    DoubleMatrix s1_root = this.model.fProp(this.s.get(0));
-    DoubleMatrix s2_root = this.model.fProp(this.s.get(1));
+    double err = 0.0;
+    for(Datum d: this.data) {
+      DoubleMatrix s1_root = this.model.fProp(d.getData());
+      DoubleMatrix s2_root = this.model.fProp(d.getPos());
 
-    return 0.5*Math.pow(s1_root.distance2(s2_root),2);
+      double unitError = 0.5*Math.pow(s1_root.distance2(s2_root),2);
+      err+=unitError;
+    }
+    return err/this.dataSize();
   }
 
   // df - gradient for this error
   public void getValueGradient (double[] buffer) {
     assert (buffer.length == this.model.getThetaSize());
     DoubleMatrix grads = DoubleMatrix.zeros(1, buffer.length);
-    grads.addi(this.model.bProp(this.s.get(0), this.s.get(1)));
-    grads.addi(this.model.bProp(this.s.get(1), this.s.get(0)));
 
+    for(Datum d: this.data) {
+      grads.addi(this.model.bProp(d.getData(), d.getPos()));
+      grads.addi(this.model.bProp(d.getPos(), d.getData()));
+    }
+
+    grads.muli(1.0/(this.dataSize()));
     System.arraycopy(grads.toArray(), 0, buffer, 0, this.model.getThetaSize());
   }
 }
