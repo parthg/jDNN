@@ -4,21 +4,34 @@ import java.util.List;
 import org.jblas.DoubleMatrix;
 import models.Model;
 import common.Sentence;
+import common.Datum;
+import cc.mallet.optimize.Optimizable;
 
 public abstract class GradientCalc implements Optimizable.ByGradientValue {
 
   Model model;
-  List<Sentence> s;
+  List<Datum> data;
   double[] params;
 
+  double cost;
+  double[] grads;
+
+  public GradientCalc(List<Datum> _data) {
+    this.data = _data;
+  }
+
+  public int dataSize() {
+    return this.data.size();
+  }
   public void setModel(Model _model) { this.model = _model; this.params = this.model.getParameters();}
 
-  public void setData(List<Sentence> _s) {this.s = _s;}
+//  public void setData(List<Sentence> _s) {this.s = _s;}
   /** TODO:parth include the code from mallet/optim and then see the structure of passing the parameters and then updateing it. - ConjugateGradient
    */
 
   public void getParameters(double[] doubleArray) {
-    doubleArray = new double[this.model.getThetaSize()];
+//    doubleArray = new double[this.model.getThetaSize()];
+    assert doubleArray.length==this.getNumParameters();
     System.arraycopy(this.params, 0, doubleArray, 0, this.getNumParameters());
   }
 

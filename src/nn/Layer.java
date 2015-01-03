@@ -10,6 +10,11 @@ public abstract class Layer {
   int thetaSize; // basically wSize+bSize
   int inSize, size;
 
+
+  public int getInSize() {
+    return this.inSize;
+  }
+
   public int getSize() {
     return this.size;
   }
@@ -18,7 +23,7 @@ public abstract class Layer {
   }
 
   public double[] getParameters() {
-    System.out.printf("Num of Parametrs in Layer = %d\n", this.getThetaSize());
+//    System.out.printf("Num of Parametrs in Layer = %d\n", this.getThetaSize());
     double[] params = new double[this.thetaSize];
     System.arraycopy(this.w.toArray(), 0, params, 0, this.wSize);
     System.arraycopy(this.b.toArray(), 0, params, this.wSize, this.bSize);
@@ -44,8 +49,8 @@ public abstract class Layer {
   public void init(boolean rand, int _inSize, int outSize) {
     this.inSize = _inSize;
     if(rand) {
-      this.w = DoubleMatrix.randn(this.inSize, outSize);
-      this.b = DoubleMatrix.zeros(1, outSize);
+      this.w = DoubleMatrix.randn(this.inSize, outSize).muli(0.01);
+      this.b = DoubleMatrix.ones(1, outSize).muli(-2.0);
     } 
     //TODO: Think that do we need to init any params to zero ? or this can be a good way to get rid of cleargrads methods
     //else

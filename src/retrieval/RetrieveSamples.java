@@ -74,7 +74,7 @@ public class RetrieveSamples {
     
 //    Map<Integer, String> dataIds = new HashMap<Integer, String>();
 
-    int sampleSize = 4;
+    int sampleSize = 1;
     int id = 0;
     while((line = br.readLine())!=null) {
       Sample sample = ret.getSample(line.trim(), sampleSize, sampleSize, tempSentDir);
@@ -89,7 +89,7 @@ public class RetrieveSamples {
     // retrieve relevant and non-relevant document and encapsulate them in Sample
     // write in a proper form
     System.out.println("Writing the Object");
-    FileOutputStream fos = new FileOutputStream("obj/hi-samples.obj");
+    FileOutputStream fos = new FileOutputStream("obj/hi-title-only-samples.obj");
     ObjectOutputStream oos = new ObjectOutputStream(fos);
 
     oos.writeObject(sampleMap);
