@@ -33,8 +33,17 @@ public class CUDAMatrix extends DMatrix {
   public DMatrix transpose() {
     return new CUDAMatrix(this.columns, this.rows, this.data);
   }
-  
-  // y = alpha*x+y
+ 
+
+  // y = Ax+y
+  public DMatrix addMuli(DMatrix A, DMatrix x) {
+    SimpleCuBlas.gemv(A, x, this, 1.0, 1.0);
+    return this;
+  }
+
+
+
+  // y = 1*x+y
   public DMatrix add(DMatrix other) {
     DMatrix m = new CUDAMatrix(this.rows, this.columns, this.data());
     SimpleCuBlas.axpy(1.0, other, m);
@@ -46,6 +55,24 @@ public class CUDAMatrix extends DMatrix {
     return this;
   }
 
+  // y = a*X+b
+  public DMatrix addi(double a, DMatrix other) {
+    SimpleCuBlas.axpy(a, other, this);
+    return this;
+  }
+
+  public DMatrix add(double v) {
+    DMatrix m = DMath.createMatrix(this.rows(), this.columns(), this.toArray());
+    for (int i = 0; i < this.length(); i++)
+      m.put(i,(double) v+m.get(i));
+    return m;
+  }
+  public DMatrix addi(double v) {
+    for (int i = 0; i < this.length(); i++)
+      this.put(i,(double) v+this.get(i));
+    return this;
+  }
+  
   public DMatrix mul(DMatrix other) {
     return null;
   }
@@ -58,7 +85,8 @@ public class CUDAMatrix extends DMatrix {
     return null;
   }
   public DMatrix muli(double v) {
-    return null;
+    SimpleCuBlas.scal(this, v);
+    return this;
   }
 
   public DMatrix mmul(DMatrix other) {

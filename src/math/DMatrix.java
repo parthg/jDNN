@@ -22,12 +22,19 @@ public abstract class DMatrix {
   }
 
   public double[] toArray() {
-    return this.data;
+    double[] array = new double[this.length];
+    System.arraycopy(this.data, 0, array, 0, this.length);
+    return array;
   }
 
   public void put(int i, double v) {
     assert (i<this.length);
     this.data[i] = v;
+  }
+
+  public double get(int i) {
+    assert (i<this.length);
+    return this.data[i];
   }
 
   public int offset() {
@@ -75,6 +82,13 @@ public abstract class DMatrix {
 
   public abstract DMatrix add(DMatrix other);
   public abstract DMatrix addi(DMatrix other);
+
+  public abstract DMatrix add(double v);
+  public abstract DMatrix addi(double v);
+
+  public abstract DMatrix addi(double alpha, DMatrix other);
+
+  public abstract DMatrix addMuli(DMatrix A, DMatrix x);
 
   public abstract DMatrix mul(DMatrix other);
   public abstract DMatrix muli(DMatrix other);

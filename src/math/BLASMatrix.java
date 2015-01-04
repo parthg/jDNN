@@ -60,12 +60,43 @@ public class BLASMatrix extends DMatrix {
     return null;
   }
 
+  public DMatrix mmuli(DMatrix other, DMatrix result) {
+    assert (this.columns()==other.rows());
+    if (result.rows != rows || result.columns != other.columns) {
+      if (result != this && result != other) {
+        result.resize(this.rows, other.columns);
+      } else {
+        System.err.printf("Cannot resize result matrix because it is used in-place.\n\n");
+      }
+    }
+
+    if (result == this || result == other) {
+      /* actually, blas cannot do multiplications in-place. Therefore, we will fake by
+       * * allocating a temporary object on the side and copy the result later.
+       * */
+      DMatrix temp = new BLASMatrix(result.rows(), result.columns());
+  //    if (other.columns == 1) {
+ //       SimpleBlas.gemv(this, other, temp, 1.0, 0.0);
+ //     } else {
+        SimpleBlas.gemm(this, other, temp, 1.0, 0.0);
+//      }
+      SimpleBlas.copy(temp, result);
+    } 
+    else {
+//      if (other.columns == 1) {
+//        SimpleBlas.gemv(this, other, result, 1.0, 0.0);
+//      } else {
+        SimpleBlas.gemm(this, other, result, 1.0, 0.0);
+//      }
+    }
+    return result;
+  }
+  
   public DMatrix mmul(DMatrix other) {
     System.err.printf("TODO\n\n");
     return null;
   }
   public DMatrix mmuli(DMatrix other) {
-    System.err.printf("TODO\n\n");
-    return null;
+    return mmuli(other, this);
   }
 }

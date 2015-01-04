@@ -1,6 +1,17 @@
 package math;
 
 public class DMathTest {
+
+  public static void testMuli() {
+    DMatrix a = DMath.createOnesMatrix(2,5);
+    DMatrix b = DMath.createOnesMatrix(2,5);
+
+    a.muli(2.0);
+    a.print();
+    a.muli(b);
+    a.print();
+  }
+
   public static void testAddi() {
     DMatrix a = DMath.createOnesMatrix(2,5);
     DMatrix b = DMath.createOnesMatrix(2,5);
@@ -18,8 +29,8 @@ public class DMathTest {
   }
 
   public static void testMMul() {
-    DMatrix a = DMath.createOnesMatrix(2, 2000);
-    DMatrix b = DMath.createOnesMatrix(2000, 2);
+    DMatrix a = DMath.createOnesMatrix(2, 80000);
+    DMatrix b = DMath.createOnesMatrix(80000, 2);
     DMatrix c = DMath.createMatrix(2, 2);
 
     a.mmuli(b, c);
@@ -31,5 +42,7 @@ public class DMathTest {
     testAddi();
     testMMuli();
     testMMul();
+
+    testMuli();
   }
 }

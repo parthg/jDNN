@@ -132,7 +132,7 @@ public class SimpleCuBlas {
     Pointer cAPointer = alloc(cA);
     Pointer cBPointer = alloc(cB);
 
-    JCublas.cublasCcopy(A.length(), 
+    JCublas.cublasDcopy(A.length(), 
         cAPointer, 
         1, 
         cBPointer, 
@@ -140,6 +140,19 @@ public class SimpleCuBlas {
     getData(cB,cBPointer,Pointer.to(cB.data()));
     free(cAPointer, cBPointer);
     return B;
+  }
+
+  public static DMatrix scal(DMatrix A, double alpha) {
+    JCublas.cublasInit();
+
+    CUDAMatrix cA = (CUDAMatrix) A;
+
+    Pointer cAPointer = alloc(cA);
+
+    JCublas.cublasDscal(A.length(), alpha, cAPointer, 1);
+    getData(cA,cAPointer,Pointer.to(cA.data()));
+    free(cAPointer);
+    return A;
   }
 
 }

@@ -4,13 +4,16 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Arrays;
-import org.jblas.DoubleMatrix;
+//import org.jblas.DoubleMatrix;
+
 import java.io.PrintWriter;
 import java.io.IOException;
 
 import nn.Layer;
 import common.Sentence;
 import common.Dictionary;
+
+import math.DMatrix;
 
 public abstract class Model {
   Dictionary dict;
@@ -95,6 +98,6 @@ public abstract class Model {
     p.printf("\n");
     p.close();
   }
-  public abstract DoubleMatrix fProp(Sentence input);
-  public abstract DoubleMatrix bProp(Sentence s1, Sentence s2);
+  public abstract DMatrix fProp(Sentence input);
+  public abstract DMatrix bProp(Sentence s1, Sentence s2);
 }

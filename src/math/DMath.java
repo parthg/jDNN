@@ -37,7 +37,7 @@ public class DMath {
       return CUDAMatrix.ones(r, c);
   }
 
-  public static DMatrix createRandMatrix(int r, int c) {
+  public static DMatrix createRandnMatrix(int r, int c) {
     if(!USE_CUDA)
       return BLASMatrix.randn(r, c);
     else

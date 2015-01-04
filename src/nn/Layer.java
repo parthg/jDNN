@@ -1,10 +1,12 @@
 package nn;
 
 import java.util.Arrays;
-import org.jblas.DoubleMatrix;
+import math.DMath;
+import math.DMatrix;
+//import org.jblas.DoubleMatrix;
 
 public abstract class Layer {
-  DoubleMatrix w, b;
+  DMatrix w, b;
 
   int wSize, bSize;
   int thetaSize; // basically wSize+bSize
@@ -30,9 +32,9 @@ public abstract class Layer {
     return params;
   }
 
-  public double[] getParamGradients(DoubleMatrix myInData, DoubleMatrix mygrad) {
+  public double[] getParamGradients(DMatrix myInData, DMatrix mygrad) {
     double[] paramGrads = new double[this.thetaSize];
-  
+    // TODO: check if blas expression fits here
     double[] mydW = (myInData.transpose().mmul(mygrad)).toArray();
     double[] mydB = mygrad.toArray();
 
@@ -42,15 +44,15 @@ public abstract class Layer {
   }
 
   public void setParameters(double[] params) {
-    this.w = new DoubleMatrix(this.inSize, this.size, Arrays.copyOfRange(params, 0, this.wSize));
-    this.b = new DoubleMatrix(1, this.size, Arrays.copyOfRange(params, this.wSize, params.length));
+    this.w = DMath.createMatrix(this.inSize, this.size, Arrays.copyOfRange(params, 0, this.wSize));
+    this.b = DMath.createMatrix(1, this.size, Arrays.copyOfRange(params, this.wSize, params.length));
   }
 
   public void init(boolean rand, int _inSize, int outSize) {
     this.inSize = _inSize;
     if(rand) {
-      this.w = DoubleMatrix.randn(this.inSize, outSize).muli(0.01);
-      this.b = DoubleMatrix.ones(1, outSize).muli(-2.0);
+      this.w = DMath.createRandnMatrix(this.inSize, outSize).muli(0.01);
+      this.b = DMath.createOnesMatrix(1, outSize).muli(-2.0);
     } 
     //TODO: Think that do we need to init any params to zero ? or this can be a good way to get rid of cleargrads methods
     //else
@@ -60,20 +62,20 @@ public abstract class Layer {
     this.thetaSize = this.wSize + this.bSize;
   }
 
-  public DoubleMatrix getWeights() {
+  public DMatrix getWeights() {
     return this.w;
   }
 
-  public DoubleMatrix getBiases() {
+  public DMatrix getBiases() {
     return this.b;
   }
 
-  public abstract DoubleMatrix applyNonLinearity(DoubleMatrix input);
+  public abstract DMatrix applyNonLinearity(DMatrix input);
   
-  public abstract DoubleMatrix fProp(DoubleMatrix input);
+  public abstract DMatrix fProp(DMatrix input);
 
   // return the grads of this layers. Call subsequently getParaGradients() to get parameters gradients (flattened).
-  public abstract DoubleMatrix bProp(DoubleMatrix mydata, DoubleMatrix error);
+  public abstract DMatrix bProp(DMatrix mydata, DMatrix error);
 
   public int getWSize() {return this.wSize;}
   public int getBSize() {return this.bSize;}
