@@ -1,6 +1,8 @@
 package optim;
 
-import org.jblas.DoubleMatrix;
+//import org.jblas.DoubleMatrix;
+import math.DMath;
+import math.DMatrix;
 import models.Model;
 import common.Sentence;
 import common.Datum;
@@ -31,14 +33,14 @@ public class NoiseGradientCalc extends GradientCalc {
     err = costComputer.getCost();
     return err/this.dataSize();
 /*    for(Datum d: this.data) {
-      DoubleMatrix s1_root = this.model.fProp(d.getData());
-      DoubleMatrix s2_root = this.model.fProp(d.getPos());
+      DMatrix s1_root = this.model.fProp(d.getData());
+      DMatrix s2_root = this.model.fProp(d.getPos());
       int nSamples = d.getNegSampleSize();
       nDP = nSamples;
       List<Sentence> neg = d.getNeg();
       double unitError = 0.0;
       for(int i=0; i<nSamples; i++) {
-        DoubleMatrix s3_root = this.model.fProp(neg.get(i));
+        DMatrix s3_root = this.model.fProp(neg.get(i));
 
         unitError += 0.5*Math.pow(s1_root.distance2(s2_root),2)-0.5*Math.pow(s1_root.distance2(s3_root),2);
       }
@@ -56,7 +58,7 @@ public class NoiseGradientCalc extends GradientCalc {
   // TODO: inefficient as it fProps several times
   public void getValueGradient (double[] buffer) {
     assert (buffer.length == this.model.getThetaSize());
-    DoubleMatrix grads = DoubleMatrix.zeros(1, buffer.length);
+    DMatrix grads = DMath.createZerosMatrix(1, buffer.length);
     int nDP = 1;
     // parallelise this
     final MonoNoiseCost costComputer = new MonoNoiseCost(this.model);

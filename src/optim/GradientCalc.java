@@ -1,7 +1,6 @@
 package optim;
 
 import java.util.List;
-import org.jblas.DoubleMatrix;
 import models.Model;
 import common.Sentence;
 import common.Datum;

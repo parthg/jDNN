@@ -15,8 +15,8 @@ public class AddModel extends Model {
   public AddModel() {
     super();
   }
-  public DoubleMatrix fProp(Sentence sent) {
-    DMatrix rep = DMatrix.zeros(1,super.outSize);
+  public DMatrix fProp(Sentence sent) {
+    DMatrix rep = DMath.createZerosMatrix(1,super.outSize);
     Iterator<Integer> sentIt = sent.words.iterator();
     while(sentIt.hasNext()) {
       DMatrix input = this.dict.getRepresentation(sentIt.next());

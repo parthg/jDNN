@@ -1,6 +1,8 @@
 package optim;
 
-import org.jblas.DoubleMatrix;
+//import org.jblas.DoubleMatrix;
+import math.DMath;
+import math.DMatrix;
 import models.Model;
 import common.Sentence;
 import common.Datum;
@@ -12,15 +14,15 @@ public class BasicGradientCalc extends GradientCalc {
   public BasicGradientCalc(List<Datum> _data) {
     super(_data);
     System.err.printf("\n\nThis is still minimizer - FIX IT!\n\n");
-    System.exit(0);
+//    System.exit(0);
   }
 
   // f - error 
   public double getValue () {
     double err = 0.0;
     for(Datum d: this.data) {
-      DoubleMatrix s1_root = this.model.fProp(d.getData());
-      DoubleMatrix s2_root = this.model.fProp(d.getPos());
+      DMatrix s1_root = this.model.fProp(d.getData());
+      DMatrix s2_root = this.model.fProp(d.getPos());
 
       double unitError = 0.5*Math.pow(s1_root.distance2(s2_root),2);
       err+=unitError;
@@ -31,7 +33,7 @@ public class BasicGradientCalc extends GradientCalc {
   // df - gradient for this error
   public void getValueGradient (double[] buffer) {
     assert (buffer.length == this.model.getThetaSize());
-    DoubleMatrix grads = DoubleMatrix.zeros(1, buffer.length);
+    DMatrix grads = DMath.createZerosMatrix(1, buffer.length);
 
     for(Datum d: this.data) {
       grads.addi(this.model.bProp(d.getData(), d.getPos()));

@@ -19,6 +19,7 @@ import common.Dictionary;
 import common.Datum;
 
 import optim.GradientCheck;
+import optim.BasicGradientCalc;
 import optim.NoiseGradientCalc;
 
 import cc.mallet.optimize.ConjugateGradient;
@@ -26,7 +27,7 @@ import cc.mallet.optimize.Optimizer;
 import optim.GradientCalc;
 import optim.NoiseGradientCalc;
 
-import org.jblas.DoubleMatrix;
+//import org.jblas.DoubleMatrix;
 
 import java.util.List;
 import java.util.ArrayList;

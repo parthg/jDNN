@@ -3,7 +3,9 @@ package optim;
 import models.Model;
 import common.Sentence;
 import common.Datum;
-import org.jblas.DoubleMatrix;
+//import org.jblas.DoubleMatrix;
+import math.DMath;
+import math.DMatrix;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,31 +15,31 @@ import java.util.List;
 public class MonoNoiseCost {
   Model model;
   double cost;
-  DoubleMatrix grads;
+  DMatrix grads;
   Lock lock;
 
   public MonoNoiseCost(Model _model) {
     this.model = _model;
     this.lock = new ReentrantLock();
     this.cost = 0.0;
-    this.grads = DoubleMatrix.zeros(1, this.model.getThetaSize());
+    this.grads = DMath.createZerosMatrix(1, this.model.getThetaSize());
   }
 
   public double getCost() {
     return this.cost;
   }
 
-  public DoubleMatrix getGrads() {
+  public DMatrix getGrads() {
     return this.grads;
   }
   public void computeCost(Datum d) {
-    DoubleMatrix s1_root = this.model.fProp(d.getData());
-    DoubleMatrix s2_root = this.model.fProp(d.getPos());
+    DMatrix s1_root = this.model.fProp(d.getData());
+    DMatrix s2_root = this.model.fProp(d.getPos());
     int nSamples = d.getNegSampleSize();
     List<Sentence> neg = d.getNeg();
     double unitError = 0.0;
     for(int i=0; i<nSamples; i++) {
-      DoubleMatrix s3_root = this.model.fProp(neg.get(i));
+      DMatrix s3_root = this.model.fProp(neg.get(i));
 
       // 1/2*(A-N)^2 - 1/2*(A-B)^2
       unitError += -0.5*Math.pow(s1_root.distance2(s2_root),2)+0.5*Math.pow(s1_root.distance2(s3_root),2);
@@ -54,7 +56,7 @@ public class MonoNoiseCost {
     int nSamples = (d.getNegSampleSize()>0)?d.getNegSampleSize():1;
     List<Sentence> neg = d.getNeg();
     
-    DoubleMatrix unitGrads = DoubleMatrix.zeros(1, this.model.getThetaSize());
+    DMatrix unitGrads = DMath.createZerosMatrix(1, this.model.getThetaSize());
 
     for(int i=0; i<nSamples; i++) {
       // df/dA = (A-N) - (A-B)
