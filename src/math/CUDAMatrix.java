@@ -45,12 +45,14 @@ public class CUDAMatrix extends DMatrix {
 
   // y = 1*x+y
   public DMatrix add(DMatrix other) {
+    assert (this.length()==other.length());
     DMatrix m = new CUDAMatrix(this.rows, this.columns, this.data());
     SimpleCuBlas.axpy(1.0, other, m);
     return m;
   }
   public DMatrix addi(DMatrix other) {
-    System.out.printf("Using cuda blas\n");
+    assert (this.length()==other.length());
+//    System.out.printf("Using cuda blas\n");
     SimpleCuBlas.axpy(1.0, other, this);
     return this;
   }
@@ -73,16 +75,36 @@ public class CUDAMatrix extends DMatrix {
     return this;
   }
   
+  public DMatrix sub(DMatrix other) {
+    assert (this.length()==other.length());
+    DMatrix m = new CUDAMatrix(this.rows(), this.columns(), this.toArray());
+    SimpleCuBlas.axpy(-1.0, other, m);
+    return m;
+  }
+
+  public DMatrix subi(DMatrix other) {
+    assert (this.length()==other.length());
+    SimpleCuBlas.axpy(-1.0, other, this);
+    return this;
+  }
+  
   public DMatrix mul(DMatrix other) {
-    return null;
+    assert (this.length()==other.length());
+    DMatrix m = new CUDAMatrix(this.rows(), this.columns());
+    SimpleCuBlas.mul(this, other, m);
+    return m;
   }
 
   public DMatrix muli(DMatrix other) {
-    return null;
+    assert (this.length()==other.length());
+    SimpleCuBlas.mul(this, other, this);
+    return this;
   }
 
   public DMatrix mul(double v) {
-    return null;
+    DMatrix m = new CUDAMatrix(this.rows(), this.columns(), this.toArray());
+    SimpleCuBlas.scal(m, v);
+    return m;
   }
   public DMatrix muli(double v) {
     SimpleCuBlas.scal(this, v);
@@ -90,11 +112,14 @@ public class CUDAMatrix extends DMatrix {
   }
 
   public DMatrix mmul(DMatrix other) {
+    assert (this.columns()==other.rows());
     DMatrix m = new CUDAMatrix(this.rows(), this.columns());
-    SimpleCuBlas.gemm(other, this, m, 1.0, 0.0);
-    return m;
+//    SimpleCuBlas.gemm(other, this, m, 1.0, 0.0);
+    return mmuli(other, m);
+//    return m;
   }
 
+  //result = this*other
   public DMatrix mmuli(DMatrix other, DMatrix result) {
     assert (this.columns()==other.rows());
     if (result.rows != rows || result.columns != other.columns) {

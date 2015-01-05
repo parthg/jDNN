@@ -2,12 +2,14 @@ package math;
 
 public class DMathTest {
 
+
   public static void testMuli() {
     DMatrix a = DMath.createOnesMatrix(2,5);
     DMatrix b = DMath.createOnesMatrix(2,5);
 
     a.muli(2.0);
     a.print();
+    b.muli(2.0);
     a.muli(b);
     a.print();
   }

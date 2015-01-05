@@ -1,6 +1,8 @@
 package math;
 
 public abstract class DMatrix {
+//  int devId;
+//  Pointer devPointer; 
   int rows;
   int columns;
   int length;
@@ -27,6 +29,13 @@ public abstract class DMatrix {
     return array;
   }
 
+  public int index(int i, int j) {
+    return i*rows+j;
+  }
+  public void put(int i, int j, double v) {
+    this.data[index(i, j)] = v;
+  }
+  
   public void put(int i, double v) {
     assert (i<this.length);
     this.data[i] = v;
@@ -61,6 +70,20 @@ public abstract class DMatrix {
     return 8;
   }
 
+  public double squaredDistance(DMatrix other) {
+    assert (this.length == other.length());
+    double sd = 0.0;
+    for (int i = 0; i < length; i++) {
+      double d = get(i) - other.get(i);
+      sd += d * d;
+    }
+    return sd;
+  }
+
+  public double distance2(DMatrix other) {
+    return (double) Math.sqrt(squaredDistance(other));
+  }
+
   public void print() {
     for(int i= 0; i<this.rows; i++) {
       System.out.printf("[");
@@ -90,6 +113,9 @@ public abstract class DMatrix {
 
   public abstract DMatrix addMuli(DMatrix A, DMatrix x);
 
+  public abstract DMatrix sub(DMatrix other);
+  public abstract DMatrix subi(DMatrix other);
+  
   public abstract DMatrix mul(DMatrix other);
   public abstract DMatrix muli(DMatrix other);
 
