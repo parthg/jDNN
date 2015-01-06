@@ -124,6 +124,7 @@ public class TestModel {
         for(int j=0; j<innerbatchsize; j++) {
           batch.add(instances.get(i+j));
         }
+        try {
         GradientCalc trainer = new NoiseGradientCalc(batch);
         trainer.setModel(enModel);
         // MAXIMISER
@@ -136,7 +137,12 @@ public class TestModel {
         batchNum++;
 //        GradientCheck test = new GradientCheck(new NoiseGradientCalc(batch));
 //        test.optimise(enModel);
+        } finally {
+          enModel.clearDevice();
+        }
+         
       }
+      enModel.clearDevice();
       enModel.save("obj/model.txt");
     }
   }

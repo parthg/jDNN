@@ -32,6 +32,7 @@ public class LogisticLayer extends Layer {
   /** calculate the gradient based on the error and representation provided to it
    */
   public DMatrix bProp(DMatrix data, DMatrix error) {
+    //TODO: Probably you can have data copy once on the device
     return error.mul(data.mul(DMath.createOnesMatrix(data.rows(), data.columns()).addi(-1.0, data)));
 //    return error.mul(data.mul((data.mul(-1)).add(1)));
   }

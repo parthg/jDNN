@@ -46,6 +46,7 @@ public abstract class Layer {
   public void setParameters(double[] params) {
     this.w = DMath.createMatrix(this.inSize, this.size, Arrays.copyOfRange(params, 0, this.wSize));
     this.b = DMath.createMatrix(1, this.size, Arrays.copyOfRange(params, this.wSize, params.length));
+    this.updateDeviceCopy();
   }
 
   public void init(boolean rand, int _inSize, int outSize) {
@@ -60,6 +61,7 @@ public abstract class Layer {
     this.wSize = this.inSize * outSize;
     this.bSize = outSize;
     this.thetaSize = this.wSize + this.bSize;
+    this.copyHtoD();
   }
 
   public DMatrix getWeights() {
@@ -69,6 +71,27 @@ public abstract class Layer {
   public DMatrix getBiases() {
     return this.b;
   }
+
+  public void copyHtoD() {
+    this.w.copyHtoD();
+    this.b.copyHtoD();
+  }
+
+  public void copyDtoH() {
+    this.w.copyDtoH();
+    this.b.copyDtoH();
+  }
+
+  public void clearDevice() {
+    this.w.close();
+    this.b.close();
+  }
+
+  public void updateDeviceCopy() {
+    this.w.updateDeviceData();
+    this.b.updateDeviceData();
+  }
+
 
   public abstract DMatrix applyNonLinearity(DMatrix input);
   

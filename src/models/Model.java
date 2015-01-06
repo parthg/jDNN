@@ -47,6 +47,10 @@ public abstract class Model {
     return this.thetaSize;
   }
 
+  public int getNumLayers() {
+    return this.layers.size();
+  }
+
   public void init() {
     int tempInSize = this.inSize;
     for(Layer l: this.layers) {
@@ -89,6 +93,7 @@ public abstract class Model {
     while(layerIt.hasNext()) {
       Layer l = layerIt.next();
       p.printf("#Layer%d=%d %d\n", lId, l.getInSize(), l.getSize());
+      l.clearDevice();
     }
     p.printf("#params=");
     double[] params = this.getParameters();
@@ -98,6 +103,16 @@ public abstract class Model {
     p.printf("\n");
     p.close();
   }
+
+  public void clearDevice() {
+    Iterator<Layer> layerIt = this.layers.iterator();
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      l.clearDevice();
+    }
+  }
+
   public abstract DMatrix fProp(Sentence input);
   public abstract DMatrix bProp(Sentence s1, Sentence s2);
+  public abstract DMatrix bProp(Sentence s, DMatrix error);
 }
