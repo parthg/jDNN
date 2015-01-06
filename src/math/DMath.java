@@ -16,11 +16,25 @@ public class DMath {
       return new CUDAMatrix(r, c);
   }
   
+  public static DMatrix createMatrix(int r, int c, boolean persist) {
+    if(!USE_CUDA)
+      return new BLASMatrix(r, c);
+    else
+      return new CUDAMatrix(r, c, persist);
+  }
+  
   public static DMatrix createMatrix(int r, int c, double[] d) {
     if(!USE_CUDA)
       return new BLASMatrix(r, c, d);
     else
       return new CUDAMatrix(r, c, d);
+  }
+
+  public static DMatrix createMatrix(int r, int c, double[] d, boolean persist) {
+    if(!USE_CUDA)
+      return new BLASMatrix(r, c, d);
+    else
+      return new CUDAMatrix(r, c, d, persist);
   }
 
   public static DMatrix createZerosMatrix(int r, int c) {
@@ -30,6 +44,13 @@ public class DMath {
       return CUDAMatrix.zeros(r, c);
   }
 
+  public static DMatrix createZerosMatrix(int r, int c, boolean persist) {
+    if(!USE_CUDA)
+      return BLASMatrix.zeros(r, c);
+    else
+      return CUDAMatrix.zeros(r, c, persist);
+  }
+
   public static DMatrix createOnesMatrix(int r, int c) {
     if(!USE_CUDA)
       return BLASMatrix.ones(r, c);
@@ -37,10 +58,25 @@ public class DMath {
       return CUDAMatrix.ones(r, c);
   }
 
+  public static DMatrix createOnesMatrix(int r, int c, boolean persist) {
+    if(!USE_CUDA)
+      return BLASMatrix.ones(r, c);
+    else
+      return CUDAMatrix.ones(r, c, persist);
+  }
+  
   public static DMatrix createRandnMatrix(int r, int c) {
     if(!USE_CUDA)
       return BLASMatrix.randn(r, c);
     else
       return CUDAMatrix.randn(r, c);
   }
+
+  public static DMatrix createRandnMatrix(int r, int c, boolean persist) {
+    if(!USE_CUDA)
+      return BLASMatrix.randn(r, c);
+    else
+      return CUDAMatrix.randn(r, c, persist);
+  }
+
 }

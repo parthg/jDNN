@@ -2,18 +2,91 @@ package math;
 
 import math.jcublas.SimpleCuBlas;
 import random.RandomUtils;
+import java.lang. AutoCloseable;
+import jcuda.jcublas.JCublas;
+import jcuda.Pointer;
 
-public class CUDAMatrix extends DMatrix {
+public class CUDAMatrix extends DMatrix implements AutoCloseable {
   public CUDAMatrix(int r, int c) {
     super(r, c);
+    this.persist = false;
   }
 
   public CUDAMatrix(int r, int c, double[] d) {
     super(r, c, d);
+    this.persist = false;
   }
 
+  public CUDAMatrix(int r, int c, boolean _persist) {
+    super(r, c);
+    this.persist = _persist;
+    if(this.persist) {
+      this.cPointer = SimpleCuBlas.alloc(new double[r*c]);
+    }
+  }
+
+  public CUDAMatrix(int r, int c, double[] d, boolean _persist) {
+    super(r, c, d);
+    this.persist = _persist;
+    if(this.persist) {
+      this.cPointer = SimpleCuBlas.alloc(d);
+    }
+  }
+
+  public void close() {
+//    System.err.printf("close() in CUDAMatrix\n");
+    if(this.cPointer != null) {
+//      System.out.printf("Releasing the CUDA Pointer\n");
+      this.persist = false;
+      JCublas.cublasFree(this.cPointer);
+      this.cPointer = null;
+    }
+  }
+
+  protected void finalize() {
+//    System.err.printf("finalize() in CUDAMatrix()\n");
+    if(this.cPointer != null) {
+      this.close();
+    }
+  }
+
+  public void copyHtoD() {
+    if(System.getProperty("use_cuda").equals("true")) {
+      if(this.persist == false)
+        this.persist = true;
+      if(this.cPointer != null) {
+        JCublas.cublasFree(this.cPointer);
+        this.cPointer = null;
+      }
+   
+      this.cPointer = SimpleCuBlas.alloc(this.data());
+    }
+  }
+
+  public void copyDtoH() {
+    if(System.getProperty("use_cuda").equals("true")) {
+      if (this.cPointer!=null) {
+        SimpleCuBlas.getData(this,this.cPointer,Pointer.to(this.data()));
+      }
+    }
+  }
+
+  public void updateDeviceData() {
+    if(this.cPointer!=null)
+      SimpleCuBlas.updateData(this.cPointer, this.data);
+  }
+  
+  public void updateDeviceData(double[] newData) {
+    if(this.cPointer!=null)
+      SimpleCuBlas.updateData(this.cPointer, newData);
+  }
+  
   public static DMatrix zeros(int r, int c) {
     return new CUDAMatrix(r, c);
+  }
+
+  public static DMatrix zeros(int r, int c, boolean _persist) {
+    return new CUDAMatrix(r, c, _persist);
   }
 
   public static DMatrix ones(int r, int c) {
@@ -23,10 +96,32 @@ public class CUDAMatrix extends DMatrix {
     return m;
   }
 
+  public static DMatrix ones(int r, int c, boolean _persist) {
+    DMatrix m = new CUDAMatrix(r, c);
+    m.persist = _persist;
+    for(int i=0; i<r*c; i++)
+      m.put(i, 1.0);
+    if(m.persist) {
+      m.cPointer = SimpleCuBlas.alloc(m.data());
+    }
+    return m;
+  }
+  
   public static DMatrix randn(int r, int c) {
     DMatrix m = new CUDAMatrix(r, c);
     for (int i = 0; i < r * c; i++)
       m.put(i, RandomUtils.nextGaussian());
+    return m;
+  }
+  
+  public static DMatrix randn(int r, int c, boolean _persist) {
+    DMatrix m = new CUDAMatrix(r, c);
+    m.persist = _persist;
+    for (int i = 0; i < r * c; i++)
+      m.put(i, RandomUtils.nextGaussian());
+    if(m.persist) {
+      m.cPointer = SimpleCuBlas.alloc(m.data());
+    }
     return m;
   }
   

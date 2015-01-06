@@ -1,8 +1,14 @@
 package math;
 
-public abstract class DMatrix {
+import jcuda.jcublas.JCublas;
+import jcuda.Pointer;
+import java.io.Closeable;
+import math.jcublas.SimpleCuBlas;
+
+public abstract class DMatrix implements Closeable {
 //  int devId;
-//  Pointer devPointer; 
+  boolean persist = false;
+  Pointer cPointer = null; 
   int rows;
   int columns;
   int length;
@@ -44,6 +50,14 @@ public abstract class DMatrix {
   public double get(int i) {
     assert (i<this.length);
     return this.data[i];
+  }
+
+  public Pointer pointer() {
+    return this.cPointer;
+  }
+
+  public boolean persist() {
+    return this.persist;
   }
 
   public int offset() {
@@ -101,6 +115,43 @@ public abstract class DMatrix {
     data = new double[rows * columns];
   }
 
+  public void close() {
+//    System.err.printf("close() in DMatrix\n");
+    if(this.cPointer != null) {
+      this.persist = false;
+      JCublas.cublasFree(this.cPointer);
+      this.cPointer = null;
+    }
+  }
+
+  protected void finalize() {
+//    System.err.printf("finalize() in DMatrix()\n");
+    if(this.cPointer != null) {
+      this.close();
+    }
+  }
+
+  public void copyHtoD() {
+    if(this.persist == false)
+      this.persist = true;
+    if(this.cPointer != null) {
+      JCublas.cublasFree(this.cPointer);
+      this.cPointer = null;
+    }
+  
+    this.cPointer = SimpleCuBlas.alloc(this.data());
+  }
+
+  public void copyDtoH() {
+    assert (this.cPointer!=null);
+    SimpleCuBlas.getData(this,this.cPointer,Pointer.to(this.data()));
+  }
+  
+  public void updateDeviceData() {
+  }
+
+  public void updateDeviceData(double[] newData) {
+  }
   public abstract DMatrix transpose();
 
   public abstract DMatrix add(DMatrix other);
