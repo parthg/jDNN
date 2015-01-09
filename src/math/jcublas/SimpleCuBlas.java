@@ -107,6 +107,39 @@ public class SimpleCuBlas {
       free(yCPointer);
   }
 
+  public static DMatrix fillWithArray(DMatrix A, DMatrix B) {
+    JCublas.cublasInit();
+    CUmodule module = new CUmodule();
+    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    CUfunction function = new CUfunction();
+    cuModuleGetFunction(function, module, "kFillWithArray");
+
+    CUDAMatrix cA = (CUDAMatrix) A;
+    CUDAMatrix cB = (CUDAMatrix) B;
+
+    Pointer cAPointer = (cA.persist())?cA.pointer():alloc(cA);
+    Pointer cBPointer = (cB.persist())?cB.pointer():alloc(cB);
+
+    Pointer kernelParameters = Pointer.to(Pointer.to(cAPointer),
+        Pointer.to(new int[]{cA.length()}),
+        Pointer.to(cBPointer),
+        Pointer.to(new int[]{cB.length()})
+        );
+
+    cuLaunchKernel(function, getGridDim(B.length()), 1, 1, getBlockDim(B.length()), 1, 1, 0, null, kernelParameters, null);
+    
+    if(!cB.persist()) {
+      System.out.println("Not persist so copying back");
+      getData(cB,cBPointer,Pointer.to(cB.data()));
+      free(cBPointer);
+    }
+
+    if(!cA.persist())
+      free(cAPointer);
+    
+    return B;
+  }
+
   public static DMatrix mul(DMatrix A, DMatrix B, DMatrix C) {
 
     JCublas.cublasInit();
@@ -143,6 +176,7 @@ public class SimpleCuBlas {
 
     if(!cB.persist())
       free(cBPointer);
+
 
     return C;
   }
@@ -189,7 +223,6 @@ public class SimpleCuBlas {
     return C;
   }
 
-
   public static DMatrix gemm(DMatrix A, DMatrix B, DMatrix C,
       double alpha, double beta) {
 //    DataTypeValidation.assertDouble(A,B,C);
@@ -203,20 +236,22 @@ public class SimpleCuBlas {
     Pointer cBPointer = (cB.persist())?cB.pointer():alloc(cB);
     Pointer cCPointer = (cC.persist())?cC.pointer():alloc(cC);
 
+    System.out.printf("\n%d\n", cB.columns());
+    
     JCublas.cublasDgemm(
         'n', //trans
         'n',
-        C.rows(), // m
-        C.columns(), // n
-        A.columns(), //k,
+        cC.columns(), // m
+        cC.rows(), // n
+        cB.rows(), //k,
         alpha,
-        cAPointer, // A
-        A.rows(), // lda
-        cBPointer, // x
-        B.rows(), // ldb
+        cBPointer, // A
+        cB.columns(), // lda
+        cAPointer, // x
+        cA.columns(), // ldb
         beta, // beta
         cCPointer, // y
-        C.rows()); // incy
+        cC.columns()); // incy
     
 //    getData(cC,cCPointer,Pointer.to(cC.data()));
 //    free(cAPointer,cBPointer,cCPointer);
@@ -224,6 +259,9 @@ public class SimpleCuBlas {
       getData(cC,cCPointer,Pointer.to(cC.data()));
       free(cCPointer);
     }
+
+//    System.out.printf("Aftre getting the data\n");
+//    cC.print();
 
     if(!cA.persist())
       free(cAPointer);
