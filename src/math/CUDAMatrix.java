@@ -6,6 +6,9 @@ import java.lang. AutoCloseable;
 import jcuda.jcublas.JCublas;
 import jcuda.Pointer;
 
+import math.jblas.SimpleBlas;
+
+// TODO: proper assertions
 public class CUDAMatrix extends DMatrix implements AutoCloseable {
   public CUDAMatrix(int r, int c) {
     super(r, c);
@@ -131,10 +134,10 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
  
 
   // y = Ax+y
-  public DMatrix addMuli(DMatrix A, DMatrix x) {
+/*  public DMatrix addMuli(DMatrix A, DMatrix x) {
     SimpleCuBlas.gemv(A, x, this, 1.0, 1.0);
     return this;
-  }
+  }*/
 
 
 
@@ -206,49 +209,82 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     return this;
   }
 
-  public DMatrix mmul(DMatrix other) {
-    assert (this.columns()==other.rows());
-    DMatrix m = new CUDAMatrix(this.rows(), this.columns());
-//    SimpleCuBlas.gemm(other, this, m, 1.0, 0.0);
-    return mmuli(other, m);
-//    return m;
+  public DMatrix mmul(boolean tA, boolean tB, DMatrix B) {
+//    assert (this.columns()==B.rows());
+    DMatrix C = new CUDAMatrix(this.rows(), B.columns());
+    return mmul(tA, tB, B, C);
   }
 
+  public DMatrix mmul(DMatrix B) {
+//    assert (this.columns()==B.rows());
+    DMatrix C = new CUDAMatrix(this.rows(), B.columns());
+    return mmul(false, false, B, C);
+  }
+  
+
   //result = this*other
-  public DMatrix mmuli(DMatrix other, DMatrix result) {
-    assert (this.columns()==other.rows());
-    if (result.rows != rows || result.columns != other.columns) {
-      if (result != this && result != other) {
-        result.resize(this.rows, other.columns);
+  public DMatrix mmul(boolean tA, boolean tB, DMatrix B, DMatrix C) {
+    //TODO: correct assertions in effect of tA and tB
+    
+    int m = tA?this.columns():this.rows();
+    int n = tB?B.rows():B.columns();
+    int k = tA?this.rows():this.columns();
+    int kB = tB?B.columns():B.rows();
+    assert (k==kB);
+    if (C.rows != m || C.columns != n) {
+      if (C != this && C != B) {
+        C.resize(m, n);
       } else {
         System.err.printf("Cannot resize result matrix because it is used in-place.\n\n");
       }
     }
 
-    if (result == this || result == other) {
+    if (C == this || C == B) {
       /* actually, blas cannot do multiplications in-place. Therefore, we will fake by
        * * allocating a temporary object on the side and copy the result later.
        * */
-      DMatrix temp = new CUDAMatrix(result.rows(), result.columns());
-      if (other.columns == 1) {
-        SimpleCuBlas.gemv(this, other, temp, 1.0, 0.0);
+      DMatrix temp = new CUDAMatrix(C.rows(), C.columns());
+      if (m == 1) {
+        SimpleCuBlas.gemv(tB, B, this, temp, 1.0, 0.0);
       } else {
-        SimpleCuBlas.gemm(this, other, temp, 1.0, 0.0);
+        SimpleCuBlas.gemm(tA, tB, this, B, temp, 1.0, 0.0);
       }
-      SimpleCuBlas.copy(temp, result);
+      SimpleCuBlas.copy(temp, C);
     } 
     else {
-      if (other.columns == 1) {
-        SimpleCuBlas.gemv(this, other, result, 1.0, 0.0);
+      if (m == 1) {
+//        System.out.printf("calling gemv\n");
+        SimpleCuBlas.gemv(tB, B, this, C, 1.0, 0.0);
       } else {
-        SimpleCuBlas.gemm(this, other, result, 1.0, 0.0);
+//        System.out.printf("calling gemm\n");
+        SimpleCuBlas.gemm(tA, tB, this, B, C, 1.0, 0.0);
       }
     }
-
-    return result;
+    return C;
   }
-  public DMatrix mmuli(DMatrix other) {
-    return mmuli(other, this);
+  
+  public DMatrix mmul(DMatrix B, DMatrix C) {
+//    assert (this.columns()==B.rows());
+    return mmul(false, false, B, C);
+    
+  }
+  
+  public DMatrix mmuli(boolean tA, boolean tB, DMatrix B) {
+//    assert (tA?this.rows:this.columns() == tB?tB.columns():B.rows());
+    return mmul(tA, tB, B, this);
+  }
+  
+  public DMatrix mmuli(DMatrix B) {
+    assert (this.columns() == B.rows());
+    return mmul(false, false, B, this);
+  }
+
+  public DMatrix fillWithArray(DMatrix other) {
+    assert (this.length()%other.length()==0);
+//    DMatrix m = DMath.createMatrix(this.rows(), this.columns());
+    SimpleCuBlas.fillWithArray(other, this);
+//    SimpleBlas.fillWithArray(other, this);
+    return this;
   }
 
 }

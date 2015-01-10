@@ -152,6 +152,22 @@ public abstract class DMatrix implements Closeable {
 
   public void updateDeviceData(double[] newData) {
   }
+
+  // currently its here, later override it with blas and cuda versions
+  public DMatrix fillRow(int r, DMatrix arr) {
+    assert (r<this.rows);
+    System.arraycopy(arr.data(), 0, this.data, r*this.columns, arr.length());
+    return this;
+  }
+
+  public DMatrix sumRows() {
+    DMatrix sum = DMath.createZerosMatrix(1, this.columns());
+    for(int i=0; i<this.length; i++) {
+      sum.data()[i%this.columns] += (double) this.data[i];
+    }
+    return sum;
+  }
+
   public abstract DMatrix transpose();
 
   public abstract DMatrix add(DMatrix other);
@@ -162,7 +178,7 @@ public abstract class DMatrix implements Closeable {
 
   public abstract DMatrix addi(double alpha, DMatrix other);
 
-  public abstract DMatrix addMuli(DMatrix A, DMatrix x);
+//  public abstract DMatrix addMuli(DMatrix A, DMatrix x);
 
   public abstract DMatrix sub(DMatrix other);
   public abstract DMatrix subi(DMatrix other);
@@ -173,7 +189,14 @@ public abstract class DMatrix implements Closeable {
   public abstract DMatrix mul(double v);
   public abstract DMatrix muli(double v);
 
-  public abstract DMatrix mmul(DMatrix other);
-  public abstract DMatrix mmuli(DMatrix other);
-  public abstract DMatrix mmuli(DMatrix other, DMatrix result);
+  public abstract DMatrix mmul(boolean tA, boolean tB, DMatrix B);
+  public abstract DMatrix mmul(DMatrix B);
+  
+  public abstract DMatrix mmuli(boolean tA, boolean tB, DMatrix B);
+  public abstract DMatrix mmuli(DMatrix B);
+  
+  public abstract DMatrix mmul(boolean tA, boolean tB, DMatrix B, DMatrix C);
+  public abstract DMatrix mmul(DMatrix B, DMatrix C); 
+
+  public abstract DMatrix fillWithArray(DMatrix other);
 }

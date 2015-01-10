@@ -107,12 +107,14 @@ public class SimpleCuBlas {
       free(yCPointer);
   }
 
+  /** Fils B with A
+   */
   public static DMatrix fillWithArray(DMatrix A, DMatrix B) {
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
     cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
     CUfunction function = new CUfunction();
-    cuModuleGetFunction(function, module, "kFillWithArray");
+    cuModuleGetFunction(function, module, "kFillArray");
 
     CUDAMatrix cA = (CUDAMatrix) A;
     CUDAMatrix cB = (CUDAMatrix) B;
@@ -126,10 +128,10 @@ public class SimpleCuBlas {
         Pointer.to(new int[]{cB.length()})
         );
 
-    cuLaunchKernel(function, getGridDim(B.length()), 1, 1, getBlockDim(B.length()), 1, 1, 0, null, kernelParameters, null);
+    cuLaunchKernel(function, getGridDim(cB.length()), 1, 1, getBlockDim(cB.length()), 1, 1, 0, null, kernelParameters, null);
     
     if(!cB.persist()) {
-      System.out.println("Not persist so copying back");
+//      System.out.println("Not persist so copying back");
       getData(cB,cBPointer,Pointer.to(cB.data()));
       free(cBPointer);
     }
@@ -181,7 +183,7 @@ public class SimpleCuBlas {
     return C;
   }
 
-  public static DMatrix gemv(DMatrix A, DMatrix B, DMatrix C, double alpha, double beta) {
+  public static DMatrix gemv(boolean ta, DMatrix A, DMatrix B, DMatrix C, double alpha, double beta) {
   //     DataTypeValidation.assertDouble(A,B,C);
     JCublas.cublasInit();
 
@@ -193,13 +195,18 @@ public class SimpleCuBlas {
     Pointer cBPointer = (cB.persist())?cB.pointer():alloc(cB);
     Pointer cCPointer = (cC.persist())?cC.pointer():alloc(cC);
 
+    char opA = ta?'t':'n';
+    int m = cA.rows();
+    int n = cA.columns();
+    int lda = ta?m:n;
+
    JCublas.cublasDgemv(
-       'N',
-       A.rows(),
-       A.columns(),
+       opA,
+       n,
+       m,
        alpha,
        cAPointer,
-       A.rows(),
+       lda,
        cBPointer,
        1,
        beta,
@@ -223,7 +230,7 @@ public class SimpleCuBlas {
     return C;
   }
 
-  public static DMatrix gemm(DMatrix A, DMatrix B, DMatrix C,
+  public static DMatrix gemm(boolean ta, boolean tb, DMatrix A, DMatrix B, DMatrix C,
       double alpha, double beta) {
 //    DataTypeValidation.assertDouble(A,B,C);
     JCublas.cublasInit();
@@ -236,22 +243,31 @@ public class SimpleCuBlas {
     Pointer cBPointer = (cB.persist())?cB.pointer():alloc(cB);
     Pointer cCPointer = (cC.persist())?cC.pointer():alloc(cC);
 
-    System.out.printf("\n%d\n", cB.columns());
-    
+    char opA = tb?'t':'n';
+    char opB = ta?'t':'n';
+
+    int m = cC.rows();
+    int n = cC.columns();
+    int k = cA.columns();
+  
+    int lda = ta?m:k; // (m = A.rows, 
+    int ldb = tb?k:n;
+   
+
     JCublas.cublasDgemm(
-        'n', //trans
-        'n',
-        cC.columns(), // m
-        cC.rows(), // n
-        cB.rows(), //k,
+        opA, //trans
+        opB,
+        n, // m
+        m, // n
+        k, //k,
         alpha,
         cBPointer, // A
-        cB.columns(), // lda
+        ldb, // lda
         cAPointer, // x
-        cA.columns(), // ldb
+        lda, // ldb
         beta, // beta
         cCPointer, // y
-        cC.columns()); // incy
+        n); // incy
     
 //    getData(cC,cCPointer,Pointer.to(cC.data()));
 //    free(cAPointer,cBPointer,cCPointer);
