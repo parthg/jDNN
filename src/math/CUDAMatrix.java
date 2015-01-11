@@ -235,7 +235,7 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
       if (C != this && C != B) {
         C.resize(m, n);
       } else {
-        System.err.printf("Cannot resize result matrix because it is used in-place.\n\n");
+        System.err.printf("[ALERT] Should not resize result matrix because it is used in-place. But doing it anyway.\n");
       }
     }
 
@@ -243,20 +243,26 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
       /* actually, blas cannot do multiplications in-place. Therefore, we will fake by
        * * allocating a temporary object on the side and copy the result later.
        * */
-      DMatrix temp = new CUDAMatrix(C.rows(), C.columns());
+      DMatrix temp = new CUDAMatrix(m, n);
       if (m == 1) {
         SimpleCuBlas.gemv(tB, B, this, temp, 1.0, 0.0);
       } else {
         SimpleCuBlas.gemm(tA, tB, this, B, temp, 1.0, 0.0);
       }
-      SimpleCuBlas.copy(temp, C);
+      if(temp.rows()== C.rows() && temp.columns() == C.columns())
+        SimpleCuBlas.copy(temp, C);
+      else {
+        C.resize(m , n);
+        SimpleCuBlas.copy(temp, C);
+      }
     } 
     else {
       if (m == 1) {
 //        System.out.printf("calling gemv\n");
         SimpleCuBlas.gemv(tB, B, this, C, 1.0, 0.0);
       } else {
-//        System.out.printf("calling gemm\n");
+
+//        System.out.printf("calling gemm- HERE\n");
         SimpleCuBlas.gemm(tA, tB, this, B, C, 1.0, 0.0);
       }
     }

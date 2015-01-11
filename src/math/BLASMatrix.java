@@ -55,9 +55,10 @@ public class BLASMatrix extends DMatrix {
     return null;
   }
 
-  public DMatrix addMuli(DMatrix A, DMatrix B) {
+/*  public DMatrix addMuli(DMatrix A, DMatrix B) {
     return null;
-  }
+  }*/
+
   public DMatrix subi(DMatrix other) {
     return null;
   }
@@ -81,7 +82,10 @@ public class BLASMatrix extends DMatrix {
     return null;
   }
 
-  public DMatrix mmuli(DMatrix other, DMatrix result) {
+  public DMatrix mmul(DMatrix other, DMatrix result) {
+    return null;
+  }
+  public DMatrix mmul(boolean tA, boolean tB, DMatrix other, DMatrix result) {
     assert (this.columns()==other.rows());
     if (result.rows != rows || result.columns != other.columns) {
       if (result != this && result != other) {
@@ -113,11 +117,26 @@ public class BLASMatrix extends DMatrix {
     return result;
   }
   
+  public DMatrix mmul(boolean tA, boolean tB, DMatrix B) {
+    System.err.printf("TODO\n\n");
+    return null;
+  }
+  
   public DMatrix mmul(DMatrix other) {
     System.err.printf("TODO\n\n");
     return null;
   }
+  
+  public DMatrix mmuli(boolean tA, boolean tB, DMatrix B) {
+    System.err.printf("TODO\n\n");
+    return null;
+  }
+
   public DMatrix mmuli(DMatrix other) {
-    return mmuli(other, this);
+    return mmul(false, false, other, this);
+  }
+
+  public DMatrix fillWithArray(DMatrix other) {
+    return null;
   }
 }

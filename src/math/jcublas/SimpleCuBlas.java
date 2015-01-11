@@ -248,7 +248,7 @@ public class SimpleCuBlas {
 
     int m = cC.rows();
     int n = cC.columns();
-    int k = cA.columns();
+    int k = ta?cA.rows():cA.columns();
   
     int lda = ta?m:k; // (m = A.rows, 
     int ldb = tb?k:n;

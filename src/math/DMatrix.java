@@ -168,7 +168,7 @@ public abstract class DMatrix implements Closeable {
     return sum;
   }
 
-  public abstract DMatrix transpose();
+//  public abstract DMatrix transpose();
 
   public abstract DMatrix add(DMatrix other);
   public abstract DMatrix addi(DMatrix other);
