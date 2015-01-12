@@ -174,7 +174,7 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
   }
   
   public DMatrix sub(DMatrix other) {
-    assert (this.length()==other.length());
+    assert this.length()==other.length() : System.out.printf("Length is not equal. %d - %d\n", this.length(), other.length());
     DMatrix m = new CUDAMatrix(this.rows(), this.columns(), this.toArray());
     SimpleCuBlas.axpy(-1.0, other, m);
     return m;
@@ -292,5 +292,18 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
 //    SimpleBlas.fillWithArray(other, this);
     return this;
   }
+  
+  public DMatrix sumRows() {
+    DMatrix sum = DMath.createZerosMatrix(1, this.columns());
+    DMatrix multiplier = DMath.createOnesMatrix(1, this.rows);
+    SimpleCuBlas.gemv(false, this, multiplier, sum, 1.0, 0.0);
+    return sum;
+  }
 
+  public DMatrix sumRows(int startRow, int howMany) {
+    DMatrix sum = DMath.createMatrix(1, this.columns());
+    DMatrix multiplier = DMath.createOnesMatrix(1, howMany);
+    SimpleCuBlas.cust_gemv(false, this, multiplier, sum, 1.0, 0.0, startRow, howMany);
+    return sum;
+  }
 }

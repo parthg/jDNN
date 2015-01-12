@@ -160,12 +160,38 @@ public abstract class DMatrix implements Closeable {
     return this;
   }
 
+  public DMatrix fillRow(int r, int howMany, DMatrix arr) {
+    assert (r+howMany<=this.rows);
+    int start = r;
+    for(int i=0; i<howMany; i++) {
+      System.arraycopy(arr.data(), 0, this.data, start*this.columns, arr.length());
+      start ++;
+    }
+    return this;
+  }
+  
+  public DMatrix fillMatrix(int r, DMatrix mat) {
+    assert (r<this.rows && mat.columns()==this.columns());
+    System.arraycopy(mat.data(), 0, this.data, r*this.columns, mat.length());
+    return this;
+  }
+
   public DMatrix sumRows() {
     DMatrix sum = DMath.createZerosMatrix(1, this.columns());
     for(int i=0; i<this.length; i++) {
       sum.data()[i%this.columns] += (double) this.data[i];
     }
     return sum;
+  }
+
+  public DMatrix sumRows(int startRow, int howMany) {
+    return null;
+  }
+
+  public DMatrix getRow(int r) {
+    double[] rowData = new double[this.columns];
+    System.arraycopy(this.data(), r*this.columns(), rowData, 0, this.columns());
+    return DMath.createMatrix(1, this.columns(), rowData);
   }
 
 //  public abstract DMatrix transpose();

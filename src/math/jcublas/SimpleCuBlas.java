@@ -44,6 +44,24 @@ public class SimpleCuBlas {
     return ret;
   }
 
+  public static Pointer alloc(DMatrix m, int offset, int length) {
+//    System.out.printf("Allocationg memory\n");
+    Pointer ret = new Pointer();
+    Pointer toData = Pointer.to(m.data()).withByteOffset(offset * m.elemSize());
+    JCublas.cublasAlloc(
+        length,
+        m.elemSize(),
+        ret);
+    JCublas.cublasSetVector(
+        length,
+        m.elemSize(),
+        toData,
+        1,
+        ret,
+        1);
+    return ret;
+  }
+  
   public static Pointer alloc(double[] arr) {
     Pointer ret = new Pointer();
     Pointer toData = Pointer.to(arr).withByteOffset(0 * Sizeof.DOUBLE);
@@ -183,6 +201,54 @@ public class SimpleCuBlas {
     return C;
   }
 
+  public static DMatrix cust_gemv(boolean ta, DMatrix A, DMatrix B, DMatrix C, double alpha, double beta, int start, int howMany) {
+  //     DataTypeValidation.assertDouble(A,B,C);
+    JCublas.cublasInit();
+
+    CUDAMatrix cA = (CUDAMatrix) A;
+    CUDAMatrix cB = (CUDAMatrix) B;
+    CUDAMatrix cC = (CUDAMatrix) C;
+   
+//    Pointer cAPointer = (cA.persist())?cA.pointer():alloc(cA);
+    Pointer cAPointer = alloc(cA, start*cA.columns(), howMany*cA.columns());
+    Pointer cBPointer = (cB.persist())?cB.pointer():alloc(cB);
+    Pointer cCPointer = (cC.persist())?cC.pointer():alloc(cC);
+
+    char opA = ta?'t':'n';
+    int m = howMany;
+    int n = cA.columns();
+    int lda = ta?m:n;
+
+   JCublas.cublasDgemv(
+       opA,
+       n,
+       m,
+       alpha,
+       cAPointer,
+       lda,
+       cBPointer,
+       1,
+       beta,
+       cCPointer,
+       1);
+
+//   getData(cC,cCPointer,Pointer.to(cC.data()));
+//   free(cAPointer,cBPointer,cCPointer);
+   
+    if(!cC.persist()) {
+      getData(cC,cCPointer,Pointer.to(cC.data()));
+      free(cCPointer);
+    }
+
+    if(!cA.persist())
+      free(cAPointer);
+
+    if(!cB.persist())
+      free(cBPointer);
+    
+    return C;
+  }
+  
   public static DMatrix gemv(boolean ta, DMatrix A, DMatrix B, DMatrix C, double alpha, double beta) {
   //     DataTypeValidation.assertDouble(A,B,C);
     JCublas.cublasInit();
