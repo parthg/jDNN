@@ -54,6 +54,32 @@ public class Dictionary {
     return vec;
   }
 
+  public DMatrix getRepresentation(Sentence sent) {
+    DMatrix mat = DMath.createZerosMatrix(sent.getSize(), dictSize);
+    Iterator<Integer> sentIt = sent.words.iterator();
+    int i = 0;
+    //TODO: This will add all the words including OOV as Zero vector, do something to consider active vocab
+    while(sentIt.hasNext()) {
+      mat.fillRow(i, this.getRepresentation(sentIt.next()));
+      i++;
+    }
+    return mat;
+  }
+
+  public DMatrix getRepresentation(Sentence[] sents) {
+    int row = 0;
+    for(int i=0; i<sents.length; i++)
+      row+= sents[i].getSize();
+    DMatrix mat = DMath.createMatrix(row, dictSize);
+    row=0; 
+    for(int i=0; i<sents.length; i++) {
+      DMatrix sentMat = this.getRepresentation(sents[i]);
+      mat.fillMatrix(row, sentMat);
+      row+=sents[i].getSize();
+    }
+    return mat;
+  }
+
   public int getId(String t) {
     return this.str2id.containsKey(t)?this.str2id.get(t):-1;
   }
