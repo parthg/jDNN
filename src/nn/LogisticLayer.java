@@ -22,18 +22,25 @@ public class LogisticLayer extends Layer {
   /** fprop
    */
   public DMatrix fProp(DMatrix input) {
-    DMatrix data = DMath.createMatrix(1, this.getSize());
-    data.addi(this.b);
-    data.addMuli(input, this.w);
-//    DMatrix data = input.mmul(this.w).addRowVector(this.b);
-    return this.applyNonLinearity(data);
+    DMatrix data = DMath.createMatrix(input.rows(), this.getSize());
+    data.fillWithArray(this.b);
+    data.addi(input.mmul( this.w));
+//    data.print();
+    
+    //TODO: IMPORTANT - if you want to take advantage of device, have sigmoid on device
+//    data.copyDtoH();
+//    data.close();
+    data = this.applyNonLinearity(data);
+    return data;
   }
 
   /** calculate the gradient based on the error and representation provided to it
    */
   public DMatrix bProp(DMatrix data, DMatrix error) {
-    //TODO: Probably you can have data copy once on the device
-    return error.mul(data.mul(DMath.createOnesMatrix(data.rows(), data.columns()).addi(-1.0, data)));
+    //TODO: Probably you can have data copy once on the device 
+    //TODO: Check where you want to fill error in case of batch.
+//    return error.mul(data.mul(DMath.createOnesMatrix(data.rows(), data.columns()).addi(-1.0, data)));
+    return error.mul(data.mul(DMath.createOnesMatrix(data.rows(), data.columns()).subi(data)));
 //    return error.mul(data.mul((data.mul(-1)).add(1)));
   }
 }

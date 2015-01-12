@@ -34,9 +34,11 @@ public abstract class Layer {
 
   public double[] getParamGradients(DMatrix myInData, DMatrix mygrad) {
     double[] paramGrads = new double[this.thetaSize];
-    // TODO: check if blas expression fits here
-    double[] mydW = (myInData.transpose().mmul(mygrad)).toArray();
-    double[] mydB = mygrad.toArray();
+    // TODO: check if blas expression fits here: -> YES: the boolean transpose needs to be passed. Check with the correctness.
+    double[] mydW = (myInData.mmul(true, false, mygrad)).toArray();
+    // multiply bias by the batch size
+//    double[] mydB = mygrad.mul(myInData.rows()).toArray();
+    double[] mydB = mygrad.sumRows().toArray();
 
     System.arraycopy(mydW, 0, paramGrads, 0, this.wSize);
     System.arraycopy(mydB, 0, paramGrads, this.wSize, this.bSize);
@@ -54,6 +56,10 @@ public abstract class Layer {
     if(rand) {
       this.w = DMath.createRandnMatrix(this.inSize, outSize).muli(0.01);
       this.b = DMath.createOnesMatrix(1, outSize).muli(-2.0);
+    }
+    else {
+      this.w = DMath.createMatrix(this.inSize, outSize);
+      this.b = DMath.createZerosMatrix(1, outSize);
     } 
     //TODO: Think that do we need to init any params to zero ? or this can be a good way to get rid of cleargrads methods
     //else
@@ -61,7 +67,7 @@ public abstract class Layer {
     this.wSize = this.inSize * outSize;
     this.bSize = outSize;
     this.thetaSize = this.wSize + this.bSize;
-    this.copyHtoD();
+//    this.copyHtoD();
   }
 
   public DMatrix getWeights() {
@@ -70,6 +76,16 @@ public abstract class Layer {
 
   public DMatrix getBiases() {
     return this.b;
+  }
+
+  public void setWeights(DMatrix _w) {
+    assert (_w.rows()==this.inSize && _w.columns()==this.size);
+    this.w = _w;
+  }
+
+  public void setBiases(DMatrix _b) {
+    assert(_b.rows() ==  1 && _b.columns() == this.size);
+    this.b = _b;
   }
 
   public void copyHtoD() {

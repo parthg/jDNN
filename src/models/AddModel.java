@@ -18,14 +18,17 @@ public class AddModel extends Model {
   public DMatrix fProp(Sentence sent) {
     DMatrix rep = DMath.createZerosMatrix(1,super.outSize, true);
     Iterator<Integer> sentIt = sent.words.iterator();
+//    System.out.printf("original vectors: %d", sent.getSize());
     while(sentIt.hasNext()) {
       DMatrix input = this.dict.getRepresentation(sentIt.next());
+//      input.print();
       Iterator<Layer> layerIt = this.layers.iterator();
       DMatrix temp = input;
       while(layerIt.hasNext()) {
         Layer l = layerIt.next();
         temp = l.fProp(temp);
       }
+//      temp.print();
       rep.addi(temp);
     }
     rep.copyDtoH();
@@ -33,6 +36,30 @@ public class AddModel extends Model {
     return rep;
   }
 
+/*  public DMatrix fProp(DMatrix input) {
+    Iterator<Layer> layerIt = this.layers.iterator();
+    DMatrix temp = input;
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      temp = l.fProp(temp);
+    }
+    return temp.sumRows();
+  }*/
+ 
+
+  public DMatrix getRepresentation(DMatrix sentMatrix) {
+    DMatrix temp = this.layers.get(0).fProp(sentMatrix);
+    return temp.sumRows();
+  }
+
+  public DMatrix fProp(DMatrix input) {
+//    System.out.printf("batch of %d\n", input.rows());
+    DMatrix temp = this.layers.get(0).fProp(input);
+
+//    temp.print();
+    return temp;
+  }
+  
   public DMatrix bProp(Sentence s1, Sentence s2) {
     // send s2 up -- use it as label
     // send s1 up 
@@ -71,7 +98,7 @@ public class AddModel extends Model {
         DMatrix lGrads = l.bProp(rep, tempError);
         double[] lParamGrads = l.getParamGradients(input.peek(), lGrads);
         // TODO: Make it conditioned if there is next layer. otherwise its unnecessary
-        tempError = lGrads.mmul(l.getWeights().transpose());
+        tempError = lGrads.mmul(false, true, l.getWeights());
         rep = input.pop();
         System.arraycopy(lParamGrads, 0, tempGrads, start, lParamGrads.length);
         start = l.getThetaSize();
@@ -124,7 +151,7 @@ public class AddModel extends Model {
         double[] lParamGrads = l.getParamGradients(input.peek(), lGrads);
         // TODO: Make it conditioned if there is next layer. otherwise its unnecessary
         if(layersLeft>0)
-          tempError = lGrads.mmul(l.getWeights().transpose());
+          tempError = lGrads.mmul(false, true, l.getWeights());
         rep = input.pop();
         System.arraycopy(lParamGrads, 0, tempGrads, start, lParamGrads.length);
         start = l.getThetaSize();
@@ -134,6 +161,43 @@ public class AddModel extends Model {
 
     // TODO:before returning close it?
     
+    return grads;
+  }
+  
+  /* input  = matrix
+   * rep    = matrix
+   * error  = vector
+   */
+  public DMatrix bProp(DMatrix input, DMatrix rep, DMatrix error) {
+    
+    DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize);
+
+    DMatrix batchError = DMath.createMatrix(rep.rows(), rep.columns());
+    batchError.fillWithArray(error);
+
+    DMatrix lGrads = this.layers.get(0).bProp(rep, batchError);
+    
+//    DMatrix batchLGrads = DMath.createMatrix(input.rows(), lGrads.columns());
+//    batchLGrads.fillWithArray(lGrads);
+    double[] lParamGrads = this.layers.get(0).getParamGradients(input, lGrads);
+    
+    System.arraycopy(lParamGrads, 0, grads.data(), 0 , lParamGrads.length);
+
+    return grads;
+  }
+  
+  public DMatrix bProp(DMatrix input, DMatrix error) {
+
+    // layerwise fprop -- get rep and save intermediate rep
+    // layerwise bprop 
+    
+    DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize);
+    DMatrix rep = this.fProp(input);
+
+    DMatrix lGrads = this.layers.get(0).bProp(rep, error);
+    double[] lParamGrads = this.layers.get(0).getParamGradients(input, lGrads);
+    System.arraycopy(lParamGrads, 0, grads.data(), 0, lParamGrads.length);
+
     return grads;
   }
 }

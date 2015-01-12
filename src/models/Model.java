@@ -34,6 +34,10 @@ public abstract class Model {
     this.inSize = this.dict.getSize();
   }
 
+  public Dictionary dict() {
+    return this.dict;
+  }
+
   public void addHiddenLayer(Layer l) {
     if(this.dict == null) {
       System.err.printf("[error] First set the Dictionary.. Exiting.\n");
@@ -113,6 +117,10 @@ public abstract class Model {
   }
 
   public abstract DMatrix fProp(Sentence input);
+  public abstract DMatrix fProp(DMatrix input);
+  public abstract DMatrix getRepresentation(DMatrix sentMatrix);
   public abstract DMatrix bProp(Sentence s1, Sentence s2);
   public abstract DMatrix bProp(Sentence s, DMatrix error);
+  public abstract DMatrix bProp(DMatrix input, DMatrix error);
+  public abstract DMatrix bProp(DMatrix input, DMatrix rep, DMatrix error);
 }
