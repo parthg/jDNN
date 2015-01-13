@@ -31,3 +31,11 @@ __global__ void kSigmoid(double* a, double* dest, int n) {
     dest[idx] = 1/(1+__expf(-1*a[idx]));
   }
 }
+
+extern "C"
+__global__ void kPow(double*a, double y, int n) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if(idx<n) {
+    a[idx] = pow(a[idx], y);
+  }
+}

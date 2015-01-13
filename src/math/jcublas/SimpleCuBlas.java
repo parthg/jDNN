@@ -201,6 +201,31 @@ public class SimpleCuBlas {
     return C;
   }
 
+  public static DMatrix pow(DMatrix A, double v) {
+    JCublas.cublasInit();
+    CUmodule module = new CUmodule();
+    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    CUfunction function = new CUfunction();
+    cuModuleGetFunction(function, module, "kPow");
+
+    CUDAMatrix cA = (CUDAMatrix) A;
+    Pointer cAPointer = (cA.persist())?cA.pointer():alloc(cA);
+    
+    Pointer kernelParameters = Pointer.to(Pointer.to(cAPointer),
+        Pointer.to(new double[]{v}),
+        Pointer.to(new int[]{cA.length()})
+        );
+  
+    cuLaunchKernel(function, getGridDim(cA.length()), 1, 1, getBlockDim(cA.length()), 1, 1, 0, null, kernelParameters, null);
+    
+    if(!cA.persist()) {
+      getData(cA,cAPointer,Pointer.to(cA.data()));
+      free(cAPointer);
+    }
+
+    return A;
+  }
+
   public static DMatrix cust_gemv(boolean ta, DMatrix A, DMatrix B, DMatrix C, double alpha, double beta, int start, int howMany) {
   //     DataTypeValidation.assertDouble(A,B,C);
     JCublas.cublasInit();
@@ -397,5 +422,4 @@ public class SimpleCuBlas {
 //    free(cAPointer);
     return A;
   }
-
 }
