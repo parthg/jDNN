@@ -17,6 +17,7 @@ import common.Sentence;
 import common.Corpus;
 import common.Dictionary;
 import common.Datum;
+import common.Batch;
 
 import optim.GradientCheck;
 import optim.BasicGradientCalc;
@@ -38,13 +39,13 @@ public class TestModel {
     Model enModel = new AddModel();
     Model deMdel = new AddModel();
 
-/*    String file = "data/hi-fire-mono/data.txt";
+    String file = "data/hi-fire-mono/data.txt";
     String posFile = "data/hi-fire-mono/pos-data.txt";
-    String negFile = "data/hi-fire-mono/neg-data.txt";*/
+    String negFile = "data/hi-fire-mono/neg-data.txt";
 
-    String file = "sample/hindi.short";
+/*  String file = "sample/hindi.short";
     String posFile = "sample/hindi-pos.short";
-    String negFile = "sample/hindi-neg.short";
+    String negFile = "sample/hindi-neg.short";*/
 		
     String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
 		List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
@@ -77,7 +78,7 @@ public class TestModel {
 //    enDict.print();
 
     enModel.setDict(enDict);
-    Layer l = new LogisticLayer(3);
+    Layer l = new LogisticLayer(64);
     enModel.addHiddenLayer(l);
   
     enModel.init();
@@ -108,8 +109,8 @@ public class TestModel {
 
 
     
-    int batchsize = 1;
-    int iterations = 5;
+    int batchsize = 100;
+    int iterations = 1;
 
     for(int iter = 0; iter<iterations; iter++) {
       int batchNum = 1;
@@ -124,19 +125,21 @@ public class TestModel {
         for(int j=0; j<innerbatchsize; j++) {
           batch.add(instances.get(i+j));
         }
-        try {
-        GradientCalc trainer = new NoiseGradientCalc(batch);
-        trainer.setModel(enModel);
-        // MAXIMISER
-        Optimizer optimizer = new ConjugateGradient(trainer);
-        optimizer.optimize(2);
-        double[] learntParams = new double[enModel.getThetaSize()];
-        trainer.getParameters(learntParams);
-        enModel.setParameters(learntParams);
-//        System.out.printf("After Batch %d Cost = %.6f\n", batchNum, trainer.getValue());
-        batchNum++;
-//        GradientCheck test = new GradientCheck(new NoiseGradientCalc(batch));
-//        test.optimise(enModel);
+        
+        try(Batch matBatch = new Batch(batch, 1, enModel.dict());) {
+/*          GradientCalc trainer = new NoiseGradientCalc(matBatch);
+          trainer.setModel(enModel);
+          // MAXIMISER
+          Optimizer optimizer = new ConjugateGradient(trainer);
+          optimizer.optimize(3);
+          double[] learntParams = new double[enModel.getThetaSize()];
+          trainer.getParameters(learntParams);
+          enModel.setParameters(learntParams);
+  //        System.out.printf("After Batch %d Cost = %.6f\n", batchNum, trainer.getValue());*/
+          batchNum++;
+          GradientCheck test = new GradientCheck(new NoiseGradientCalc(matBatch));
+          test.optimise(enModel);
+          matBatch.close();
         } finally {
           enModel.clearDevice();
         }

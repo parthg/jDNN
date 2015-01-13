@@ -4,23 +4,24 @@ import java.util.List;
 import models.Model;
 import common.Sentence;
 import common.Datum;
+import common.Batch;
 import cc.mallet.optimize.Optimizable;
 
 public abstract class GradientCalc implements Optimizable.ByGradientValue {
 
   Model model;
-  List<Datum> data;
+  Batch batch;
   double[] params;
 
   double cost;
   double[] grads;
 
-  public GradientCalc(List<Datum> _data) {
-    this.data = _data;
+  public GradientCalc(Batch _batch) {
+    this.batch = _batch;
   }
 
   public int dataSize() {
-    return this.data.size();
+    return this.batch.size();
   }
   public void setModel(Model _model) { this.model = _model; this.params = this.model.getParameters();}
 
