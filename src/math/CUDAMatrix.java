@@ -209,6 +209,16 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     return this;
   }
 
+  public DMatrix pow(double v) {
+    DMatrix m = new CUDAMatrix(this.rows(), this.columns(), this.toArray());
+    SimpleCuBlas.pow(m, v);
+    return m;
+  }
+  
+  public DMatrix powi(double v) {
+    SimpleCuBlas.pow(this, v);
+    return this;
+  }
   public DMatrix mmul(boolean tA, boolean tB, DMatrix B) {
 //    assert (this.columns()==B.rows());
     DMatrix C = new CUDAMatrix(this.rows(), B.columns());
@@ -285,6 +295,7 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     return mmul(false, false, B, this);
   }
 
+
   public DMatrix fillWithArray(DMatrix other) {
     assert (this.length()%other.length()==0);
 //    DMatrix m = DMath.createMatrix(this.rows(), this.columns());
@@ -304,6 +315,13 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     DMatrix sum = DMath.createMatrix(1, this.columns());
     DMatrix multiplier = DMath.createOnesMatrix(1, howMany);
     SimpleCuBlas.cust_gemv(false, this, multiplier, sum, 1.0, 0.0, startRow, howMany);
+    return sum;
+  }
+
+  public DMatrix sumColumns() {
+    DMatrix sum = DMath.createMatrix(this.rows, 1);
+    DMatrix multiplier = DMath.createOnesMatrix(this.columns, 1);
+    SimpleCuBlas.gemm(false, false, this, multiplier, sum, 1.0, 0.0);
     return sum;
   }
 }

@@ -81,6 +81,13 @@ public class BLASMatrix extends DMatrix {
   public DMatrix muli(double v) {
     return null;
   }
+  
+  public DMatrix pow(double v) {
+    return null;
+  }
+  public DMatrix powi(double v) {
+    return null;
+  }
 
   public DMatrix mmul(DMatrix other, DMatrix result) {
     return null;

@@ -188,6 +188,11 @@ public abstract class DMatrix implements Closeable {
     return null;
   }
 
+  public DMatrix sumColumns() {
+    return null;
+  }
+
+
   public DMatrix getRow(int r) {
     double[] rowData = new double[this.columns];
     System.arraycopy(this.data(), r*this.columns(), rowData, 0, this.columns());
@@ -214,6 +219,10 @@ public abstract class DMatrix implements Closeable {
 
   public abstract DMatrix mul(double v);
   public abstract DMatrix muli(double v);
+  
+
+  public abstract DMatrix pow(double v);
+  public abstract DMatrix powi(double v);
 
   public abstract DMatrix mmul(boolean tA, boolean tB, DMatrix B);
   public abstract DMatrix mmul(DMatrix B);

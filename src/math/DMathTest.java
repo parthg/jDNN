@@ -20,6 +20,13 @@ public class DMathTest {
   
   }
 
+  public static void testPow() {
+    DMatrix a = DMath.createMatrix(3, 2, new double[]{0, 1, 2, 3, 4, 5});
+    a.pow(2).print();
+    a.powi(3);
+    a.print();
+  }
+
   public static void testSub() {
     DMatrix a = DMath.createMatrix(2,3, new double[]{1, 2, 3, 4, 5, 6});
     DMatrix b = DMath.createMatrix(2,3, new double[]{0, 1, 2, 3, 4, 5});
@@ -120,6 +127,15 @@ public class DMathTest {
     b.sumRows(1, 3).print();
   }
 
+  public static void testSumColumns() {
+    DMatrix a = DMath.createOnesMatrix(5, 5);
+    a.sumColumns().print();
+
+    DMatrix b = DMath.createMatrix(5, 3, new double[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
+    b.sumColumns().sumRows().print();
+  }
+ 
+
   public static void testFillWithArray() {
     DMatrix a = DMath.createOnesMatrix(3, 5);
     DMatrix b = DMath.createRandnMatrix(1, 5);
@@ -171,7 +187,9 @@ public class DMathTest {
 //    testFillWithArray();
 
 //    testMuli();
-      testSumRows();
+//    testPow();
+//    testSumRows();
+    testSumColumns();
 //    testFillWithArray();
 //    testFillRow();
 //    testFillMatrix();   
