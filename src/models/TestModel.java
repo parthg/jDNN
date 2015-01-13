@@ -38,13 +38,13 @@ public class TestModel {
     Model enModel = new AddModel();
     Model deMdel = new AddModel();
 
-    String file = "data/hi-fire-mono/data.txt";
+/*    String file = "data/hi-fire-mono/data.txt";
     String posFile = "data/hi-fire-mono/pos-data.txt";
-    String negFile = "data/hi-fire-mono/neg-data.txt";
+    String negFile = "data/hi-fire-mono/neg-data.txt";*/
 
-/*    String file = "sample/hindi.short";
+    String file = "sample/hindi.short";
     String posFile = "sample/hindi-pos.short";
-    String negFile = "sample/hindi-neg.short";*/
+    String negFile = "sample/hindi-neg.short";
 		
     String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
 		List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
@@ -77,7 +77,7 @@ public class TestModel {
 //    enDict.print();
 
     enModel.setDict(enDict);
-    Layer l = new LogisticLayer(64);
+    Layer l = new LogisticLayer(3);
     enModel.addHiddenLayer(l);
   
     enModel.init();
@@ -108,8 +108,8 @@ public class TestModel {
 
 
     
-    int batchsize = 100;
-    int iterations = 1;
+    int batchsize = 1;
+    int iterations = 5;
 
     for(int iter = 0; iter<iterations; iter++) {
       int batchNum = 1;
@@ -125,7 +125,7 @@ public class TestModel {
           batch.add(instances.get(i+j));
         }
         try {
-        GradientCalc trainer = new NoiseGradientCalcBatch(batch);
+        GradientCalc trainer = new NoiseGradientCalc(batch);
         trainer.setModel(enModel);
         // MAXIMISER
         Optimizer optimizer = new ConjugateGradient(trainer);
@@ -135,7 +135,7 @@ public class TestModel {
         enModel.setParameters(learntParams);
 //        System.out.printf("After Batch %d Cost = %.6f\n", batchNum, trainer.getValue());
         batchNum++;
-//        GradientCheck test = new GradientCheck(new NoiseGradientCalcBatch(batch));
+//        GradientCheck test = new GradientCheck(new NoiseGradientCalc(batch));
 //        test.optimise(enModel);
         } finally {
           enModel.clearDevice();
