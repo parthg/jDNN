@@ -19,14 +19,15 @@ import common.Dictionary;
 import common.Datum;
 
 import optim.GradientCheck;
+import optim.BasicGradientCalc;
 import optim.NoiseGradientCalc;
 
 import cc.mallet.optimize.ConjugateGradient;
 import cc.mallet.optimize.Optimizer;
 import optim.GradientCalc;
 import optim.NoiseGradientCalc;
-
-import org.jblas.DoubleMatrix;
+import optim.NoiseGradientCalcTest;
+import optim.NoiseGradientCalcBatch;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -41,9 +42,9 @@ public class TestModel {
     String posFile = "data/hi-fire-mono/pos-data.txt";
     String negFile = "data/hi-fire-mono/neg-data.txt";
 
-/*    String file = "sample/hindi";
-    String posFile = "sample/hindi-pos";
-    String negFile = "sample/hindi-neg";*/
+/*    String file = "sample/hindi.short";
+    String posFile = "sample/hindi-pos.short";
+    String negFile = "sample/hindi-neg.short";*/
 		
     String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
 		List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
@@ -108,7 +109,7 @@ public class TestModel {
 
     
     int batchsize = 100;
-    int iterations = 10;
+    int iterations = 1;
 
     for(int iter = 0; iter<iterations; iter++) {
       int batchNum = 1;
@@ -123,7 +124,8 @@ public class TestModel {
         for(int j=0; j<innerbatchsize; j++) {
           batch.add(instances.get(i+j));
         }
-        GradientCalc trainer = new NoiseGradientCalc(batch);
+        try {
+        GradientCalc trainer = new NoiseGradientCalcBatch(batch);
         trainer.setModel(enModel);
         // MAXIMISER
         Optimizer optimizer = new ConjugateGradient(trainer);
@@ -133,9 +135,14 @@ public class TestModel {
         enModel.setParameters(learntParams);
 //        System.out.printf("After Batch %d Cost = %.6f\n", batchNum, trainer.getValue());
         batchNum++;
-//        GradientCheck test = new GradientCheck(new NoiseGradientCalc(batch));
+//        GradientCheck test = new GradientCheck(new NoiseGradientCalcBatch(batch));
 //        test.optimise(enModel);
+        } finally {
+          enModel.clearDevice();
+        }
+         
       }
+      enModel.clearDevice();
       enModel.save("obj/model.txt");
     }
   }

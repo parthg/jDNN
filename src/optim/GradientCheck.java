@@ -30,7 +30,7 @@ public class GradientCheck {
       double[] grads = new double[model.getThetaSize()];
       gradFunc.getValueGradient(grads);
 
-      System.out.printf("True Grad: %.10f Calc Grad: %.10f\n", trueGrad, grads[j]);
+      System.out.printf("True Grad: %.10f Calc Grad: %.10f ?multiple = %.6f\n", trueGrad, grads[j], grads[j]/trueGrad);
     }
   }
 }

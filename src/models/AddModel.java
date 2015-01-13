@@ -1,8 +1,9 @@
 package models;
 
 import nn.Layer;
+import math.DMath;
+import math.DMatrix;
 
-import org.jblas.DoubleMatrix;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Stack;
@@ -13,41 +14,55 @@ public class AddModel extends Model {
   public AddModel() {
     super();
   }
-  public DoubleMatrix fProp(Sentence sent) {
-    DoubleMatrix rep = DoubleMatrix.zeros(1,super.outSize);
+  public DMatrix fProp(Sentence sent) {
+    DMatrix rep = DMath.createZerosMatrix(1,super.outSize, true);
     Iterator<Integer> sentIt = sent.words.iterator();
     while(sentIt.hasNext()) {
-      DoubleMatrix input = this.dict.getRepresentation(sentIt.next());
+      DMatrix input = this.dict.getRepresentation(sentIt.next());
       Iterator<Layer> layerIt = this.layers.iterator();
-      DoubleMatrix temp = input;
+      DMatrix temp = input;
       while(layerIt.hasNext()) {
         Layer l = layerIt.next();
         temp = l.fProp(temp);
       }
       rep.addi(temp);
     }
+    rep.copyDtoH();
+    rep.close();
     return rep;
+  } 
+
+  public DMatrix getRepresentation(DMatrix sentMatrix) {
+    DMatrix temp = this.layers.get(0).fProp(sentMatrix);
+    return temp.sumRows();
   }
 
-  public DoubleMatrix bProp(Sentence s1, Sentence s2) {
+  public DMatrix fProp(DMatrix input) {
+    DMatrix temp = this.layers.get(0).fProp(input);
+    return temp;
+  }
+  
+  public DMatrix bProp(Sentence s1, Sentence s2) {
     // send s2 up -- use it as label
     // send s1 up 
     // calculate error (1-2)
     // backpropagate error -- for each word!
-    DoubleMatrix grads = DoubleMatrix.zeros(1, this.thetaSize); 
-    DoubleMatrix label = this.fProp(s2);
-    DoubleMatrix pred = this.fProp(s1);
+    
+    // TODO: initialize it with persist = true so that it is not copied to GPU in each iterations.
+    DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize, true); 
+    DMatrix label = this.fProp(s2);
+    DMatrix pred = this.fProp(s1);
 
-    DoubleMatrix error = pred.sub(label);
+    DMatrix error = pred.sub(label);
     Iterator<Integer> sentIt = s1.words.iterator();
     // for each word
     while(sentIt.hasNext()) {
       int start = 0;
       double[] tempGrads = new double[this.thetaSize];
-      DoubleMatrix word = this.dict.getRepresentation(sentIt.next());
+      DMatrix word = this.dict.getRepresentation(sentIt.next());
       Iterator<Layer> layerIt = this.layers.iterator();
-      DoubleMatrix rep = word;
-      Stack<DoubleMatrix> input = new Stack<DoubleMatrix>();
+      DMatrix rep = word;
+      Stack<DMatrix> input = new Stack<DMatrix>();
       input.push(word);
 
       // fprop and store the representations at each layer in stack
@@ -57,20 +72,114 @@ public class AddModel extends Model {
         input.push(rep);
       }
       ListIterator<Layer> layerRevIt = this.layers.listIterator(this.layers.size());
-      DoubleMatrix tempError = error;
+      DMatrix tempError = error;
       rep = input.pop();
       // backprop it
       while(layerRevIt.hasPrevious()) {
         Layer l = layerRevIt.previous();
-        DoubleMatrix lGrads = l.bProp(rep, tempError);
+        DMatrix lGrads = l.bProp(rep, tempError);
         double[] lParamGrads = l.getParamGradients(input.peek(), lGrads);
-        tempError = lGrads.mmul(l.getWeights().transpose());
+        // TODO: Make it conditioned if there is next layer. otherwise its unnecessary
+        tempError = lGrads.mmul(false, true, l.getWeights());
         rep = input.pop();
         System.arraycopy(lParamGrads, 0, tempGrads, start, lParamGrads.length);
         start = l.getThetaSize();
       }
-      grads.addi(new DoubleMatrix(1, this.thetaSize, tempGrads));
+      grads.addi(DMath.createMatrix(1, this.thetaSize, tempGrads));
     }
+
+    // TODO:before returning close it?
+    
+    return grads;
+  }
+  public DMatrix bProp(Sentence s1, DMatrix error) {
+    // send s2 up -- use it as label
+    // send s1 up 
+    // calculate error (1-2)
+    // backpropagate error -- for each word!
+    
+    // TODO: initialize it with persist = true so that it is not copied to GPU in each iterations.
+    DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize, true); 
+/*    DMatrix label = this.fProp(s2);
+    DMatrix pred = this.fProp(s1);
+
+    DMatrix error = pred.sub(label);*/
+    Iterator<Integer> sentIt = s1.words.iterator();
+    // for each word
+    while(sentIt.hasNext()) {
+      int start = 0;
+      double[] tempGrads = new double[this.thetaSize];
+      DMatrix word = this.dict.getRepresentation(sentIt.next());
+      Iterator<Layer> layerIt = this.layers.iterator();
+      DMatrix rep = word;
+      Stack<DMatrix> input = new Stack<DMatrix>();
+      input.push(word);
+
+      // fprop and store the representations at each layer in stack
+      while(layerIt.hasNext()) {
+        Layer l = layerIt.next();
+        rep = l.fProp(rep);
+        input.push(rep);
+      }
+      ListIterator<Layer> layerRevIt = this.layers.listIterator(this.layers.size());
+      DMatrix tempError = error;
+      rep = input.pop();
+      // backprop it
+      int layersLeft = this.getNumLayers();
+      while(layerRevIt.hasPrevious()) {
+        layersLeft--;
+        Layer l = layerRevIt.previous();
+        DMatrix lGrads = l.bProp(rep, tempError);
+        double[] lParamGrads = l.getParamGradients(input.peek(), lGrads);
+        // TODO: Make it conditioned if there is next layer. otherwise its unnecessary
+        if(layersLeft>0)
+          tempError = lGrads.mmul(false, true, l.getWeights());
+        rep = input.pop();
+        System.arraycopy(lParamGrads, 0, tempGrads, start, lParamGrads.length);
+        start = l.getThetaSize();
+      }
+      grads.addi(DMath.createMatrix(1, this.thetaSize, tempGrads));
+    }
+
+    // TODO:before returning close it?
+    
+    return grads;
+  }
+  
+  /* input  = matrix
+   * rep    = matrix
+   * error  = matrix
+   */
+  public DMatrix bProp(DMatrix input, DMatrix rep, DMatrix error) {
+    
+    DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize);
+
+//    DMatrix batchError = DMath.createMatrix(rep.rows(), rep.columns());
+//    batchError.fillWithArray(error);
+
+    DMatrix lGrads = this.layers.get(0).bProp(rep, error);
+    
+//    DMatrix batchLGrads = DMath.createMatrix(input.rows(), lGrads.columns());
+//    batchLGrads.fillWithArray(lGrads);
+    double[] lParamGrads = this.layers.get(0).getParamGradients(input, lGrads);
+    
+    System.arraycopy(lParamGrads, 0, grads.data(), 0 , lParamGrads.length);
+
+    return grads;
+  }
+  
+  public DMatrix bProp(DMatrix input, DMatrix error) {
+
+    // layerwise fprop -- get rep and save intermediate rep
+    // layerwise bprop 
+    
+    DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize);
+    DMatrix rep = this.fProp(input);
+
+    DMatrix lGrads = this.layers.get(0).bProp(rep, error);
+    double[] lParamGrads = this.layers.get(0).getParamGradients(input, lGrads);
+    System.arraycopy(lParamGrads, 0, grads.data(), 0, lParamGrads.length);
+
     return grads;
   }
 }

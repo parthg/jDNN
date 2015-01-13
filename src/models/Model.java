@@ -4,13 +4,16 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Arrays;
-import org.jblas.DoubleMatrix;
+//import org.jblas.DoubleMatrix;
+
 import java.io.PrintWriter;
 import java.io.IOException;
 
 import nn.Layer;
 import common.Sentence;
 import common.Dictionary;
+
+import math.DMatrix;
 
 public abstract class Model {
   Dictionary dict;
@@ -31,6 +34,10 @@ public abstract class Model {
     this.inSize = this.dict.getSize();
   }
 
+  public Dictionary dict() {
+    return this.dict;
+  }
+
   public void addHiddenLayer(Layer l) {
     if(this.dict == null) {
       System.err.printf("[error] First set the Dictionary.. Exiting.\n");
@@ -42,6 +49,10 @@ public abstract class Model {
 
   public int getThetaSize() {
     return this.thetaSize;
+  }
+
+  public int getNumLayers() {
+    return this.layers.size();
   }
 
   public void init() {
@@ -86,6 +97,7 @@ public abstract class Model {
     while(layerIt.hasNext()) {
       Layer l = layerIt.next();
       p.printf("#Layer%d=%d %d\n", lId, l.getInSize(), l.getSize());
+      l.clearDevice();
     }
     p.printf("#params=");
     double[] params = this.getParameters();
@@ -95,6 +107,20 @@ public abstract class Model {
     p.printf("\n");
     p.close();
   }
-  public abstract DoubleMatrix fProp(Sentence input);
-  public abstract DoubleMatrix bProp(Sentence s1, Sentence s2);
+
+  public void clearDevice() {
+    Iterator<Layer> layerIt = this.layers.iterator();
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      l.clearDevice();
+    }
+  }
+
+  public abstract DMatrix fProp(Sentence input);
+  public abstract DMatrix fProp(DMatrix input);
+  public abstract DMatrix getRepresentation(DMatrix sentMatrix);
+  public abstract DMatrix bProp(Sentence s1, Sentence s2);
+  public abstract DMatrix bProp(Sentence s, DMatrix error);
+  public abstract DMatrix bProp(DMatrix input, DMatrix error);
+  public abstract DMatrix bProp(DMatrix input, DMatrix rep, DMatrix error);
 }

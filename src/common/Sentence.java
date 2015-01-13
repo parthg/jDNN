@@ -23,6 +23,10 @@ public class Sentence {
     this.sentLength++;
   }
 
+  public int getSize() {
+    return this.words.size();
+  }
+
   public String toString() {
     StringBuffer sb = new StringBuffer();
     for(int word: words)

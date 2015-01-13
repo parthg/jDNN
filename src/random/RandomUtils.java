@@ -16,6 +16,10 @@ public class RandomUtils {
   public static int nextInt(int max) {
     return r.nextInt(max);
   }
+
+  public static double nextGaussian() {
+    return r.nextGaussian();
+  }
   public static int[] getRandomSamples(int max, int size) {
     Set<Integer> sample = new HashSet<Integer>();
     int count = 0;

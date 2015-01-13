@@ -7,7 +7,9 @@ import java.util.Iterator;
 import java.io.PrintWriter;
 import java.io.IOException;
 
-import org.jblas.DoubleMatrix;
+//import org.jblas.DoubleMatrix;
+import math.DMath;
+import math.DMatrix;
 
 public class Dictionary {
   Map<String, Integer> str2id;
@@ -38,18 +40,44 @@ public class Dictionary {
       this.dictSize++;
     }
   }
-  public DoubleMatrix getRepresentation(String t) {
-    DoubleMatrix vec = DoubleMatrix.zeros(1,dictSize);
+  public DMatrix getRepresentation(String t) {
+    DMatrix vec = DMath.createZerosMatrix(1,dictSize);
     if(str2id.containsKey(t))
       vec.put(0,this.str2id.get(t),1.0);
     return vec;
   }
 
-  public DoubleMatrix getRepresentation(int t) {
-    DoubleMatrix vec = DoubleMatrix.zeros(1,dictSize);
+  public DMatrix getRepresentation(int t) {
+    DMatrix vec = DMath.createZerosMatrix(1,dictSize);
     if(id2str.containsKey(t))
       vec.put(0,t, 1.0);
     return vec;
+  }
+
+  public DMatrix getRepresentation(Sentence sent) {
+    DMatrix mat = DMath.createZerosMatrix(sent.getSize(), dictSize);
+    Iterator<Integer> sentIt = sent.words.iterator();
+    int i = 0;
+    //TODO: This will add all the words including OOV as Zero vector, do something to consider active vocab
+    while(sentIt.hasNext()) {
+      mat.fillRow(i, this.getRepresentation(sentIt.next()));
+      i++;
+    }
+    return mat;
+  }
+
+  public DMatrix getRepresentation(Sentence[] sents) {
+    int row = 0;
+    for(int i=0; i<sents.length; i++)
+      row+= sents[i].getSize();
+    DMatrix mat = DMath.createMatrix(row, dictSize);
+    row=0; 
+    for(int i=0; i<sents.length; i++) {
+      DMatrix sentMat = this.getRepresentation(sents[i]);
+      mat.fillMatrix(row, sentMat);
+      row+=sents[i].getSize();
+    }
+    return mat;
   }
 
   public int getId(String t) {
