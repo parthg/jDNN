@@ -4,7 +4,6 @@ import nn.Layer;
 import math.DMath;
 import math.DMatrix;
 
-//import org.jblas.DoubleMatrix;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Stack;
@@ -18,34 +17,20 @@ public class AddModel extends Model {
   public DMatrix fProp(Sentence sent) {
     DMatrix rep = DMath.createZerosMatrix(1,super.outSize, true);
     Iterator<Integer> sentIt = sent.words.iterator();
-//    System.out.printf("original vectors: %d", sent.getSize());
     while(sentIt.hasNext()) {
       DMatrix input = this.dict.getRepresentation(sentIt.next());
-//      input.print();
       Iterator<Layer> layerIt = this.layers.iterator();
       DMatrix temp = input;
       while(layerIt.hasNext()) {
         Layer l = layerIt.next();
         temp = l.fProp(temp);
       }
-//      temp.print();
       rep.addi(temp);
     }
     rep.copyDtoH();
     rep.close();
     return rep;
-  }
-
-/*  public DMatrix fProp(DMatrix input) {
-    Iterator<Layer> layerIt = this.layers.iterator();
-    DMatrix temp = input;
-    while(layerIt.hasNext()) {
-      Layer l = layerIt.next();
-      temp = l.fProp(temp);
-    }
-    return temp.sumRows();
-  }*/
- 
+  } 
 
   public DMatrix getRepresentation(DMatrix sentMatrix) {
     DMatrix temp = this.layers.get(0).fProp(sentMatrix);
@@ -53,10 +38,7 @@ public class AddModel extends Model {
   }
 
   public DMatrix fProp(DMatrix input) {
-//    System.out.printf("batch of %d\n", input.rows());
     DMatrix temp = this.layers.get(0).fProp(input);
-
-//    temp.print();
     return temp;
   }
   
@@ -166,16 +148,16 @@ public class AddModel extends Model {
   
   /* input  = matrix
    * rep    = matrix
-   * error  = vector
+   * error  = matrix
    */
   public DMatrix bProp(DMatrix input, DMatrix rep, DMatrix error) {
     
     DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize);
 
-    DMatrix batchError = DMath.createMatrix(rep.rows(), rep.columns());
-    batchError.fillWithArray(error);
+//    DMatrix batchError = DMath.createMatrix(rep.rows(), rep.columns());
+//    batchError.fillWithArray(error);
 
-    DMatrix lGrads = this.layers.get(0).bProp(rep, batchError);
+    DMatrix lGrads = this.layers.get(0).bProp(rep, error);
     
 //    DMatrix batchLGrads = DMath.createMatrix(input.rows(), lGrads.columns());
 //    batchLGrads.fillWithArray(lGrads);

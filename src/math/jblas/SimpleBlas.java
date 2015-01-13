@@ -23,4 +23,12 @@ public class SimpleBlas {
     JavaBlas.rcopy(x.length(), x.data(), 0, 1, y.data(), 0, 1);
     return y;
   }
+
+  public static DMatrix fillWithArray(DMatrix a, DMatrix dest) {
+    int m = a.length();
+    for(int i=0; i<dest.length(); i++) {
+      dest.put(i, a.get(i%m));
+    }
+    return dest;
+  }
 }

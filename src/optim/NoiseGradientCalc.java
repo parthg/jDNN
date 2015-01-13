@@ -1,6 +1,5 @@
 package optim;
 
-//import org.jblas.DoubleMatrix;
 import math.DMath;
 import math.DMatrix;
 import models.Model;
@@ -22,34 +21,16 @@ public class NoiseGradientCalc extends GradientCalc {
     int nDP = 1;
     if(System.getProperty("use_cuda").equals("true")) {
       for(Datum d: this.data) {
-//        DMatrix dataIn = this.model.dict().getRepresentation(d.getData());
-//        DMatrix dataPos = this.model.dict().getRepresentation(d.getPos());
-
-/*        DMatrix s1_root = this.model.fProp(d.getData());
-        //s1_root.print();
-        DMatrix s2_root = this.model.fProp(d.getPos());
-//        s2_root.print();*/
 
         int nSamples = d.getNegSampleSize();
         nDP = nSamples;
         List<Sentence> neg = d.getNeg();
-/*        double unitError = 0.0;
-        for(int i=0; i<nSamples; i++) {
-
-//          DMatrix dataNeg = this.model.dict().getRepresentation(neg.get(i));
-          DMatrix s3_root = this.model.fProp(neg.get(i));
-
-          unitError += -(0.5*s1_root.squaredDistance(s2_root))+(0.5*s1_root.squaredDistance(s3_root));
-        }
-//        System.out.printf("Error original = %.8f\t", unitError);*/
   
         DMatrix dataIn = this.model.dict().getRepresentation(d.getData());
         DMatrix dataPos = this.model.dict().getRepresentation(d.getPos());
 
         DMatrix s1_root = this.model.getRepresentation(dataIn);
-//        s1_root.print();
         DMatrix s2_root = this.model.getRepresentation(dataPos);
-//        s2_root.print();
 
         double unitError = 0.0;
         for(int i=0; i<nSamples; i++) {
@@ -57,16 +38,11 @@ public class NoiseGradientCalc extends GradientCalc {
           DMatrix dataNeg = this.model.dict().getRepresentation(neg.get(i));
           DMatrix s3_root = this.model.getRepresentation(dataNeg);
 
+          // f = 1/2(A-N)^2 - 1/2(A-B)^2
           unitError += -(0.5*s1_root.squaredDistance(s2_root))+(0.5*s1_root.squaredDistance(s3_root));
         }
-//        System.out.printf("Batch Error = %.8f\n", unitError);
         err+=unitError;
       }
-  //    double err = 0.5*((s1_root.sub(s2_root)).mul(s1_root.sub(s2_root))).sum() - 0.5*((s1_root.sub(s3_root)).mul(s1_root.sub(s3_root))).sum();
-/*      System.gc(); System.gc();
-      System.gc(); System.gc();
-      System.gc(); System.gc();
-      System.gc(); System.gc();*/
       return err/(nDP*this.dataSize());
     }
     // make it parallel
@@ -95,85 +71,100 @@ public class NoiseGradientCalc extends GradientCalc {
     DMatrix grads = DMath.createZerosMatrix(1, buffer.length, true);
     try {
       int nDP = 1;
+      int nSamples = 1;
       if(System.getProperty("use_cuda").equals("true")) {
 
-        for(Datum d: this.data) {
-          int nSamples = d.getNegSampleSize();
-          nDP = nSamples;
-          List<Sentence> neg = d.getNeg();
-          
-          try(DMatrix dataIn = this.model.dict().getRepresentation(d.getData());
-            DMatrix dataPos = this.model.dict().getRepresentation(d.getPos());) {
+//        System.out.printf("Total DP = %d\n", this.data.size());
 
-            dataIn.copyHtoD();
-            dataPos.copyHtoD();
-          
-            DMatrix A = this.model.fProp(dataIn);
-            DMatrix B = this.model.fProp(dataPos);
+        Sentence[] dataSents = new Sentence[this.data.size()];
+        Sentence[] posSents = new Sentence[this.data.size()];
+        Sentence[] negSents = new Sentence[nSamples*this.data.size()];
 
-            A.copyHtoD();
-            B.copyHtoD();
+        int[] dataWords = new int[this.data.size()];
+        int[] posWords = new int[this.data.size()];
+        int[] negWords = new int[nSamples*this.data.size()];
 
-            // TODO: This is the bottleneck for the whole batch together
-            DMatrix AB = A.sumRows().sub(B.sumRows());
-            DMatrix BA = B.sumRows().sub(A.sumRows());
+        //TODO: Probably its a good idea to store data and pos also nSamples times for the easy calculation
+        for(int dp=0; dp<this.data.size(); dp++) {
+          dataSents[dp] = this.data.get(dp).getData();
+          dataWords[dp] = this.data.get(dp).getData().getSize();
 
-            AB.copyHtoD();
-            BA.copyHtoD();
+          posSents[dp] = this.data.get(dp).getPos();
+          posWords[dp] = this.data.get(dp).getPos().getSize();
 
-            for(int i=0; i<nSamples; i++) {
-              // df/dA = (A-N) - (A-B)
-              
-              try (DMatrix dataNeg = this.model.dict().getRepresentation(neg.get(i));) {
-                
-                dataNeg.copyHtoD();
-                
-                DMatrix N = this.model.fProp(dataNeg);
-                N.copyHtoD();
-
-                // TODO: This is the bottleneck for the whole batch together
-                DMatrix AN = A.sumRows().sub(N.sumRows());
-                DMatrix NA = N.sumRows().sub(A.sumRows());
-
-                AN.copyHtoD();
-                NA.copyHtoD();
-
-                DMatrix tempGrad = this.model.bProp(dataIn, A, AN);
-                grads.addi(tempGrad);
-                tempGrad.close();
-
-                tempGrad = this.model.bProp(dataIn, A, AB);
-                grads.subi(tempGrad);
-                tempGrad.close();
-
-                // df/dB = -(B-A)
-                tempGrad = this.model.bProp(dataPos, B, BA);
-                grads.subi(tempGrad);
-                tempGrad.close();
-
-                // df/dN = (N-A)
-                tempGrad = this.model.bProp(dataNeg, N, NA);
-                grads.addi(tempGrad);
-                tempGrad.close();
-
-                N.close();
-
-                AN.close();
-                NA.close();
-               
-              }
-
-            }
-
-            A.close();
-            B.close();
-
-            AB.close();
-            BA.close();
+          List<Sentence> neg = this.data.get(dp).getNeg();
+          for(int i=0; i<nSamples; i++) {
+            negSents[dp*nSamples+i] = neg.get(i);
+            negWords[dp*nSamples+i] = neg.get(i).getSize();
           }
+          
         }
+        
+        DMatrix dataIn = this.model.dict().getRepresentation(dataSents);
+        DMatrix dataPos = this.model.dict().getRepresentation(posSents);
+        DMatrix dataNeg = this.model.dict().getRepresentation(negSents);
 
-        grads.muli(1.0/(nDP*this.dataSize()));
+        dataIn.copyHtoD();
+        dataPos.copyHtoD();
+        dataNeg.copyHtoD();
+
+        
+        DMatrix A = this.model.fProp(dataIn);
+        DMatrix B = this.model.fProp(dataPos);
+        DMatrix N = this.model.fProp(dataNeg);
+
+        A.copyHtoD();
+        B.copyHtoD();
+        N.copyHtoD();
+
+
+        DMatrix ARep = this.prepareSumMatrix(A, dataWords);
+        DMatrix BRep = this.prepareSumMatrix(B, posWords);
+        DMatrix NRep = this.prepareSumMatrix(N, negWords);
+
+        DMatrix AB = this.prepareErrorMatrix(ARep.sub(BRep), dataWords, A.rows());
+        DMatrix BA = this.prepareErrorMatrix(BRep.sub(ARep), posWords, B.rows());
+        DMatrix AN = this.prepareErrorMatrix(ARep.sub(NRep), dataWords, A.rows());
+        DMatrix NA = this.prepareErrorMatrix(NRep.sub(ARep), negWords, N.rows());
+
+        AB.copyHtoD();
+        BA.copyHtoD();
+        AN.copyHtoD();
+        NA.copyHtoD();
+
+        // df/dA = (A-N) - (A-B)
+        DMatrix tempGrad = this.model.bProp(dataIn, A, AN);
+        grads.addi(tempGrad);
+        tempGrad.close();
+
+        tempGrad = this.model.bProp(dataIn, A, AB);
+        grads.subi(tempGrad);
+        tempGrad.close();
+
+        // df/dB = -(B-A)
+        tempGrad = this.model.bProp(dataPos, B, BA);
+        grads.subi(tempGrad);
+        tempGrad.close();
+
+        // df/dN = (N-A)
+        tempGrad = this.model.bProp(dataNeg, N, NA);
+        grads.addi(tempGrad);
+        tempGrad.close();
+
+        grads.muli(1.0/(nSamples*this.data.size()));
+
+        dataIn.close();
+        dataPos.close();
+        dataNeg.close();
+
+        A.close();
+        B.close();
+        N.close();
+
+        AB.close();
+        BA.close();
+        AN.close();
+        NA.close();
       } 
       else {
         // parallelise this
@@ -198,4 +189,25 @@ public class NoiseGradientCalc extends GradientCalc {
     // now close the grads because it was initialised with persist = true --> grads.close();
   }
 
+  public DMatrix prepareSumMatrix(DMatrix mat, int[] words) {
+    DMatrix newMat = DMath.createMatrix(words.length, mat.columns());
+    int start = 0;
+    for(int i=0; i<words.length; i++) {
+      DMatrix sum = mat.sumRows(start, words[i]);
+      newMat.fillRow(i, sum);
+      start+=words[i];
+    }
+    return newMat;
+  }
+
+  public DMatrix prepareErrorMatrix(DMatrix mat, int[] words, int totRows) {
+    DMatrix newMat = DMath.createMatrix(totRows, mat.columns());
+    int start = 0;
+    for(int i=0; i<words.length; i++) {
+      newMat.fillRow(start, words[i], mat.getRow(i));
+      start+=words[i];
+    }
+    return newMat;
+  }
 }
+
