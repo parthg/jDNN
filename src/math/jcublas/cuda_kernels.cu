@@ -33,9 +33,17 @@ __global__ void kSigmoid(double* a, double* dest, int n) {
 }
 
 extern "C"
-__global__ void kPow(double*a, double y, int n) {
+__global__ void kPow(double* a, double y, int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if(idx<n) {
     a[idx] = pow(a[idx], y);
+  }
+}
+
+extern "C"
+__global__ void kDivByColumnVector(double *a, int m, double* dest, int n) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if(idx<n) {
+    dest[idx] = dest[idx]/a[idx/m];
   }
 }

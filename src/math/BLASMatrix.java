@@ -146,4 +146,10 @@ public class BLASMatrix extends DMatrix {
   public DMatrix fillWithArray(DMatrix other) {
     return null;
   }
+  public DMatrix divRows(DMatrix colVector) {
+    return null;
+  }
+  public DMatrix divRowsi(DMatrix colVector) {
+    return null;
+  }
 }

@@ -324,4 +324,16 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     SimpleCuBlas.gemm(false, false, this, multiplier, sum, 1.0, 0.0);
     return sum;
   }
+  public DMatrix divRows(DMatrix colVector) {
+    assert (this.rows() == colVector.rows() && colVector.columns() == 1);
+    DMatrix m = new CUDAMatrix(this.rows(), this.columns(), this.toArray());
+    SimpleCuBlas.divRows(colVector, m);
+    return m;
+
+  }
+  public DMatrix divRowsi(DMatrix colVector) {
+    assert (this.rows() == colVector.rows() && colVector.columns() == 1);
+    SimpleCuBlas.divRows(colVector, this);
+    return this;
+  }
 }

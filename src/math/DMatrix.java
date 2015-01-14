@@ -192,7 +192,6 @@ public abstract class DMatrix implements Closeable {
     return null;
   }
 
-
   public DMatrix getRow(int r) {
     double[] rowData = new double[this.columns];
     System.arraycopy(this.data(), r*this.columns(), rowData, 0, this.columns());
@@ -234,4 +233,7 @@ public abstract class DMatrix implements Closeable {
   public abstract DMatrix mmul(DMatrix B, DMatrix C); 
 
   public abstract DMatrix fillWithArray(DMatrix other);
+
+  public abstract DMatrix divRows(DMatrix colVector);
+  public abstract DMatrix divRowsi(DMatrix colVector);
 }
