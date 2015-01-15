@@ -20,15 +20,13 @@ import common.Datum;
 import common.Batch;
 
 import optim.GradientCheck;
+import optim.GradientCalc;
 import optim.BasicGradientCalc;
 import optim.NoiseGradientCalc;
+import optim.NoiseCosineGradientCalc;
 
 import cc.mallet.optimize.ConjugateGradient;
 import cc.mallet.optimize.Optimizer;
-import optim.GradientCalc;
-import optim.NoiseGradientCalc;
-import optim.NoiseGradientCalcTest;
-import optim.NoiseGradientCalcBatch;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -137,7 +135,7 @@ public class TestModel {
           enModel.setParameters(learntParams);
   //        System.out.printf("After Batch %d Cost = %.6f\n", batchNum, trainer.getValue());*/
           batchNum++;
-          GradientCheck test = new GradientCheck(new NoiseGradientCalc(matBatch));
+          GradientCheck test = new GradientCheck(new NoiseCosineGradientCalc(matBatch));
           test.optimise(enModel);
           matBatch.close();
         } finally {
