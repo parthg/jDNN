@@ -59,6 +59,22 @@ public class BLASMatrix extends DMatrix {
     return null;
   }*/
 
+  public DMatrix inv() {
+    return null;
+  }
+
+  public DMatrix invi() {
+    return null;
+  }
+
+  public DMatrix sqrt() {
+    return null;
+  }
+
+  public DMatrix sqrti() {
+    return null;
+  }
+  
   public DMatrix subi(DMatrix other) {
     return null;
   }
@@ -146,10 +162,32 @@ public class BLASMatrix extends DMatrix {
   public DMatrix fillWithArray(DMatrix other) {
     return null;
   }
+
   public DMatrix divRows(DMatrix colVector) {
     return null;
   }
+  
   public DMatrix divRowsi(DMatrix colVector) {
+    return null;
+  }
+
+  public DMatrix mulRows(DMatrix colVector) {
+    return null;
+  }
+  
+  public DMatrix mulRowsi(DMatrix colVector) {
+    return null;
+  }
+
+  public DMatrix vectorNorm() {
+    return null;
+  }
+
+  public DMatrix rowNorms() {
+    return null;
+  }
+
+  public DMatrix dotRows(DMatrix B) {
     return null;
   }
 }

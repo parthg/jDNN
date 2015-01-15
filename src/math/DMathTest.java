@@ -20,23 +20,74 @@ public class DMathTest {
   
   }
 
+  public static void testMulRows() {
+    DMatrix a = DMath.createMatrix(3, 2, new double[]{0, 1, 2, 3, 4, 5});
+    DMatrix b = a.mul(a);
+    DMatrix col = b.sumColumns();
+    a.mulRowsi(col);
+    // Expected Output
+    // [0.000000 1.000000 ]
+    // [26.000000 39.000000 ]
+    // [164.000000 205.000000 ]
+    a.print();
+  }
+  
   public static void testDivRows() {
     DMatrix a = DMath.createMatrix(3, 2, new double[]{0, 1, 2, 3, 4, 5});
     DMatrix b = a.mul(a);
     DMatrix col = b.sumColumns();
+    a.divRowsi(col);
+    // Expected output
+    // [0.000000 1.000000 ]
+    // [0.153846 0.230769 ]
+    // [0.097561 0.121951 ]
+    a.print();
+
+    DMatrix c = DMath.createMatrix(3, 2);
+    a.divRows(c.sumColumns()).print();
+
+  }
+
+  public static void testVectorNorm() {
+    DMatrix a = DMath.createMatrix(3, 2, new double[]{0, 1, 2, 3, 4, 5});
+    DMatrix b = a.vectorNorm();
     b.print();
-    col.print();
-    b.divRowsi(col);
-    b.print();
+  }
+
+  public static void testDotRows() {
+    DMatrix a = DMath.createMatrix(2, 3, new double[]{0, 1, 2, 3, 4, 5});
+    DMatrix b = DMath.createMatrix(2, 3, new double[]{1, 2, 3, 4, 5, 6});
+
+    DMatrix c = a.dotRows(b);
+    c.print();
   }
 
   public static void testPow() {
     DMatrix a = DMath.createMatrix(3, 2, new double[]{0, 1, 2, 3, 4, 5});
-    a.pow(2).print();
-    a.powi(3);
+    a.pow(2.0).print();
+    a.powi(3.0);
     a.print();
   }
 
+  public static void testInv() {
+    DMatrix a = DMath.createMatrix(3, 2, new double[]{0, 1, 2, 3, 4, 5});
+    a.inv().print();
+
+    a = DMath.createMatrix(1, 3, new double[]{0.57738, 0.57383, 0.58082});
+    a.inv().print();
+  }
+
+  public static void testRowNorms() {
+    DMatrix a = DMath.createMatrix(2, 4, new double[]{0, 1, 2, 3, 4, 5, 6, 7});
+    a.rowNorms().inv().print();
+  }
+  
+
+  public static void testSqrt() {
+    DMatrix a = DMath.createMatrix(3, 2, new double[]{0, 1, 2, 3, 4, 5});
+    a.sqrt().print();
+  }
+  
   public static void testSub() {
     DMatrix a = DMath.createMatrix(2,3, new double[]{1, 2, 3, 4, 5, 6});
     DMatrix b = DMath.createMatrix(2,3, new double[]{0, 1, 2, 3, 4, 5});
@@ -200,7 +251,13 @@ public class DMathTest {
 //    testPow();
 //    testSumRows();
 //    testSumColumns();
-    testDivRows();
+//    testInv();
+    testRowNorms();
+//    testSqrt();
+//    testDivRows();
+//    testMulRows();
+//    testDotRows();
+//    testVectorNorm();
 //    testFillWithArray();
 //    testFillRow();
 //    testFillMatrix();   

@@ -108,6 +108,17 @@ public abstract class DMatrix implements Closeable {
     }
   }
 
+  public void print(String comment) {
+    System.out.printf("\n%s\n", comment);
+    for(int i= 0; i<this.rows; i++) {
+      System.out.printf("[");
+      for(int j = 0; j<this.columns; j++) {
+        System.out.printf("%f ", this.data[i*this.columns+j]);
+      }
+      System.out.printf("]\n");
+    }
+  }
+  
   public void resize(int newRows, int newColumns) {
     rows = newRows;
     columns = newColumns;
@@ -210,8 +221,14 @@ public abstract class DMatrix implements Closeable {
 
 //  public abstract DMatrix addMuli(DMatrix A, DMatrix x);
 
+  public abstract DMatrix inv();
+  public abstract DMatrix invi();
+  
   public abstract DMatrix sub(DMatrix other);
   public abstract DMatrix subi(DMatrix other);
+  
+  public abstract DMatrix sqrt();
+  public abstract DMatrix sqrti();
   
   public abstract DMatrix mul(DMatrix other);
   public abstract DMatrix muli(DMatrix other);
@@ -234,6 +251,22 @@ public abstract class DMatrix implements Closeable {
 
   public abstract DMatrix fillWithArray(DMatrix other);
 
+  public abstract DMatrix mulRows(DMatrix colVector);
+  public abstract DMatrix mulRowsi(DMatrix colVector);
+  
   public abstract DMatrix divRows(DMatrix colVector);
   public abstract DMatrix divRowsi(DMatrix colVector);
+
+  /** Return the the matrix where each row is unit based on the L2 norm.
+   */
+  public abstract DMatrix vectorNorm();
+
+  /** Calculates the L2 norm of each row and returns as the column vector.
+   */
+  public abstract DMatrix rowNorms();
+  
+  
+  /** Calcuates the dot product between the rows of this and B and returns as column Vector
+   */
+  public abstract DMatrix dotRows(DMatrix B);
 }

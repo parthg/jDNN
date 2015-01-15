@@ -172,6 +172,17 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
       this.put(i,(double) v+this.get(i));
     return this;
   }
+
+  public DMatrix inv() {
+    DMatrix m = DMath.createMatrix(this.rows(), this.columns(), this.toArray());
+    SimpleCuBlas.inverseElements(m);
+    return m;
+  }
+
+  public DMatrix invi() {
+    SimpleCuBlas.inverseElements(this);
+    return this;
+  }
   
   public DMatrix sub(DMatrix other) {
     assert this.length()==other.length() : System.out.printf("Length is not equal. %d - %d\n", this.length(), other.length());
@@ -185,7 +196,18 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     SimpleCuBlas.axpy(-1.0, other, this);
     return this;
   }
-  
+
+  public DMatrix sqrt() {
+    DMatrix m = new CUDAMatrix(this.rows, this.columns(), this.toArray());
+    SimpleCuBlas.sqrt(m);
+    return m;
+  }
+
+  public DMatrix sqrti() {
+    SimpleCuBlas.sqrt(this);
+    return this;
+  }
+
   public DMatrix mul(DMatrix other) {
     assert (this.length()==other.length());
     DMatrix m = new CUDAMatrix(this.rows(), this.columns());
@@ -234,7 +256,6 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
 
   //result = this*other
   public DMatrix mmul(boolean tA, boolean tB, DMatrix B, DMatrix C) {
-    //TODO: correct assertions in effect of tA and tB
     
     int m = tA?this.columns():this.rows();
     int n = tB?B.rows():B.columns();
@@ -268,11 +289,8 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     } 
     else {
       if (m == 1) {
-//        System.out.printf("calling gemv\n");
         SimpleCuBlas.gemv(tB, B, this, C, 1.0, 0.0);
       } else {
-
-//        System.out.printf("calling gemm- HERE\n");
         SimpleCuBlas.gemm(tA, tB, this, B, C, 1.0, 0.0);
       }
     }
@@ -336,4 +354,35 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     SimpleCuBlas.divRows(colVector, this);
     return this;
   }
+
+  public DMatrix mulRows(DMatrix colVector) {
+    assert (this.rows() == colVector.rows() && colVector.columns() == 1);
+    DMatrix m = new CUDAMatrix(this.rows(), this.columns(), this.toArray());
+    SimpleCuBlas.mulRows(colVector, m);
+    return m;
+
+  }
+  public DMatrix mulRowsi(DMatrix colVector) {
+    assert (this.rows() == colVector.rows() && colVector.columns() == 1);
+    SimpleCuBlas.mulRows(colVector, this);
+    return this;
+  }
+  
+  public DMatrix vectorNorm() {
+    DMatrix m = DMath.createMatrix(this.rows(), this.columns(), this.toArray());
+    DMatrix Denom = this.mul(this).sumColumns();
+    Denom.sqrti();
+    return m.divRows(Denom);
+  }
+
+  public DMatrix rowNorms() {
+    DMatrix norm = this.mul(this).sumColumns();
+    norm.sqrti();
+    return norm;
+  }
+
+  public DMatrix dotRows(DMatrix B) {
+    assert (this.rows() == B.rows() && this.columns() == B.columns());
+    return this.mul(B).sumColumns();
+  } 
 }

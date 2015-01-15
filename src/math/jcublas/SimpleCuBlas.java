@@ -159,6 +159,40 @@ public class SimpleCuBlas {
     return B;
   }
 
+  /** Mul rows of B by elemets of column vector A
+   */
+  public static DMatrix mulRows(DMatrix A, DMatrix B) {
+    JCublas.cublasInit();
+    CUmodule module = new CUmodule();
+    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    CUfunction function = new CUfunction();
+    cuModuleGetFunction(function, module, "kMulByColumnVector");
+
+    CUDAMatrix cA = (CUDAMatrix) A;
+    CUDAMatrix cB = (CUDAMatrix) B;
+
+    Pointer cAPointer = (cA.persist())?cA.pointer():alloc(cA);
+    Pointer cBPointer = (cB.persist())?cB.pointer():alloc(cB);
+
+    Pointer kernelParameters = Pointer.to(Pointer.to(cAPointer),
+        Pointer.to(new int[]{cB.columns()}),
+        Pointer.to(cBPointer),
+        Pointer.to(new int[]{cB.length()})
+        );
+
+    cuLaunchKernel(function, getGridDim(cB.length()), 1, 1, getBlockDim(cB.length()), 1, 1, 0, null, kernelParameters, null);
+    
+    if(!cB.persist()) {
+      getData(cB,cBPointer,Pointer.to(cB.data()));
+      free(cBPointer);
+    }
+
+    if(!cA.persist())
+      free(cAPointer);
+    
+    return B;
+  }
+  
   /** Div rows of B by elemets of column vector A
    */
   public static DMatrix divRows(DMatrix A, DMatrix B) {
@@ -231,6 +265,56 @@ public class SimpleCuBlas {
 
 
     return C;
+  }
+
+  // performs x^0.5 for each element x of the matrix
+  public static DMatrix sqrt(DMatrix A) {
+    JCublas.cublasInit();
+    CUmodule module = new CUmodule();
+    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    CUfunction function = new CUfunction();
+    cuModuleGetFunction(function, module, "kSqrt");
+
+    CUDAMatrix cA = (CUDAMatrix) A;
+    Pointer cAPointer = (cA.persist())?cA.pointer():alloc(cA);
+    
+    Pointer kernelParameters = Pointer.to(Pointer.to(cAPointer),
+        Pointer.to(new int[]{cA.length()})
+        );
+  
+    cuLaunchKernel(function, getGridDim(cA.length()), 1, 1, getBlockDim(cA.length()), 1, 1, 0, null, kernelParameters, null);
+    
+    if(!cA.persist()) {
+      getData(cA,cAPointer,Pointer.to(cA.data()));
+      free(cAPointer);
+    }
+
+    return A;
+  }
+  
+  // performs 1/x for each element x of the matrix
+  public static DMatrix inverseElements(DMatrix A) {
+    JCublas.cublasInit();
+    CUmodule module = new CUmodule();
+    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    CUfunction function = new CUfunction();
+    cuModuleGetFunction(function, module, "kInverseElements");
+
+    CUDAMatrix cA = (CUDAMatrix) A;
+    Pointer cAPointer = (cA.persist())?cA.pointer():alloc(cA);
+    
+    Pointer kernelParameters = Pointer.to(Pointer.to(cAPointer),
+        Pointer.to(new int[]{cA.length()})
+        );
+  
+    cuLaunchKernel(function, getGridDim(cA.length()), 1, 1, getBlockDim(cA.length()), 1, 1, 0, null, kernelParameters, null);
+    
+    if(!cA.persist()) {
+      getData(cA,cAPointer,Pointer.to(cA.data()));
+      free(cAPointer);
+    }
+
+    return A;
   }
 
   public static DMatrix pow(DMatrix A, double v) {
