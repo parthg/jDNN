@@ -36,8 +36,6 @@ public abstract class Layer {
     double[] paramGrads = new double[this.thetaSize];
     // TODO: check if blas expression fits here: -> YES: the boolean transpose needs to be passed. Check with the correctness.
     double[] mydW = (myInData.mmul(true, false, mygrad)).toArray();
-    // multiply bias by the batch size
-//    double[] mydB = mygrad.mul(myInData.rows()).toArray();
     double[] mydB = mygrad.sumRows().toArray();
 
     System.arraycopy(mydW, 0, paramGrads, 0, this.wSize);
@@ -52,10 +50,14 @@ public abstract class Layer {
   }
 
   public void init(boolean rand, int _inSize, int outSize) {
+    this.init(rand, _inSize, outSize, 1.0, 1.0);
+  }
+  
+  public void init(boolean rand, int _inSize, int outSize, double weightScale, double biasScale) {
     this.inSize = _inSize;
     if(rand) {
-      this.w = DMath.createRandnMatrix(this.inSize, outSize).muli(0.01);
-      this.b = DMath.createOnesMatrix(1, outSize).muli(-2.0);
+      this.w = DMath.createRandnMatrix(this.inSize, outSize).muli(weightScale);
+      this.b = DMath.createOnesMatrix(1, outSize).muli(biasScale);
     }
     else {
       this.w = DMath.createMatrix(this.inSize, outSize);
@@ -67,7 +69,6 @@ public abstract class Layer {
     this.wSize = this.inSize * outSize;
     this.bSize = outSize;
     this.thetaSize = this.wSize + this.bSize;
-//    this.copyHtoD();
   }
 
   public DMatrix getWeights() {

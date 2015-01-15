@@ -16,7 +16,7 @@ public class GradientCheck {
     this.gradFunc.setModel(model);
 
     for(int j=0; j< model.getThetaSize(); j++) {
-      double epsilon = 1e-7;
+      double epsilon = 1e-2;
       
       gradFunc.setParameter(j, gradFunc.getParameter(j)+epsilon);
       double err1 = gradFunc.getValue();

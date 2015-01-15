@@ -10,9 +10,9 @@ import parallel.Parallel;
 
 import java.util.List;
 
-public class NoiseGradientCalc extends GradientCalc {
+public class NoiseCosineGradientCalc extends GradientCalc {
 
-  public NoiseGradientCalc(Batch _batch) {
+  public NoiseCosineGradientCalc(Batch _batch) {
     super(_batch);
   }
   // f - error 
@@ -22,6 +22,7 @@ public class NoiseGradientCalc extends GradientCalc {
     double batchError = 0.0;
     int nDP = 1;
     if(System.getProperty("use_cuda").equals("true")) {
+
         DMatrix A = this.model.fProp(this.batch.data());
         DMatrix B = this.model.fProp(this.batch.pos());
         DMatrix N = this.model.fProp(this.batch.neg());
@@ -39,49 +40,34 @@ public class NoiseGradientCalc extends GradientCalc {
         BRep.copyHtoD();
         NRep.copyHtoD();
 
+        DMatrix ARepNorm = ARep.vectorNorm();
+        DMatrix BRepNorm = BRep.vectorNorm();
+        DMatrix NRepNorm = NRep.vectorNorm();
+
+
+        double posPart = (double) ARepNorm.dotRows(BRepNorm).sumRows().get(0);
+        double negPart = (double) ARepNorm.dotRows(NRepNorm).sumRows().get(0);
+
+//        System.out.printf("Pos part = %.10f\tNeg Part = %.10f\n", posPart, negPart);
+
 
         // TODO: POW is not accurate. Not enough to have accurate gradient computation.
         
 //        double negPart = 0.5*(double)(((ARep.sub(BRep)).powi(2.0)).sumColumns().sumRows().get(0));
 //        double posPart = 0.5*(double)(((ARep.sub(NRep)).powi(2.0)).sumColumns().sumRows().get(0));
 
-        double negPart = 0.5*(double)(((ARep.sub(BRep)).mul(ARep.sub(BRep))).sumColumns().sumRows().get(0));
-        double posPart = 0.5*(double)(((ARep.sub(NRep)).mul(ARep.sub(NRep))).sumColumns().sumRows().get(0));
+//        double negPart = 0.5*(double)(((ARep.sub(BRep)).mul(ARep.sub(BRep))).sumColumns().sumRows().get(0));
+//        double posPart = 0.5*(double)(((ARep.sub(NRep)).mul(ARep.sub(NRep))).sumColumns().sumRows().get(0));
+
+        ARep.close();
+        BRep.close();
+        NRep.close();
         
+        // f = cos(A, B) - cos(A, N)
         batchError = (posPart - negPart)/(this.batch.nSamples()*this.batch.size());
 
-//        System.out.printf("Batch error = %.10f\t", batchError);
+//        System.out.printf("Error = %.10f\n", batchError);
 
-
-/*      for(Datum d: this.batch.listData()) {
-
-        int nSamples = d.getNegSampleSize();
-        nDP = nSamples;
-        List<Sentence> neg = d.getNeg();
-  
-        DMatrix dataIn = this.model.dict().getRepresentation(d.getData());
-        DMatrix dataPos = this.model.dict().getRepresentation(d.getPos());
-
-        DMatrix s1_root = this.model.getRepresentation(dataIn);
-        DMatrix s2_root = this.model.getRepresentation(dataPos);
-
-        double unitError = 0.0;
-        for(int i=0; i<nSamples; i++) {
-
-          DMatrix dataNeg = this.model.dict().getRepresentation(neg.get(i));
-          DMatrix s3_root = this.model.getRepresentation(dataNeg);
-
-          // f = 1/2(A-N)^2 - 1/2(A-B)^2
-          unitError += -(0.5*s1_root.squaredDistance(s2_root))+(0.5*s1_root.squaredDistance(s3_root));
-        }
-        err+=unitError;
-      }
-      err = err/(nDP*this.batch.size());
-
-
-      System.out.printf("Original error = %.10f\t", err);*/
-
-//      return err/(nDP*this.batch.size());*/
       return batchError;
     }
     // make it parallel
@@ -112,41 +98,6 @@ public class NoiseGradientCalc extends GradientCalc {
       int nDP = 1;
       int nSamples = this.batch.nSamples();
       if(System.getProperty("use_cuda").equals("true")) {
-
-//        System.out.printf("Total DP = %d\n", this.data.size());
-
-/*        Sentence[] dataSents = new Sentence[this.data.size()];
-        Sentence[] posSents = new Sentence[this.data.size()];
-        Sentence[] negSents = new Sentence[nSamples*this.data.size()];
-
-        int[] dataWords = new int[this.data.size()];
-        int[] posWords = new int[this.data.size()];
-        int[] negWords = new int[nSamples*this.data.size()];
-
-        //TODO: Probably its a good idea to store data and pos also nSamples times for the easy calculation
-        for(int dp=0; dp<this.data.size(); dp++) {
-          dataSents[dp] = this.data.get(dp).getData();
-          dataWords[dp] = this.data.get(dp).getData().getSize();
-
-          posSents[dp] = this.data.get(dp).getPos();
-          posWords[dp] = this.data.get(dp).getPos().getSize();
-
-          List<Sentence> neg = this.data.get(dp).getNeg();
-          for(int i=0; i<nSamples; i++) {
-            negSents[dp*nSamples+i] = neg.get(i);
-            negWords[dp*nSamples+i] = neg.get(i).getSize();
-          }
-          
-        }
-        
-        DMatrix dataIn = this.model.dict().getRepresentation(dataSents);
-        DMatrix dataPos = this.model.dict().getRepresentation(posSents);
-        DMatrix dataNeg = this.model.dict().getRepresentation(negSents);
-
-        dataIn.copyHtoD();
-        dataPos.copyHtoD();
-        dataNeg.copyHtoD();*/
-
         
         DMatrix A = this.model.fProp(this.batch.data());
         DMatrix B = this.model.fProp(this.batch.pos());
@@ -161,49 +112,118 @@ public class NoiseGradientCalc extends GradientCalc {
         DMatrix BRep = this.prepareSumMatrix(B, this.batch.posWordsArray());
         DMatrix NRep = this.prepareSumMatrix(N, this.batch.negWordsArray());
 
-        DMatrix AB = this.prepareErrorMatrix(ARep.sub(BRep), this.batch.dataWordsArray(), A.rows());
-        DMatrix BA = this.prepareErrorMatrix(BRep.sub(ARep), this.batch.posWordsArray(), B.rows());
-        DMatrix AN = this.prepareErrorMatrix(ARep.sub(NRep), this.batch.dataWordsArray(), A.rows());
-        DMatrix NA = this.prepareErrorMatrix(NRep.sub(ARep), this.batch.negWordsArray(), N.rows());
+        ARep.copyHtoD();
+        BRep.copyHtoD();
+        NRep.copyHtoD();
+
+        DMatrix aPos = ARep.dotRows(BRep);
+        DMatrix b = ARep.rowNorms().inv();
+        DMatrix cPos = BRep.rowNorms().inv();
+
+        DMatrix aNeg = ARep.dotRows(NRep);
+        DMatrix cNeg = NRep.rowNorms().inv();
+
+        aPos.copyHtoD();
+        b.copyHtoD();
+        cPos.copyHtoD();
+        aNeg.copyHtoD();
+        cNeg.copyHtoD();
+
+        // calcuating offsets at once.
+        DMatrix b3 = b.mul(b).mul(b);
+//        DMatrix b3 = b.pow(3.0);
+        DMatrix cPos3 = cPos.mul(cPos).mul(cPos);
+        DMatrix cNeg3 = cNeg.mul(cNeg).mul(cNeg);
+        
+        DMatrix posQ = b.mul(cPos);
+        DMatrix posSQ = aPos.mul(cPos).mul(b3);
+        DMatrix posSD = aPos.mul(b).mul(cPos3);
+
+        DMatrix negQ = b.mul(cNeg);
+        DMatrix negSQ = aNeg.mul(cNeg).mul(b3);
+        DMatrix negSD = aNeg.mul(b).mul(cNeg3);
+
+
+        aPos.close();
+        b.close();
+        cPos.close();
+        aNeg.close();
+        cNeg.close();
+
+        posQ.copyHtoD();
+        posSQ.copyHtoD();
+        posSD.copyHtoD();
+        negQ.copyHtoD();
+        negSQ.copyHtoD();
+        negSD.copyHtoD();
+        
+        DMatrix dAB = BRep.mulRows(posQ).sub(ARep.mulRows(posSQ));
+        DMatrix dBA = ARep.mulRows(posQ).sub(BRep.mulRows(posSD));
+        
+        DMatrix dAN = NRep.mulRows(negQ).sub(ARep.mulRows(negSQ));
+        DMatrix dNA = ARep.mulRows(negQ).sub(NRep.mulRows(negSD));
+
+        posQ.close();
+        posSQ.close();
+        posSD.close();
+        negQ.close();
+        negSQ.close();
+        negSD.close();
+
+        dAB.copyHtoD();
+        dBA.copyHtoD();
+        dAN.copyHtoD();
+        dNA.copyHtoD();
+
+        DMatrix AB = this.prepareErrorMatrix(dAB, this.batch.dataWordsArray(), A.rows());
+        DMatrix BA = this.prepareErrorMatrix(dBA, this.batch.posWordsArray(), B.rows());
+        DMatrix AN = this.prepareErrorMatrix(dAN, this.batch.dataWordsArray(), A.rows());
+        DMatrix NA = this.prepareErrorMatrix(dNA, this.batch.negWordsArray(), N.rows());
+
+        dAB.close();
+        dBA.close();
+        dAN.close();
+        dNA.close();
 
         AB.copyHtoD();
         BA.copyHtoD();
         AN.copyHtoD();
         NA.copyHtoD();
 
-        // df/dA = (A-N) - (A-B)
-        DMatrix tempGrad = this.model.bProp(this.batch.data(), A, AN);
+        // df/dA = (A, B) - (A, N)
+        DMatrix tempGrad = this.model.bProp(this.batch.data(), A, AB);
         grads.addi(tempGrad);
         tempGrad.close();
 
-        tempGrad = this.model.bProp(this.batch.data(), A, AB);
+        tempGrad = this.model.bProp(this.batch.data(), A, AN);
         grads.subi(tempGrad);
         tempGrad.close();
 
-        // df/dB = -(B-A)
+        // df/dB = (B, A)
         tempGrad = this.model.bProp(this.batch.pos(), B, BA);
-        grads.subi(tempGrad);
+        grads.addi(tempGrad);
         tempGrad.close();
 
-        // df/dN = (N-A)
+        // df/dN = - (N, A)
         tempGrad = this.model.bProp(this.batch.neg(), N, NA);
-        grads.addi(tempGrad);
+        grads.subi(tempGrad);
         tempGrad.close();
 
         grads.muli(1.0/(nSamples*this.batch.size()));
-
-/*        dataIn.close();
-        dataPos.close();
-        dataNeg.close();*/
-
-        A.close();
-        B.close();
-        N.close();
-
+        
         AB.close();
         BA.close();
         AN.close();
         NA.close();
+        
+        ARep.close();
+        BRep.close();
+        NRep.close();
+        
+        A.close();
+        B.close();
+        N.close();
+
       } 
       else {
         // parallelise this

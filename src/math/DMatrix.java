@@ -108,6 +108,17 @@ public abstract class DMatrix implements Closeable {
     }
   }
 
+  public void print(String comment) {
+    System.out.printf("\n%s\n", comment);
+    for(int i= 0; i<this.rows; i++) {
+      System.out.printf("[");
+      for(int j = 0; j<this.columns; j++) {
+        System.out.printf("%f ", this.data[i*this.columns+j]);
+      }
+      System.out.printf("]\n");
+    }
+  }
+  
   public void resize(int newRows, int newColumns) {
     rows = newRows;
     columns = newColumns;
@@ -188,6 +199,10 @@ public abstract class DMatrix implements Closeable {
     return null;
   }
 
+  public DMatrix sumColumns() {
+    return null;
+  }
+
   public DMatrix getRow(int r) {
     double[] rowData = new double[this.columns];
     System.arraycopy(this.data(), r*this.columns(), rowData, 0, this.columns());
@@ -206,14 +221,24 @@ public abstract class DMatrix implements Closeable {
 
 //  public abstract DMatrix addMuli(DMatrix A, DMatrix x);
 
+  public abstract DMatrix inv();
+  public abstract DMatrix invi();
+  
   public abstract DMatrix sub(DMatrix other);
   public abstract DMatrix subi(DMatrix other);
+  
+  public abstract DMatrix sqrt();
+  public abstract DMatrix sqrti();
   
   public abstract DMatrix mul(DMatrix other);
   public abstract DMatrix muli(DMatrix other);
 
   public abstract DMatrix mul(double v);
   public abstract DMatrix muli(double v);
+  
+
+  public abstract DMatrix pow(double v);
+  public abstract DMatrix powi(double v);
 
   public abstract DMatrix mmul(boolean tA, boolean tB, DMatrix B);
   public abstract DMatrix mmul(DMatrix B);
@@ -225,4 +250,23 @@ public abstract class DMatrix implements Closeable {
   public abstract DMatrix mmul(DMatrix B, DMatrix C); 
 
   public abstract DMatrix fillWithArray(DMatrix other);
+
+  public abstract DMatrix mulRows(DMatrix colVector);
+  public abstract DMatrix mulRowsi(DMatrix colVector);
+  
+  public abstract DMatrix divRows(DMatrix colVector);
+  public abstract DMatrix divRowsi(DMatrix colVector);
+
+  /** Return the the matrix where each row is unit based on the L2 norm.
+   */
+  public abstract DMatrix vectorNorm();
+
+  /** Calculates the L2 norm of each row and returns as the column vector.
+   */
+  public abstract DMatrix rowNorms();
+  
+  
+  /** Calcuates the dot product between the rows of this and B and returns as column Vector
+   */
+  public abstract DMatrix dotRows(DMatrix B);
 }

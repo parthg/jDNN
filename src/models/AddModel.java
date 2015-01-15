@@ -161,6 +161,7 @@ public class AddModel extends Model {
     
 //    DMatrix batchLGrads = DMath.createMatrix(input.rows(), lGrads.columns());
 //    batchLGrads.fillWithArray(lGrads);
+
     double[] lParamGrads = this.layers.get(0).getParamGradients(input, lGrads);
     
     System.arraycopy(lParamGrads, 0, grads.data(), 0 , lParamGrads.length);
