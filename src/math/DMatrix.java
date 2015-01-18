@@ -7,7 +7,7 @@ import math.jcublas.SimpleCuBlas;
 
 public abstract class DMatrix implements Closeable {
 //  int devId;
-  boolean persist = false;
+  boolean persist = false; // flag to keep the matrix on GPU
   Pointer cPointer = null; 
   int rows;
   int columns;
@@ -35,9 +35,12 @@ public abstract class DMatrix implements Closeable {
     return array;
   }
 
+  /** returns the array index for the given matrix position.
+   */
   public int index(int i, int j) {
     return i*rows+j;
   }
+
   public void put(int i, int j, double v) {
     this.data[index(i, j)] = v;
   }
@@ -84,6 +87,8 @@ public abstract class DMatrix implements Closeable {
     return 8;
   }
 
+  /** Sum of squared distance
+   */
   public double squaredDistance(DMatrix other) {
     assert (this.length == other.length());
     double sd = 0.0;
@@ -119,13 +124,18 @@ public abstract class DMatrix implements Closeable {
     }
   }
   
+  /** Changes the matrix to the new dimensions. Careful: It overwrites the original matrix.
+   */
   public void resize(int newRows, int newColumns) {
+    // TODO: Do things for GPU related stuff.
     rows = newRows;
     columns = newColumns;
     length = newRows * newColumns;
     data = new double[rows * columns];
   }
 
+  /** Frees the matrix from the GPU and clears the Pointer.
+   */
   public void close() {
 //    System.err.printf("close() in DMatrix\n");
     if(this.cPointer != null) {
@@ -142,6 +152,8 @@ public abstract class DMatrix implements Closeable {
     }
   }
 
+  /** Makes a device copy of the matrix.
+   */
   public void copyHtoD() {
     if(this.persist == false)
       this.persist = true;
@@ -149,18 +161,21 @@ public abstract class DMatrix implements Closeable {
       JCublas.cublasFree(this.cPointer);
       this.cPointer = null;
     }
-  
     this.cPointer = SimpleCuBlas.alloc(this.data());
   }
 
+  /** Copies the matrix from device to host.
+   */
   public void copyDtoH() {
     assert (this.cPointer!=null);
     SimpleCuBlas.getData(this,this.cPointer,Pointer.to(this.data()));
   }
   
+  // TODO
   public void updateDeviceData() {
   }
 
+  // TODO
   public void updateDeviceData(double[] newData) {
   }
 
