@@ -28,6 +28,7 @@ public class SimpleCuBlas {
   // cublasAlloc &  cublasSetVector H->D
   public static Pointer alloc(DMatrix m) {
 //    System.out.printf("Allocationg memory\n");
+    JCublas.cublasInit();
     Pointer ret = new Pointer();
     Pointer toData = Pointer.to(m.data()).withByteOffset(m.offset() * m.elemSize());
     JCublas.cublasAlloc(
@@ -46,6 +47,7 @@ public class SimpleCuBlas {
 
   public static Pointer alloc(DMatrix m, int offset, int length) {
 //    System.out.printf("Allocationg memory\n");
+    JCublas.cublasInit();
     Pointer ret = new Pointer();
     Pointer toData = Pointer.to(m.data()).withByteOffset(offset * m.elemSize());
     JCublas.cublasAlloc(
@@ -63,6 +65,7 @@ public class SimpleCuBlas {
   }
   
   public static Pointer alloc(double[] arr) {
+    JCublas.cublasInit();
     Pointer ret = new Pointer();
     Pointer toData = Pointer.to(arr).withByteOffset(0 * Sizeof.DOUBLE);
     JCublas.cublasAlloc(
@@ -80,6 +83,7 @@ public class SimpleCuBlas {
   }
 
   public static void updateData(Pointer ptr, double[] arr) {
+    JCublas.cublasInit();
     Pointer toData = Pointer.to(arr).withByteOffset(0 * Sizeof.DOUBLE);
     JCublas.cublasSetVector(
         arr.length, // size of array
@@ -92,6 +96,7 @@ public class SimpleCuBlas {
 
   // cublasGetVector D->H
   public static void getData(DMatrix arr,Pointer from,Pointer to) {
+    JCublas.cublasInit();
     assert arr.length() == arr.data().length;
       JCublas.cublasGetVector(
           arr.length(),
@@ -103,6 +108,7 @@ public class SimpleCuBlas {
   }
 
   public static void free(Pointer...pointers) {
+    JCublas.cublasInit();
     for(Pointer arr : pointers)
       JCublas.cublasFree(arr);
   }
