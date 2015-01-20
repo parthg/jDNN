@@ -16,6 +16,9 @@ public abstract class GradientCalc implements Optimizable.ByGradientValue {
   double cost;
   double[] grads;
 
+  double testLoss = 0.0;
+  double testMRR = 0.0;
+
   public GradientCalc(Batch _batch) {
     this.batch = _batch;
   }
@@ -43,4 +46,14 @@ public abstract class GradientCalc implements Optimizable.ByGradientValue {
     params[n] = d;
     this.model.setParameters(this.params);
   }
+
+  public double testLoss() {
+    return testLoss;
+  }
+
+  public double testMRR() {
+    return testMRR;
+  }
+
+  public abstract void testStats(Batch _batch);
 }

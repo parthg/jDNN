@@ -20,7 +20,7 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     this.persist = false;
   }
 
-  public CUDAMatrix(int r, int c, boolean _persist) {
+/*  public CUDAMatrix(int r, int c, boolean _persist) {
     super(r, c);
     this.persist = _persist;
     if(this.persist) {
@@ -34,13 +34,14 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     if(this.persist) {
       this.cPointer = SimpleCuBlas.alloc(d);
     }
-  }
+  }*/
 
   public void close() {
 //    System.err.printf("close() in CUDAMatrix\n");
     if(this.cPointer != null) {
 //      System.out.printf("Releasing the CUDA Pointer\n");
       this.persist = false;
+      JCublas.cublasInit();
       JCublas.cublasFree(this.cPointer);
       this.cPointer = null;
     }
@@ -88,9 +89,9 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     return new CUDAMatrix(r, c);
   }
 
-  public static DMatrix zeros(int r, int c, boolean _persist) {
+/*  public static DMatrix zeros(int r, int c, boolean _persist) {
     return new CUDAMatrix(r, c, _persist);
-  }
+  }*/
 
   public static DMatrix ones(int r, int c) {
     DMatrix m = new CUDAMatrix(r, c);
@@ -99,7 +100,7 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     return m;
   }
 
-  public static DMatrix ones(int r, int c, boolean _persist) {
+/*  public static DMatrix ones(int r, int c, boolean _persist) {
     DMatrix m = new CUDAMatrix(r, c);
     m.persist = _persist;
     for(int i=0; i<r*c; i++)
@@ -108,7 +109,7 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
       m.cPointer = SimpleCuBlas.alloc(m.data());
     }
     return m;
-  }
+  }*/
   
   public static DMatrix randn(int r, int c) {
     DMatrix m = new CUDAMatrix(r, c);

@@ -140,6 +140,7 @@ public abstract class DMatrix implements Closeable {
 //    System.err.printf("close() in DMatrix\n");
     if(this.cPointer != null) {
       this.persist = false;
+      JCublas.cublasInit();
       JCublas.cublasFree(this.cPointer);
       this.cPointer = null;
     }

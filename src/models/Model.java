@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Arrays;
-//import org.jblas.DoubleMatrix;
 
 import java.io.PrintWriter;
 import java.io.IOException;
@@ -56,9 +55,13 @@ public abstract class Model {
   }
 
   public void init() {
+    init(1.0, 1.0);
+  }
+  
+  public void init(double wScale, double bScale) {
     int tempInSize = this.inSize;
     for(Layer l: this.layers) {
-      l.init(true, tempInSize, l.getSize());
+      l.init(true, tempInSize, l.getSize(), wScale, bScale);
       tempInSize = l.getSize();
       this.thetaSize += l.getThetaSize();
     }
@@ -106,6 +109,22 @@ public abstract class Model {
     }
     p.printf("\n");
     p.close();
+  }
+
+  public void copyHtoD() {
+    Iterator<Layer> layerIt = this.layers.iterator();
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      l.copyHtoD();
+    }
+  }
+
+  public void copyDtoH() {
+    Iterator<Layer> layerIt = this.layers.iterator();
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      l.copyDtoH();
+    }
   }
 
   public void clearDevice() {

@@ -15,7 +15,8 @@ public class AddModel extends Model {
     super();
   }
   public DMatrix fProp(Sentence sent) {
-    DMatrix rep = DMath.createZerosMatrix(1,super.outSize, true);
+    DMatrix rep = DMath.createZerosMatrix(1,super.outSize);
+    rep.copyHtoD();
     Iterator<Integer> sentIt = sent.words.iterator();
     while(sentIt.hasNext()) {
       DMatrix input = this.dict.getRepresentation(sentIt.next());
@@ -49,7 +50,8 @@ public class AddModel extends Model {
     // backpropagate error -- for each word!
     
     // TODO: initialize it with persist = true so that it is not copied to GPU in each iterations.
-    DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize, true); 
+    DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize);
+    grads.copyHtoD(); 
     DMatrix label = this.fProp(s2);
     DMatrix pred = this.fProp(s1);
 
@@ -88,6 +90,8 @@ public class AddModel extends Model {
       grads.addi(DMath.createMatrix(1, this.thetaSize, tempGrads));
     }
 
+    grads.copyDtoH();
+    grads.close();
     // TODO:before returning close it?
     
     return grads;
@@ -99,7 +103,8 @@ public class AddModel extends Model {
     // backpropagate error -- for each word!
     
     // TODO: initialize it with persist = true so that it is not copied to GPU in each iterations.
-    DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize, true); 
+    DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize);
+    grads.copyHtoD();
 /*    DMatrix label = this.fProp(s2);
     DMatrix pred = this.fProp(s1);
 
@@ -131,7 +136,7 @@ public class AddModel extends Model {
         Layer l = layerRevIt.previous();
         DMatrix lGrads = l.bProp(rep, tempError);
         double[] lParamGrads = l.getParamGradients(input.peek(), lGrads);
-        // TODO: Make it conditioned if there is next layer. otherwise its unnecessary
+        // Make it conditioned if there is next layer. otherwise its unnecessary
         if(layersLeft>0)
           tempError = lGrads.mmul(false, true, l.getWeights());
         rep = input.pop();
@@ -140,9 +145,8 @@ public class AddModel extends Model {
       }
       grads.addi(DMath.createMatrix(1, this.thetaSize, tempGrads));
     }
-
-    // TODO:before returning close it?
-    
+    grads.copyDtoH();
+    grads.close();
     return grads;
   }
   

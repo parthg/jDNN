@@ -7,7 +7,7 @@ import common.Sentence;
 import common.Datum;
 import common.Batch;
 import parallel.Parallel;
-
+import common.Metric;
 import java.util.List;
 
 public class NoiseCosineGradientCalc extends GradientCalc {
@@ -15,6 +15,64 @@ public class NoiseCosineGradientCalc extends GradientCalc {
   public NoiseCosineGradientCalc(Batch _batch) {
     super(_batch);
   }
+
+  // f for the parameter data 
+  public void testStats (Batch _batch) {
+//    System.out.printf("calling getValue()\n");
+    double err = 0.0;
+    double batchError = 0.0;
+    int nDP = 1;
+    if(System.getProperty("use_cuda").equals("true")) {
+
+      DMatrix A = this.model.fProp(_batch.data());
+      DMatrix B = this.model.fProp(_batch.pos());
+      DMatrix N = this.model.fProp(_batch.neg());
+
+
+      DMatrix ARep = this.prepareSumMatrix(A, _batch.dataWordsArray());
+      DMatrix BRep = this.prepareSumMatrix(B, _batch.posWordsArray());
+      DMatrix NRep = this.prepareSumMatrix(N, _batch.negWordsArray());
+
+      ARep.copyHtoD();
+      BRep.copyHtoD();
+      NRep.copyHtoD();
+
+      DMatrix ARepNorm = ARep.vectorNorm();
+      DMatrix BRepNorm = BRep.vectorNorm();
+      DMatrix NRepNorm = NRep.vectorNorm();
+
+
+      double posPart = (double) ARepNorm.dotRows(BRepNorm).sumRows().get(0);
+      double negPart = (double) ARepNorm.dotRows(NRepNorm).sumRows().get(0);
+
+
+      ARep.close();
+      BRep.close();
+      NRep.close();
+      
+      // f = cos(A, B) - cos(A, N)
+      batchError = (posPart - negPart)/(_batch.nSamples()*_batch.size());
+
+      this.testLoss = batchError;
+      this.testMRR = Metric.mrr(ARepNorm.mmul(false, true, BRepNorm));
+    }
+    // make it parallel
+    else {
+      final MonoNoiseCost costComputer = new MonoNoiseCost(this.model);
+      Parallel.For(_batch.listData(), new Parallel.Operation<Datum>() {
+        public void perform(int index, Datum datum) {
+          try {
+            costComputer.computeCost(datum);
+          } catch (Exception e) {
+            System.err.println(e.getMessage());
+          }
+        }
+      });
+      err = costComputer.getCost();
+      this.testLoss = err/_batch.size();
+    }
+  }  
+  
   // f - error 
   public double getValue () {
 //    System.out.printf("calling getValue()\n");
@@ -93,7 +151,8 @@ public class NoiseCosineGradientCalc extends GradientCalc {
 //    System.out.printf("Calling getGradient()\n");
     assert (buffer.length == this.model.getThetaSize());
     // initialise grads with persist = true
-    DMatrix grads = DMath.createZerosMatrix(1, buffer.length, true);
+    DMatrix grads = DMath.createZerosMatrix(1, buffer.length);
+    grads.copyHtoD();
     try {
       int nDP = 1;
       int nSamples = this.batch.nSamples();
@@ -224,6 +283,8 @@ public class NoiseCosineGradientCalc extends GradientCalc {
         B.close();
         N.close();
 
+        grads.copyDtoH();
+        grads.close();
       } 
       else {
         // parallelise this
@@ -241,7 +302,6 @@ public class NoiseCosineGradientCalc extends GradientCalc {
         grads.muli(1.0/this.batch.size());
       }
     } finally {
-      grads.copyDtoH();
       grads.close();
     }
     System.arraycopy(grads.toArray(), 0, buffer, 0, this.model.getThetaSize());

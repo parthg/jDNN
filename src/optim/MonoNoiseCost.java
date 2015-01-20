@@ -56,7 +56,7 @@ public class MonoNoiseCost {
     int nSamples = (d.getNegSampleSize()>0)?d.getNegSampleSize():1;
     List<Sentence> neg = d.getNeg();
     
-    DMatrix unitGrads = DMath.createZerosMatrix(1, this.model.getThetaSize(), true);
+    DMatrix unitGrads = DMath.createZerosMatrix(1, this.model.getThetaSize());
 
 /*    for(int i=0; i<nSamples; i++) {
       // df/dA = (A-N) - (A-B)

@@ -6,21 +6,25 @@ import math.DMatrix;
 import models.Model;
 import common.Sentence;
 import common.Datum;
+import common.Batch;
 
 import java.util.List;
 
 public class BasicGradientCalc extends GradientCalc {
 
-  public BasicGradientCalc(List<Datum> _data) {
-    super(_data);
+  public BasicGradientCalc(Batch _batch) {
+    super(_batch);
     System.err.printf("\n\nThis is still minimizer - FIX IT!\n\n");
 //    System.exit(0);
+  }
+
+  public void testStats(Batch _testBatch) {
   }
 
   // f - error 
   public double getValue () {
     double err = 0.0;
-    for(Datum d: this.data) {
+    for(Datum d: this.batch.listData()) {
       DMatrix s1_root = this.model.fProp(d.getData());
       DMatrix s2_root = this.model.fProp(d.getPos());
 
@@ -35,7 +39,7 @@ public class BasicGradientCalc extends GradientCalc {
     assert (buffer.length == this.model.getThetaSize());
     DMatrix grads = DMath.createZerosMatrix(1, buffer.length);
 
-    for(Datum d: this.data) {
+    for(Datum d: this.batch.listData()) {
       grads.addi(this.model.bProp(d.getData(), d.getPos()));
       grads.addi(this.model.bProp(d.getPos(), d.getData()));
     }
