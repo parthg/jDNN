@@ -30,8 +30,7 @@ public class LogisticLayer extends Layer {
     //TODO: IMPORTANT - if you want to take advantage of device, have sigmoid on device
 //    data.copyDtoH();
 //    data.close();
-    data = this.applyNonLinearity(data);
-    return data;
+    return this.applyNonLinearity(data);
   }
 
   /** calculate the gradient based on the error and representation provided to it

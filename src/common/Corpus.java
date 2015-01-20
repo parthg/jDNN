@@ -42,8 +42,10 @@ public class Corpus {
   public void load(String file, Channel ch, Dictionary dict) throws IOException {
     BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file),"UTF-8"));
     String line = "";
+    int id = 0;
     while((line = br.readLine())!= null) {
       Sentence s = new Sentence();
+      s.setId(id);
       String text = line;
       text = ch.getTokeniser().parse(text);
       text = ch.getTokeniser().clean(text);
@@ -53,6 +55,7 @@ public class Corpus {
         s.addWord(dict.getId(tok));
       }
       this.addSent(s);
+      id++;
     }
     br.close();
   }
