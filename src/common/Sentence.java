@@ -18,6 +18,10 @@ public class Sentence {
     this.id = _id;
   }
 
+  public int id() {
+    return this.id;
+  }
+
   public void addWord(Integer t) {
     words.add(t);
     this.sentLength++;
