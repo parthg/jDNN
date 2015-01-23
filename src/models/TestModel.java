@@ -10,6 +10,7 @@ import data.TokenType;
 
 import nn.Layer;
 import nn.LogisticLayer;
+import nn.TanhLayer;
 
 import es.upv.nlel.utils.Language;
 
@@ -119,28 +120,14 @@ public class TestModel {
 //    enDict.print();
 
     enModel.setDict(enDict);
-    Layer l = new LogisticLayer(64);
+    Layer l = new TanhLayer(64);
     enModel.addHiddenLayer(l);
   
-    enModel.init(1.0, 0.0);
+    enModel.init(0.1, 0.0);
     int[] randArray = new int[enCorp.getSize()];
     for(int i=0; i<enCorp.getSize(); i++)
       randArray[i] = i;
     
-    if(randomize)
-      RandomUtils.suffleArray(randArray);
-
-    List<Datum> instances = new ArrayList<Datum>();
-    for(int i=0; i<enCorp.getSize(); i++) {
-      Sentence s = enCorp.get(randArray[i]);
-      Sentence sPos = enPos.get(randArray[i]);
-      Sentence sNeg = enNeg.get(randArray[i]);
-      List<Sentence> nSents = new ArrayList<Sentence>();
-      nSents.add(sNeg);
-      Datum d = new Datum(i, s, sPos, nSents);
-      instances.add(d);
-    }
-
     List<Datum> test_instances = new ArrayList<Datum>();
     for(int i=0; i<enTest.getSize(); i++) {
       Sentence s = enTest.get(i);
@@ -156,15 +143,29 @@ public class TestModel {
       if(test)
         testBatch.copyHtoD();
       
-      int batchsize = 100;
-      int iterations = 10;
+      int batchsize = 200;
+      int iterations = 15;
 
       for(int iter = 0; iter<iterations; iter++) {
         int batchNum = 1;
+        if(randomize)
+          RandomUtils.suffleArray(randArray);
+
+        List<Datum> instances = new ArrayList<Datum>();
+        for(int i=0; i<enCorp.getSize(); i++) {
+          Sentence s = enCorp.get(randArray[i]);
+          Sentence sPos = enPos.get(randArray[i]);
+          Sentence sNeg = enNeg.get(randArray[i]);
+          List<Sentence> nSents = new ArrayList<Sentence>();
+          nSents.add(sNeg);
+          Datum d = new Datum(i, s, sPos, nSents);
+          instances.add(d);
+        }
+
         System.out.printf("\n\nIteration = %d", iter+1);
         for(int i=0; i<instances.size(); i+=batchsize) {
           int innerbatchsize = batchsize;
-          System.out.printf("\n\n\nBatch = %d\n", batchNum);
+          System.out.printf("\nBatch = %d\n", batchNum);
           int left = instances.size()-i;
           if(left<batchsize)
             innerbatchsize=left;
@@ -174,27 +175,40 @@ public class TestModel {
           } 
           try(Batch matBatch = new Batch(batch, 1, enModel.dict());) {
             matBatch.copyHtoD();
-/*            GradientCalc trainer = new NoiseGradientCalc(matBatch);
+            GradientCalc trainer = new NoiseGradientCalc(matBatch);
             trainer.setModel(enModel);
             // MAXIMISER
             Optimizer optimizer = new ConjugateGradient(trainer);
-            optimizer.optimize(3);
+            optimizer.optimize(1);
             double[] learntParams = new double[enModel.getThetaSize()];
             trainer.getParameters(learntParams);
             enModel.setParameters(learntParams);
             if(test) {
               trainer.testStats(testBatch);
               System.out.printf("After Batch %d Cost = %.6f and MRR = %.6f\n", batchNum, trainer.testLoss(), trainer.testMRR());
-            }*/
+            }
             batchNum++;
-            GradientCheck gCheck = new GradientCheck(new NoiseCosineGradientCalc(matBatch));
-            gCheck.optimise(enModel);
+//            GradientCheck gCheck = new GradientCheck(new NoiseCosineGradientCalc(matBatch));
+//            gCheck.optimise(enModel);
             matBatch.close();
+            if(batchNum%100==0) {
+              trainer.testStats(testBatch);
+              System.out.printf("\nAfter Batch %d Test Cost = %.6f and Test MRR = %.6f\n\n", batchNum, trainer.testLoss(), trainer.testMRR());
+            }
+            if(SimpleCuBlas.cudaCount > 0)
+              System.out.printf("At end of batch cudaCount = %d\n", SimpleCuBlas.cudaCount);
+
             SimpleCuBlas.reset();
           } finally {
             enModel.clearDevice();
           }
            
+        }
+        if(test) {
+          GradientCalc trainer = new NoiseCosineGradientCalc(null);
+          trainer.setModel(enModel);
+          trainer.testStats(testBatch);
+          System.out.printf("After Iteration %d Cost = %.6f and MRR = %.6f\n\n", (iter+1), trainer.testLoss(), trainer.testMRR());
         }
         enModel.clearDevice();
         enModel.save("obj/model_iter"+iter+".txt");

@@ -82,6 +82,13 @@ public class BLASMatrix extends DMatrix {
     return null;
   }
 
+  public DMatrix sub(double v) {
+    return null;
+  }
+  public DMatrix subi(double v) {
+    return null;
+  }
+
   public DMatrix mul(DMatrix other) {
     System.err.printf("TODO\n\n");
     return null;

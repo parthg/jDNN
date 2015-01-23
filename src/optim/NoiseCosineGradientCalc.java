@@ -24,6 +24,8 @@ public class NoiseCosineGradientCalc extends GradientCalc {
     int nDP = 1;
     if(System.getProperty("use_cuda").equals("true")) {
 
+      this.model.copyHtoD();
+
       DMatrix A = this.model.fProp(_batch.data());
       DMatrix B = this.model.fProp(_batch.pos());
       DMatrix N = this.model.fProp(_batch.neg());
@@ -55,6 +57,7 @@ public class NoiseCosineGradientCalc extends GradientCalc {
 
       this.testLoss = batchError;
       this.testMRR = Metric.mrr(ARepNorm.mmul(false, true, BRepNorm));
+      this.model.clearDevice();
     }
     // make it parallel
     else {
@@ -81,6 +84,7 @@ public class NoiseCosineGradientCalc extends GradientCalc {
     int nDP = 1;
     if(System.getProperty("use_cuda").equals("true")) {
 
+      this.model.copyHtoD();
         DMatrix A = this.model.fProp(this.batch.data());
         DMatrix B = this.model.fProp(this.batch.pos());
         DMatrix N = this.model.fProp(this.batch.neg());
@@ -126,6 +130,7 @@ public class NoiseCosineGradientCalc extends GradientCalc {
 
 //        System.out.printf("Error = %.10f\n", batchError);
 
+        this.model.clearDevice();
       return batchError;
     }
     // make it parallel
@@ -154,6 +159,7 @@ public class NoiseCosineGradientCalc extends GradientCalc {
     DMatrix grads = DMath.createZerosMatrix(1, buffer.length);
     grads.copyHtoD();
     try {
+      this.model.copyHtoD();
       int nDP = 1;
       int nSamples = this.batch.nSamples();
       if(System.getProperty("use_cuda").equals("true")) {
@@ -285,6 +291,7 @@ public class NoiseCosineGradientCalc extends GradientCalc {
 
         grads.copyDtoH();
         grads.close();
+        this.model.clearDevice();
       } 
       else {
         // parallelise this
