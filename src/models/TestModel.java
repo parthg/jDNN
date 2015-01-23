@@ -25,8 +25,12 @@ import optim.GradientCalc;
 import optim.NoiseGradientCalc;
 import optim.NoiseCosineGradientCalc;
 
+import math.jcublas.SimpleCuBlas;
+
 import cc.mallet.optimize.ConjugateGradient;
 import cc.mallet.optimize.Optimizer;
+
+import random.RandomUtils;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -38,7 +42,7 @@ public class TestModel {
     Model hiModel = new AddModel();
 
     boolean test = true;
-
+    boolean randomize = true;
 
 
     String file = "data/hi-fire-mono/data.txt";
@@ -119,12 +123,18 @@ public class TestModel {
     enModel.addHiddenLayer(l);
   
     enModel.init(1.0, 0.0);
+    int[] randArray = new int[enCorp.getSize()];
+    for(int i=0; i<enCorp.getSize(); i++)
+      randArray[i] = i;
+    
+    if(randomize)
+      RandomUtils.suffleArray(randArray);
 
     List<Datum> instances = new ArrayList<Datum>();
     for(int i=0; i<enCorp.getSize(); i++) {
-      Sentence s = enCorp.get(i);
-      Sentence sPos = enPos.get(i);
-      Sentence sNeg = enNeg.get(i);
+      Sentence s = enCorp.get(randArray[i]);
+      Sentence sPos = enPos.get(randArray[i]);
+      Sentence sNeg = enNeg.get(randArray[i]);
       List<Sentence> nSents = new ArrayList<Sentence>();
       nSents.add(sNeg);
       Datum d = new Datum(i, s, sPos, nSents);
@@ -180,6 +190,7 @@ public class TestModel {
             GradientCheck gCheck = new GradientCheck(new NoiseCosineGradientCalc(matBatch));
             gCheck.optimise(enModel);
             matBatch.close();
+            SimpleCuBlas.reset();
           } finally {
             enModel.clearDevice();
           }
@@ -187,9 +198,11 @@ public class TestModel {
         }
         enModel.clearDevice();
         enModel.save("obj/model_iter"+iter+".txt");
+        SimpleCuBlas.reset();
       } // for iterations closed
 
       testBatch.close();
+      SimpleCuBlas.reset();
     }// try test closed
   } // main closed
 }
