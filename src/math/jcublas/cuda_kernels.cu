@@ -33,6 +33,14 @@ __global__ void kSigmoid(double* a, double* dest, int n) {
 }
 
 extern "C"
+__global__ void kTanh(double* a, double* dest, int n) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if(idx<n) {
+    dest[idx] = tanh(a[idx]);
+  }
+}
+
+extern "C"
 __global__ void kPow(double* a, double y, int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if(idx<n) {
