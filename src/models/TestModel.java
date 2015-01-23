@@ -118,7 +118,7 @@ public class TestModel {
     Layer l = new LogisticLayer(64);
     enModel.addHiddenLayer(l);
   
-    enModel.init(0.01, -2.0);
+    enModel.init(1.0, 0.0);
 
     List<Datum> instances = new ArrayList<Datum>();
     for(int i=0; i<enCorp.getSize(); i++) {
@@ -164,7 +164,7 @@ public class TestModel {
           } 
           try(Batch matBatch = new Batch(batch, 1, enModel.dict());) {
             matBatch.copyHtoD();
-            GradientCalc trainer = new NoiseGradientCalc(matBatch);
+/*            GradientCalc trainer = new NoiseGradientCalc(matBatch);
             trainer.setModel(enModel);
             // MAXIMISER
             Optimizer optimizer = new ConjugateGradient(trainer);
@@ -175,10 +175,10 @@ public class TestModel {
             if(test) {
               trainer.testStats(testBatch);
               System.out.printf("After Batch %d Cost = %.6f and MRR = %.6f\n", batchNum, trainer.testLoss(), trainer.testMRR());
-            }
+            }*/
             batchNum++;
-  //          GradientCheck gCheck = new GradientCheck(new NoiseCosineGradientCalc(matBatch));
-  //          gCheck.optimise(enModel);
+            GradientCheck gCheck = new GradientCheck(new NoiseCosineGradientCalc(matBatch));
+            gCheck.optimise(enModel);
             matBatch.close();
           } finally {
             enModel.clearDevice();
