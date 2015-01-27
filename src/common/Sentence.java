@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 public class Sentence {
   int id;
+  String label;
   public List<Integer> words;
   int sentLength;
 
@@ -14,12 +15,26 @@ public class Sentence {
     this.sentLength = 0;
   }
 
+  // returns the ith word id
+  public int get(int i) {
+    assert (i<this.getSize());
+    return this.words.get(i);
+  }
+
   public void setId(int _id) {
     this.id = _id;
   }
 
   public int id() {
     return this.id;
+  }
+
+  public void setLabel(String _label) {
+    this.label = _label;
+  }
+
+  public String label() {
+    return this.label;
   }
 
   public void addWord(Integer t) {

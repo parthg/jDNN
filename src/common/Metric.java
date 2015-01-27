@@ -8,7 +8,6 @@ public class Metric {
     double avgMRR = 0.0;
     for(int i=0; i<simMatrix.rows(); i++) {
       int pos = rankPosition(simMatrix.getRow(i).data(), i);
-//      System.out.printf("pos = %d\n", pos);
       if(pos!=-1)
         avgMRR+= (1.0/(1+pos));
     }
@@ -20,14 +19,18 @@ public class Metric {
     ArrayIndexComparator comparator = new ArrayIndexComparator(scores);
     Integer[] indexes = comparator.createIndexArray();
     Arrays.sort(indexes, comparator);
-/*    for(int i=0; i<indexes.length; i++)
-      System.out.printf("%d ", indexes[i]);
-    System.out.printf("\n");*/
     for(int i=0; i<indexes.length; i++) {
       if(indexes[i] == index)
         return i;
     }
     return -1;
+  }
+
+  public static double map(DMatrix simMatrix) {
+    assert (simMatrix.rows()==simMatrix.columns()):System.out.printf("Similarity matrix should be square matrix. Currently is : %d x %d", simMatrix.rows(), simMatrix.columns());
+    double avgAP = 0.0;
+
+    return avgAP;
   }
 }
 

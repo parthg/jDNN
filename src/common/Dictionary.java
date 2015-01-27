@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.io.PrintWriter;
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
 
 //import org.jblas.DoubleMatrix;
 import math.DMath;
@@ -40,6 +43,15 @@ public class Dictionary {
       this.dictSize++;
     }
   }
+
+  public void addWord(int id, String t) {
+    assert (!this.str2id.containsKey(t)): "Term already present";
+    assert (!this.id2str.containsKey(id)): "Term Id already present";
+    this.str2id.put(t, id);
+    this.id2str.put(id, t);
+    this.dictSize++;
+  }
+
   public DMatrix getRepresentation(String t) {
     DMatrix vec = DMath.createZerosMatrix(1,dictSize);
     if(str2id.containsKey(t))
@@ -90,5 +102,16 @@ public class Dictionary {
       p.printf("%d\t%s\n", i, this.id2str.get(i));
     p.close();
   }
-  
+
+  public void load(String file) throws IOException {
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+    String line = "";
+    while((line = br.readLine())!=null) {
+//      System.out.printf("%s%n", line);
+      String[] cols = line.split("\t");
+      this.addWord(Integer.parseInt(cols[0].trim()), cols[1].trim()); 
+    }
+    br.close();
+  }
+
 }
