@@ -36,15 +36,19 @@ import random.RandomUtils;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.IOException;
+import java.io.File;
 
 public class TestModel {
   public static void main(String[] args) throws IOException {
     Model enModel = new AddModel();
     Model hiModel = new AddModel();
 
+    String prefix = "tanh_b_200";
     boolean test = true;
     boolean randomize = true;
 
+    String modelDir = "obj/"+prefix+"/";
+    new File(modelDir).mkdirs();
 
     String file = "data/hi-fire-mono/data.txt";
     String posFile = "data/hi-fire-mono/pos-data.txt";
@@ -55,7 +59,7 @@ public class TestModel {
     String test_negFile = "data/hi-fire-mono/neg-data-test.txt";
 
 /*  String file = "sample/hindi.short";
-    String posFile = "sample/hindi-pos.short";
+    :wqString posFile = "sample/hindi-pos.short";
     String negFile = "sample/hindi-neg.short";*/
 		
     String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
@@ -116,11 +120,11 @@ public class TestModel {
     System.out.printf("Total Test Sentences = %d %d %d \n", enTest.getSize(), enTestPos.getSize(), enTestNeg.getSize());
     
     System.out.printf("#sentence = %d #tokens = %d\n", enCorp.getSize(), enDict.getSize());
-    enDict.save("obj/dict.txt");
+    enDict.save(modelDir+"dict.txt");
 //    enDict.print();
-
+    
     enModel.setDict(enDict);
-    Layer l = new TanhLayer(64);
+    Layer l = new TanhLayer(128);
     enModel.addHiddenLayer(l);
   
     enModel.init(0.1, 0.0);
@@ -128,6 +132,20 @@ public class TestModel {
     for(int i=0; i<enCorp.getSize(); i++)
       randArray[i] = i;
     
+    if(randomize)
+      RandomUtils.suffleArray(randArray);
+
+    List<Datum> instances = new ArrayList<Datum>();
+    for(int i=0; i<enCorp.getSize(); i++) {
+      Sentence s = enCorp.get(randArray[i]);
+      Sentence sPos = enPos.get(randArray[i]);
+      Sentence sNeg = enNeg.get(randArray[i]);
+      List<Sentence> nSents = new ArrayList<Sentence>();
+      nSents.add(sNeg);
+      Datum d = new Datum(i, s, sPos, nSents);
+      instances.add(d);
+    }
+
     List<Datum> test_instances = new ArrayList<Datum>();
     for(int i=0; i<enTest.getSize(); i++) {
       Sentence s = enTest.get(i);
@@ -139,16 +157,17 @@ public class TestModel {
       test_instances.add(d);
     }
 
+
+
+
     try(Batch testBatch = new Batch(test_instances, 1, enModel.dict())) {
-      if(test)
-        testBatch.copyHtoD();
       
       int batchsize = 200;
-      int iterations = 15;
+      int iterations = 10;
 
       for(int iter = 0; iter<iterations; iter++) {
         int batchNum = 1;
-        if(randomize)
+/*        if(randomize)
           RandomUtils.suffleArray(randArray);
 
         List<Datum> instances = new ArrayList<Datum>();
@@ -160,12 +179,12 @@ public class TestModel {
           nSents.add(sNeg);
           Datum d = new Datum(i, s, sPos, nSents);
           instances.add(d);
-        }
+        }*/
 
         System.out.printf("\n\nIteration = %d", iter+1);
         for(int i=0; i<instances.size(); i+=batchsize) {
           int innerbatchsize = batchsize;
-          System.out.printf("\nBatch = %d\n", batchNum);
+          System.out.printf("\nBatch = %d ", batchNum);
           int left = instances.size()-i;
           if(left<batchsize)
             innerbatchsize=left;
@@ -175,7 +194,7 @@ public class TestModel {
           } 
           try(Batch matBatch = new Batch(batch, 1, enModel.dict());) {
             matBatch.copyHtoD();
-            GradientCalc trainer = new NoiseGradientCalc(matBatch);
+            GradientCalc trainer = new NoiseCosineGradientCalc(matBatch);
             trainer.setModel(enModel);
             // MAXIMISER
             Optimizer optimizer = new ConjugateGradient(trainer);
@@ -183,10 +202,6 @@ public class TestModel {
             double[] learntParams = new double[enModel.getThetaSize()];
             trainer.getParameters(learntParams);
             enModel.setParameters(learntParams);
-            if(test) {
-              trainer.testStats(testBatch);
-              System.out.printf("After Batch %d Cost = %.6f and MRR = %.6f\n", batchNum, trainer.testLoss(), trainer.testMRR());
-            }
             batchNum++;
 //            GradientCheck gCheck = new GradientCheck(new NoiseCosineGradientCalc(matBatch));
 //            gCheck.optimise(enModel);
@@ -211,7 +226,7 @@ public class TestModel {
           System.out.printf("After Iteration %d Cost = %.6f and MRR = %.6f\n\n", (iter+1), trainer.testLoss(), trainer.testMRR());
         }
         enModel.clearDevice();
-        enModel.save("obj/model_iter"+iter+".txt");
+        enModel.save(modelDir+"model_iter"+iter+".txt");
         SimpleCuBlas.reset();
       } // for iterations closed
 

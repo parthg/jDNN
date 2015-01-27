@@ -96,7 +96,6 @@ public class SimpleCuBlas {
     Pointer ptr = new Pointer();
     ptr = Pointer.to(new int[]{v});
     cudaCount++;
-    cudaCount++;
     return ptr;
   }
   

@@ -11,6 +11,10 @@ public class LogisticLayer extends Layer {
   public LogisticLayer(int _size) {
     super(_size);
   }
+
+  public String name() {
+    return "logistic";
+  }
   
   /** sigmoid f(x) = 1/ (1+ exp(-x))
    */
