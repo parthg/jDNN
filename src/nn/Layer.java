@@ -109,6 +109,7 @@ public abstract class Layer {
     this.b.updateDeviceData();
   }
 
+  public abstract String name();
 
   public abstract DMatrix applyNonLinearity(DMatrix input);
   

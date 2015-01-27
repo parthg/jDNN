@@ -140,8 +140,9 @@ public abstract class DMatrix implements Closeable {
 //    System.err.printf("close() in DMatrix\n");
     if(this.cPointer != null) {
       this.persist = false;
-      JCublas.cublasInit();
-      JCublas.cublasFree(this.cPointer);
+      SimpleCuBlas.free(this.cPointer);
+//      JCublas.cublasInit();
+//      JCublas.cublasFree(this.cPointer);
       this.cPointer = null;
     }
   }
@@ -159,7 +160,8 @@ public abstract class DMatrix implements Closeable {
     if(this.persist == false)
       this.persist = true;
     if(this.cPointer != null) {
-      JCublas.cublasFree(this.cPointer);
+      SimpleCuBlas.free(this.cPointer);
+//      JCublas.cublasFree(this.cPointer);
       this.cPointer = null;
     }
     this.cPointer = SimpleCuBlas.alloc(this.data());
@@ -242,6 +244,9 @@ public abstract class DMatrix implements Closeable {
   
   public abstract DMatrix sub(DMatrix other);
   public abstract DMatrix subi(DMatrix other);
+  
+  public abstract DMatrix sub(double v);
+  public abstract DMatrix subi(double v);
   
   public abstract DMatrix sqrt();
   public abstract DMatrix sqrti();

@@ -5,13 +5,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Arrays;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.io.IOException;
+import java.util.Scanner;
 
 import nn.Layer;
+import nn.TanhLayer;
 import common.Sentence;
 import common.Dictionary;
 
+import math.DMath;
 import math.DMatrix;
 
 public abstract class Model {
@@ -33,6 +39,9 @@ public abstract class Model {
     this.inSize = this.dict.getSize();
   }
 
+  public int outSize() {
+    return outSize;
+  }
   public Dictionary dict() {
     return this.dict;
   }
@@ -55,7 +64,7 @@ public abstract class Model {
   }
 
   public void init() {
-    init(1.0, 1.0);
+    init(1.0, 0.0);
   }
   
   public void init(double wScale, double bScale) {
@@ -111,6 +120,63 @@ public abstract class Model {
     p.close();
   }
 
+  public void load(String modelFile, Dictionary _dict) throws IOException {
+    this.setDict(_dict);
+    Layer l = new TanhLayer(128);
+    this.addHiddenLayer(l);
+    this.init();
+    
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(modelFile)));
+    String line = "";
+    while((line = br.readLine())!=null) {
+      if(line.startsWith("#params")) {
+        double[] params = new double[this.thetaSize];
+        String[] cols = line.split("=");
+        Scanner sc = new Scanner(cols[1].trim());
+        int i=0;
+        while(sc.hasNextDouble()) {
+          params[i] = sc.nextDouble();
+          i++;
+        }
+        this.setParameters(params);
+      }
+    }
+    br.close();
+  }
+
+  public DMatrix projectVocabulary(int batchSize) {
+    DMatrix proj = DMath.createMatrix(this.dict.getSize(), this.outSize);
+    for(int i=0; i<this.dict.getSize(); ) {
+      int b = Math.min(this.dict.getSize()-i, batchSize); // basically for the last batch of smaller size
+      DMatrix vBatch = DMath.createMatrix(b, this.dict.getSize());
+     
+      for(int j=0; j<b; j++) {
+        DMatrix v = DMath.createMatrix(1, this.dict.getSize());
+        v.put(i+j, 1.0);
+        vBatch.fillRow(j, v);
+//        vBatch.put(j, i+j, 1.0);
+      }
+      DMatrix hBatch = this.fProp(vBatch);
+      proj.fillMatrix(i, hBatch);
+      i=i+b;
+    }
+
+/*    DMatrix vBatch = DMath.createMatrix(2, this.dict.getSize());
+    DMatrix v1 = DMath.createMatrix(1, this.dict.getSize());
+    v1.put(2759, 1.0);
+    DMatrix v2 = DMath.createMatrix(1, this.dict.getSize());
+    v2.put(2963, 1.0);
+
+    vBatch.fillRow(0, v1);
+    vBatch.fillRow(1, v2);
+
+    DMatrix hBatch = this.fProp(vBatch);
+    hBatch.print("Projected 2759 and 2963 from projected vocab");
+    proj.fillMatrix(2759, hBatch.getRow(0));
+    proj.fillMatrix(2963, hBatch.getRow(1));*/
+    return proj;
+  }
+  
   public void copyHtoD() {
     Iterator<Layer> layerIt = this.layers.iterator();
     while(layerIt.hasNext()) {

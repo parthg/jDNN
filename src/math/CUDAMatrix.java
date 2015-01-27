@@ -3,7 +3,6 @@ package math;
 import math.jcublas.SimpleCuBlas;
 import random.RandomUtils;
 import java.lang. AutoCloseable;
-import jcuda.jcublas.JCublas;
 import jcuda.Pointer;
 
 import math.jblas.SimpleBlas;
@@ -41,8 +40,9 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     if(this.cPointer != null) {
 //      System.out.printf("Releasing the CUDA Pointer\n");
       this.persist = false;
-      JCublas.cublasInit();
-      JCublas.cublasFree(this.cPointer);
+      SimpleCuBlas.free(this.cPointer);
+//      JCublas.cublasInit();
+//      JCublas.cublasFree(this.cPointer);
       this.cPointer = null;
     }
   }
@@ -59,7 +59,9 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
       if(this.persist == false)
         this.persist = true;
       if(this.cPointer != null) {
-        JCublas.cublasFree(this.cPointer);
+        SimpleCuBlas.free(this.cPointer);
+//        JCublas.cublasInit();
+//        JCublas.cublasFree(this.cPointer);
         this.cPointer = null;
       }
    
@@ -70,6 +72,7 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
   public void copyDtoH() {
     if(System.getProperty("use_cuda").equals("true")) {
       if (this.cPointer!=null) {
+//        JCublas.cublasInit();
         SimpleCuBlas.getData(this,this.cPointer,Pointer.to(this.data()));
       }
     }
@@ -198,6 +201,18 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
     return this;
   }
 
+  public DMatrix sub(double v) {
+    DMatrix m = DMath.createMatrix(this.rows(), this.columns(), this.toArray());
+    for (int i = 0; i < this.length(); i++)
+      m.put(i,m.get(i)-v);
+    return m;
+  }
+  public DMatrix subi(double v) {
+    for (int i = 0; i < this.length(); i++)
+      this.put(i,this.get(i)-v);
+    return this;
+  }
+  
   public DMatrix sqrt() {
     DMatrix m = new CUDAMatrix(this.rows, this.columns(), this.toArray());
     SimpleCuBlas.sqrt(m);
@@ -317,9 +332,7 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
 
   public DMatrix fillWithArray(DMatrix other) {
     assert (this.length()%other.length()==0);
-//    DMatrix m = DMath.createMatrix(this.rows(), this.columns());
     SimpleCuBlas.fillWithArray(other, this);
-//    SimpleBlas.fillWithArray(other, this);
     return this;
   }
   

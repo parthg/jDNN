@@ -3,6 +3,7 @@ package math.jcublas;
 //import jcuda.*;
 //import jcuda.driver.JCudaDriver;
 import jcuda.jcublas.JCublas;
+import jcuda.jcublas.cublasStatus;
 
 import static jcuda.driver.JCudaDriver.*;
 import jcuda.*;
@@ -14,8 +15,14 @@ import math.CUDAMatrix;
 
 public class SimpleCuBlas {
   public static final int THREADS_PER_BLOCK = 1024;
+  public static int cudaCount = 0;
   public static void close() {
     JCublas.cublasShutdown();
+  }
+
+  public static void reset() {
+    JCublas.cublasShutdown();
+    JCuda.cudaDeviceReset();
   }
 
   public static int getGridDim(int n) {
@@ -42,6 +49,7 @@ public class SimpleCuBlas {
         1,
         ret,
         1);
+    cudaCount++;
     return ret;
   }
 
@@ -61,6 +69,7 @@ public class SimpleCuBlas {
         1,
         ret,
         1);
+    cudaCount++;
     return ret;
   }
   
@@ -79,9 +88,17 @@ public class SimpleCuBlas {
         1,
         ret,
         1);
+    cudaCount++;
     return ret;
   }
 
+  public static Pointer alloc(int v) {
+    Pointer ptr = new Pointer();
+    ptr = Pointer.to(new int[]{v});
+    cudaCount++;
+    return ptr;
+  }
+  
   public static void updateData(Pointer ptr, double[] arr) {
     JCublas.cublasInit();
     Pointer toData = Pointer.to(arr).withByteOffset(0 * Sizeof.DOUBLE);
@@ -109,8 +126,11 @@ public class SimpleCuBlas {
 
   public static void free(Pointer...pointers) {
     JCublas.cublasInit();
-    for(Pointer arr : pointers)
-      JCublas.cublasFree(arr);
+    for(Pointer arr : pointers) {
+      int err = JCublas.cublasFree(arr);
+      assert (err == cublasStatus.CUBLAS_STATUS_SUCCESS):"Not successfully freed device memory";
+      cudaCount--;
+    }
   }
 
   public static void axpy(double alpha, DMatrix x, DMatrix y) {
@@ -323,6 +343,42 @@ public class SimpleCuBlas {
     return A;
   }
 
+  public static DMatrix tanh(DMatrix A, DMatrix B) {
+    JCublas.cublasInit();
+    CUmodule module = new CUmodule();
+    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    CUfunction function = new CUfunction();
+    cuModuleGetFunction(function, module, "kTanh");
+
+    CUDAMatrix cA = (CUDAMatrix) A;
+    Pointer cAPointer = (cA.persist())?cA.pointer():alloc(cA);
+    
+    CUDAMatrix cB = (CUDAMatrix) B;
+    Pointer cBPointer = (cB.persist())?cB.pointer():alloc(cB);
+
+    Pointer cALengthPointer = alloc(cA.length());
+    
+    Pointer kernelParameters = Pointer.to(Pointer.to(cAPointer),
+        Pointer.to(cBPointer),
+        cALengthPointer
+        );
+  
+    cuLaunchKernel(function, getGridDim(cA.length()), 1, 1, getBlockDim(cA.length()), 1, 1, 0, null, kernelParameters, null);
+    
+    if(!cB.persist()) {
+      getData(cB,cBPointer,Pointer.to(cB.data()));
+      free(cBPointer);
+    }
+
+    if(!cA.persist()) {
+      free(cAPointer);
+    }
+
+    free(cALengthPointer);
+
+    return B;
+  }
+  
   public static DMatrix pow(DMatrix A, double v) {
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
@@ -384,7 +440,7 @@ public class SimpleCuBlas {
       free(cCPointer);
     }
 
-    if(!cA.persist())
+//    if(!cA.persist())
       free(cAPointer);
 
     if(!cB.persist())

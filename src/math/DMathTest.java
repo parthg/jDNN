@@ -210,6 +210,12 @@ public class DMathTest {
 //    m.print();
   }
 
+  public static void testGetRow() {
+    DMatrix a = DMath.createMatrix(3, 2, new double[]{1, 2, 3, 4, 5, 6});
+    a.getRow(0).print();
+    
+  }
+
   public static void testFillRow() {
     DMatrix a = DMath.createMatrix(5, 5);
     DMatrix b = DMath.createOnesMatrix(1, 5);
@@ -252,7 +258,8 @@ public class DMathTest {
 //    testSumRows();
 //    testSumColumns();
 //    testInv();
-    testRowNorms();
+    testGetRow();
+//    testRowNorms();
 //    testSqrt();
 //    testDivRows();
 //    testMulRows();
