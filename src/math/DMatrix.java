@@ -38,16 +38,22 @@ public abstract class DMatrix implements Closeable {
   /** returns the array index for the given matrix position.
    */
   public int index(int i, int j) {
-    return i*rows+j;
+    return i*columns+j;
   }
 
   public void put(int i, int j, double v) {
+    assert (i<this.rows && j<this.columns);
     this.data[index(i, j)] = v;
   }
   
   public void put(int i, double v) {
     assert (i<this.length);
     this.data[i] = v;
+  }
+
+  public double get(int i, int j) {
+    assert (i<this.rows && j<this.columns);
+    return this.data[index(i, j)];
   }
 
   public double get(int i) {
