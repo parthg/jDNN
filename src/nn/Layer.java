@@ -7,6 +7,7 @@ import math.DMatrix;
 
 public abstract class Layer {
   DMatrix w, b;
+  DMatrix data;
 
   int wSize, bSize;
   int thetaSize; // basically wSize+bSize
@@ -38,6 +39,7 @@ public abstract class Layer {
     double[] mydW = (myInData.mmul(true, false, mygrad)).toArray();
     double[] mydB = mygrad.sumRows().toArray();
 
+//    System.out.printf("dW = %d, dB = %d\n", mydW.length, mydB.length);
     System.arraycopy(mydW, 0, paramGrads, 0, this.wSize);
     System.arraycopy(mydB, 0, paramGrads, this.wSize, this.bSize);
     return paramGrads;
@@ -87,6 +89,14 @@ public abstract class Layer {
   public void setBiases(DMatrix _b) {
     assert(_b.rows() ==  1 && _b.columns() == this.size);
     this.b = _b;
+  }
+
+  public DMatrix getData() {
+    return this.data;
+  }
+
+  public void setData(DMatrix _data) {
+    this.data = _data;
   }
 
   public void copyHtoD() {
