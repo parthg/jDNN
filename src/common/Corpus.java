@@ -40,20 +40,30 @@ public class Corpus {
 
   /** this method will fill corpus, sentence and dict in one go
    * */
-  public void load(String file, Channel ch, Dictionary dict) throws IOException {
+  public void load(String file, boolean containsLabel, Channel ch, Dictionary dict, boolean fillDict) throws IOException {
     BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file),"UTF-8"));
     String line = "";
     int id = 0;
     while((line = br.readLine())!= null) {
       Sentence s = new Sentence();
+      String text = "";
+      if(containsLabel) {
+        String[] cols = line.split("\t");
+        s.setLabel(StringUtils.removeExt(cols[0].trim()));
+        text = cols[1].trim();
+      }
+      else
+        text = line;
       s.setId(id);
-      String text = line;
       text = ch.getTokeniser().parse(text);
       text = ch.getTokeniser().clean(text);
       String[] tokens = text.split("_");
       for(String tok: tokens) {
-        dict.addWord(tok);
-        s.addWord(dict.getId(tok));
+        if(fillDict)
+          dict.addWord(tok);
+ 
+        if(dict.contains(tok))
+          s.addWord(dict.getId(tok));
       }
       this.addSent(s);
       id++;
@@ -63,7 +73,7 @@ public class Corpus {
 
   /** this method will load the corpus WITHOUT updating the dictionary. It will also use the id provided in the sent file.
    */
-  public void loadWithId(String file, Channel ch, Dictionary dict) throws IOException {
+/*  public void loadWithId(String file, Channel ch, Dictionary dict, boolean fillDict) throws IOException {
     BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file),"UTF-8"));
     String line = "";
     while((line = br.readLine())!= null) {
@@ -83,5 +93,5 @@ public class Corpus {
       }
     }
     br.close();
-  }
+  }*/
 }

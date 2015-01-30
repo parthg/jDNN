@@ -32,6 +32,10 @@ public class Dictionary {
       System.out.printf("%d\t%s\n", termId, this.id2str.get(termId));
     }
   }
+
+  public boolean contains(String token) {
+    return this.str2id.containsKey(token);
+  }
  
   public int getSize() {
     return this.dictSize;
