@@ -15,6 +15,7 @@ public abstract class DMatrix implements Closeable {
   double[] data;
 
   protected int offset = 0;
+  
   public DMatrix(int _rows, int _columns) {
     this.rows = _rows;
     this.columns = _columns;
@@ -33,6 +34,10 @@ public abstract class DMatrix implements Closeable {
     double[] array = new double[this.length];
     System.arraycopy(this.data, 0, array, 0, this.length);
     return array;
+  }
+
+  public void printDim(String name) {
+    System.out.printf("%S: %d x %d\n", name, this.rows, this.columns);
   }
 
   /** returns the array index for the given matrix position.

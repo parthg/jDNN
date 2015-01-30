@@ -55,6 +55,16 @@ public abstract class Model {
     this.outSize = l.getSize();
   }
 
+  public void printArchitecture() {
+    System.out.printf("Model architecture = %d ", this.inSize);
+
+    for(int i=0; i<this.layers.size(); i++)
+      System.out.printf("%d ", this.layers.get(i).getSize());
+
+    System.out.printf(" Total number of parameters = %d\n", this.thetaSize);
+
+  }
+
   public int getThetaSize() {
     return this.thetaSize;
   }
@@ -77,13 +87,14 @@ public abstract class Model {
   }
   
   public void setParameters(double[] params) {
+    assert (params.length == this.thetaSize):System.out.printf("The parameters length (%d) is not equal to that of model (%d)\n", params.length, this.thetaSize);
     int start = 0;
     Iterator<Layer> layerIt = this.layers.iterator();
     while(layerIt.hasNext()) {
       Layer l = layerIt.next();
       int lParamSize = l.getThetaSize();
-      l.setParameters(Arrays.copyOfRange(params, start, lParamSize));
-      start = lParamSize;
+      l.setParameters(Arrays.copyOfRange(params, start, start+lParamSize));
+      start += lParamSize;
     }
   }
 
