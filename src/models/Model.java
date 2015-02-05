@@ -133,14 +133,28 @@ public abstract class Model {
 
   public void load(String modelFile, Dictionary _dict) throws IOException {
     this.setDict(_dict);
-    Layer l = new TanhLayer(128);
+/*    Layer l = new TanhLayer(128);
     this.addHiddenLayer(l);
-    this.init();
+    this.init();*/
     
     BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(modelFile)));
     String line = "";
     while((line = br.readLine())!=null) {
-      if(line.startsWith("#params")) {
+      if(line.startsWith("#numLayers")) {
+        String[] cols = line.split("=");
+        int nLayers = Integer.parseInt(cols[1].trim());
+        for(int lId = 0; lId<nLayers; lId++) {
+          String lDetails = br.readLine();
+          String[] lCols = lDetails.split("=");
+          String[] lSize = lCols[1].trim().split(" ");
+          int lLength = Integer.parseInt(lSize[1].trim());
+          Layer l = new TanhLayer(lLength);
+          this.addHiddenLayer(l);
+        }
+      }
+      else if(line.startsWith("#params")) {
+        this.printArchitecture();
+        this.init();
         double[] params = new double[this.thetaSize];
         String[] cols = line.split("=");
         Scanner sc = new Scanner(cols[1].trim());

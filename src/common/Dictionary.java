@@ -33,6 +33,8 @@ public class Dictionary {
     }
   }
 
+  
+
   public boolean contains(String token) {
     return this.str2id.containsKey(token);
   }
@@ -41,7 +43,7 @@ public class Dictionary {
     return this.dictSize;
   }
   public void addWord(String t) {
-    if(!this.str2id.containsKey(t)) {
+    if(!this.str2id.containsKey(t) && t.trim().length()>0) {
       this.str2id.put(t,this.dictSize);
       this.id2str.put(this.dictSize,t);
       this.dictSize++;
