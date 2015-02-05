@@ -42,6 +42,12 @@ public class Sentence {
     this.sentLength++;
   }
 
+  public void addSent(Sentence s2) {
+    for(int i=0; i<s2.getSize(); i++) {
+      this.addWord(s2.get(i));
+    }
+  }
+
   public int getSize() {
     return this.words.size();
   }

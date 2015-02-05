@@ -10,7 +10,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.FileInputStream;
 
-//import org.jblas.DoubleMatrix;
 import math.DMath;
 import math.DMatrix;
 
@@ -33,8 +32,10 @@ public class Dictionary {
     }
   }
 
+  public Map<String, Integer> str2id() {
+    return this.str2id;
+  }
   
-
   public boolean contains(String token) {
     return this.str2id.containsKey(token);
   }
@@ -102,6 +103,10 @@ public class Dictionary {
     return this.str2id.containsKey(t)?this.str2id.get(t):-1;
   }
 
+  public String getTerm(int id) {
+    return this.id2str.containsKey(id)?this.id2str.get(id):null;
+  }
+
   public void save(String file) throws IOException {
     PrintWriter p = new PrintWriter(file, "UTF-8");
     for(int i=0; i<this.dictSize; i++)
@@ -120,4 +125,10 @@ public class Dictionary {
     br.close();
   }
 
+  public void megrgeDict(Dictionary dict2) {
+    for(int i=0; i<dict2.getSize(); i++) {
+      this.addWord(dict2.getTerm(i));
+    }
+    System.out.printf("Dictionary added. Total terms after addition = %d\n", this.getSize());
+  }
 }
