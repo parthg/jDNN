@@ -9,7 +9,8 @@
   <property name="docs" location="web/WEB-INF/html"/>
   <property name="webdir" location="web/WEB-INF"/>
   <property name="lib" location="web/WEB-INF/lib"/>
-  <property name="classpath" location="web/WEB-INF/classes:/home/parth/workspace/Nemo/web/WEB-INF/classes:/home/parth/workspace/cl-deep/bin/:${lib}/trove-3.0.1.jar:${lib}/jblas-1.2.3-SNAPSHOT.jar:${lib}/terrier-3.5-core.jar:${lib}/antlr.jar:${lib}/mallet.jar:/home/parth/workspace/JCuda-All-0.5.5-bin-linux-x86_64/jcuda-0.5.5.jar:/home/parth/workspace/JCuda-All-0.5.5-bin-linux-x86_64/jcublas-0.5.5.jar"/>
+  <property name="jcuda_home" location="/home/parth/workspace/JCuda-All-0.5.5-bin-linux-x86_64"/>
+  <property name="classpath" location="web/WEB-INF/classes:/home/parth/workspace/Nemo/web/WEB-INF/classes:/home/parth/workspace/cl-deep/bin/:${lib}/trove-3.0.1.jar:${lib}/jblas-1.2.3-SNAPSHOT.jar:${lib}/terrier-3.5-core.jar:${lib}/antlr.jar:${lib}/mallet.jar:${lib}/opennlp-tools-1.5.0.jar:${lib}/maxent-3.0.0.jar:${jcuda_home}/jcuda-0.5.5.jar:${jcuda_home}/jcublas-0.5.5.jar"/>
     
 
   <target name="init">

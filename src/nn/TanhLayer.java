@@ -26,14 +26,15 @@ public class TanhLayer extends Layer {
    */
   public DMatrix fProp(DMatrix input) {
 //    System.out.printf("in fprop\n");
-    DMatrix data = DMath.createMatrix(input.rows(), this.getSize());
-    data.fillWithArray(this.b);
-    data.addi(input.mmul( this.w));
+    this.data = DMath.createMatrix(input.rows(), this.getSize());
+    this.data.fillWithArray(this.b);
+    this.data.addi(input.mmul( this.w));
     
     //TODO: IMPORTANT - if you want to take advantage of device, have sigmoid on device
 //    data.copyDtoH();
 //    data.close();
-    return this.applyNonLinearity(data);
+    this.data = this.applyNonLinearity(this.data);
+    return this.data;
   }
 
   /** calculate the gradient based on the error and representation provided to it

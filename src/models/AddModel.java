@@ -35,11 +35,31 @@ public class AddModel extends Model {
 
   public DMatrix getRepresentation(DMatrix sentMatrix) {
     DMatrix temp = this.layers.get(0).fProp(sentMatrix);
+
+    // Probably we dont need this
+//    this.layers.get(0).setData(temp);
+    if(this.getNumLayers()>1) {
+      for(int i=1; i<getNumLayers(); i++) {
+        temp = this.layers.get(i).fProp(temp);
+  
+          // this neither      
+//        this.layers.get(i).setData(temp);
+      }
+    }
     return temp.sumRows();
   }
 
   public DMatrix fProp(DMatrix input) {
     DMatrix temp = this.layers.get(0).fProp(input);
+    // need this?
+//    this.layers.get(0).setData(temp);
+    if(this.getNumLayers()>1) {
+      for(int i=1; i<getNumLayers(); i++) {
+        temp = this.layers.get(i).fProp(temp);
+        // need this?
+//        this.layers.get(i).setData(temp);
+      }
+    }
     return temp;
   }
   
@@ -181,10 +201,29 @@ public class AddModel extends Model {
     DMatrix grads = DMath.createZerosMatrix(1, this.thetaSize);
     DMatrix rep = this.fProp(input);
 
-    DMatrix lGrads = this.layers.get(0).bProp(rep, error);
-    double[] lParamGrads = this.layers.get(0).getParamGradients(input, lGrads);
-    System.arraycopy(lParamGrads, 0, grads.data(), 0, lParamGrads.length);
+    int start = this.thetaSize;
+    if(this.getNumLayers()>1) {
+      for(int i=getNumLayers()-1; i>0; i--) {
+        DMatrix lGrads = this.layers.get(i).bProp(rep, error);
+//        lGrads.printDim("lGrads");
+        DMatrix interInput = this.layers.get(i-1).getData();
+//        interInput.printDim("interInput");
+        
+        // TODO: for the deep model, input will  be intermediate representation
+        double[] lParamGrads = this.layers.get(i).getParamGradients(interInput, lGrads);
+        System.arraycopy(lParamGrads, 0, grads.data(), start-this.layers.get(i).getThetaSize(), lParamGrads.length);
 
+        error = lGrads.mmul(false, true, this.layers.get(i).getWeights());
+        rep = this.layers.get(i-1).getData();
+        start = start - this.layers.get(i).getThetaSize();
+      }
+    }
+    // outermost layer
+    DMatrix lGrads = this.layers.get(0).bProp(rep, error);
+    
+    double[] lParamGrads = this.layers.get(0).getParamGradients(input, lGrads);
+    System.arraycopy(lParamGrads, 0, grads.data(), start-this.layers.get(0).getThetaSize(), lParamGrads.length);
+    
     return grads;
   }
 }

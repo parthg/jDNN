@@ -26,7 +26,7 @@ public class SimpleCuBlas {
   }
 
   public static int getGridDim(int n) {
-    return (n/THREADS_PER_BLOCK)+1;
+    return ((n-1)/THREADS_PER_BLOCK)+1;
   }
   public static int getBlockDim(int n) {
     return Math.min(n,THREADS_PER_BLOCK);
