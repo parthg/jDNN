@@ -23,6 +23,19 @@ public abstract class Channel {
 	Map<Integer, String> docIndex;
 	Tokeniser tokeniser;
 	Language lang;
+
+  public List<String> sentences() {
+    return null;
+  }
+
+  public List<String> titles() {
+    return null;
+  }
+
+  public List<String> randSentences() {
+    return null;
+  }
+
 	public abstract void setParser(NEWSDocType type);
 	
 	public void setup(TokenType tokenType, Language _lang, String path_to_terrier, List<PreProcessTerm> pipeline) {

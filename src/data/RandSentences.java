@@ -38,7 +38,7 @@ public class RandSentences extends Channel {
     this.sentences = new ArrayList<String>();
   	this.randSent = new ArrayList<String>();
   	if(this.sampleSize == -1) {
-  		System.out.println("The Sample size is not specified.. hence choosine 100k..");
+  		System.out.println("The Sample size is not specified.. hence choosing 100k..");
   		this.sampleSize = 100000;
   	}
   	
@@ -53,6 +53,8 @@ public class RandSentences extends Channel {
 //      if(this.sampleSize==0)
 //        return sentences.toArray(new String[sentences.size()]);
       int ceil = sentences.size();
+      if(ceil<this.sampleSize)
+        this.sampleSize = ceil;
       System.out.printf("Total Sentences = %d and now selecting %d samples from it", ceil, this.sampleSize);
       RandomUtils.seed(1234L);
       int[] randIndex = RandomUtils.getRandomSamples(ceil, this.sampleSize);
@@ -100,5 +102,13 @@ public class RandSentences extends Channel {
 			}
     }
   	return matrix;
+  }
+
+  public List<String> sentences() {
+    return this.sentences;
+  }
+
+  public List<String> randSentences() {
+    return this.randSent;
   }
 }

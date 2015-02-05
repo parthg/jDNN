@@ -3,6 +3,7 @@ package data;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 
 import es.upv.nlel.corpus.NEWSDocType;
@@ -14,6 +15,7 @@ public class DocCollection extends Channel {
   String dataPath;
   FIREParserInterface parser;
   String ext;
+  List<String> titles;
   public DocCollection(String path_to_data, String _ext) {
     this.dataPath = path_to_data;
     this.ext = _ext;
@@ -22,6 +24,7 @@ public class DocCollection extends Channel {
   	this.parser = FIREParserFactory.getParser(type);
   }
   public Map<String, Integer> getTokensFreq() {
+    this.titles = new ArrayList<String>();
     this.tokenFreq = new HashMap<String, Integer>();
     List<String> files = FileIO.getFilesRecursively(new File(this.dataPath), ext);
     for(String f: files) {
@@ -29,7 +32,8 @@ public class DocCollection extends Channel {
     
 //			if(f.toLowerCase().contains("navbharattimes"))
 			text = this.parser.parse(f).getTitle();
-			
+      this.titles.add(text);
+
 			text = this.tokeniser.parse(text);
 			text = this.tokeniser.clean(text);
 			String[] tokens = text.split("_");
@@ -72,5 +76,9 @@ public class DocCollection extends Channel {
 			}
     }
   	return matrix;
+  }
+
+  public List<String> titles() {
+    return this.titles;
   }
 }
