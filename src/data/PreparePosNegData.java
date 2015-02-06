@@ -91,7 +91,7 @@ public class PreparePosNegData {
 
   public void printDict(int minFreq, TerrierWrapper terrier, String outDir) throws IOException {
     Map<Integer, Integer> tfTable = terrier.getTFTable();
-    PrintWriter p = new PrintWriter(outDir+"dict.txt", "UTF-8");
+    PrintWriter p = new PrintWriter(outDir+"dict-"+minFreq+".txt", "UTF-8");
     Set<String> dict = new HashSet<String>();
     int id=0;
     for(int t: tfTable.keySet()) {
@@ -137,7 +137,7 @@ public class PreparePosNegData {
       System.exit(0);
     }*/
 
-    if(new File(outDir + "title-only.txt").exists())
+/*    if(new File(outDir + "title-only.txt").exists())
       prepare.loadTitleQueriesFromFile(outDir + "title-only.txt");
     else {
       prepare.loadTitleQueries(dataDir);
@@ -146,7 +146,7 @@ public class PreparePosNegData {
         p.printf("%s\n", s);
       }
       p.close();
-    }
+    }*/
 
 //    prepare.loadRandomSentences(dataDir, tempSentDir);
 
@@ -172,10 +172,10 @@ public class PreparePosNegData {
       terrier.loadIndex(indexPath, lang, lang);
     }
 
-    prepare.printDict(5, terrier, outDir);
+    prepare.printDict(1000, terrier, outDir);
 
 
-    System.out.println("Drawing Samples...");
+/*    System.out.println("Drawing Samples...");
 
     PrintWriter pData = new PrintWriter(outDir + "data.txt", "UTF-8");
     PrintWriter pPos = new PrintWriter(outDir + "data-pos.txt", "UTF-8");
@@ -211,7 +211,7 @@ public class PreparePosNegData {
 
     pData.close();
     pPos.close();
-    pNeg.close();
+    pNeg.close();*/
     
   }
 

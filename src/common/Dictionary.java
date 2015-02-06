@@ -125,7 +125,7 @@ public class Dictionary {
     br.close();
   }
 
-  public void megrgeDict(Dictionary dict2) {
+  public void mergeDict(Dictionary dict2) {
     for(int i=0; i<dict2.getSize(); i++) {
       this.addWord(dict2.getTerm(i));
     }
