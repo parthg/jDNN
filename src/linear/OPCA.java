@@ -25,12 +25,13 @@ import org.jblas.Eigen;
 
 
 
-public class CL_LSI {
+public class OPCA {
   Dictionary dict;
   Corpus parallelCorp;
   FloatMatrix C;
   FloatMatrix[] eigen;
   FloatMatrix projectionMatrix;
+  Corpus[] corpora;
   int[] tf;
   int[] df;
   // load dictionaries for both
@@ -64,43 +65,51 @@ public class CL_LSI {
   public void calculateStats() {
     this.tf = new int[this.dict.getSize()];
     this.df = new int[this.dict.getSize()];
-    for(int i=0; i< this.parallelCorp.getSize(); i++) {
-      Sentence s = this.parallelCorp.get(i);
-      Set<Integer> uniqueTerms = new HashSet<Integer>();
-      for(int j=0; j<s.getSize(); j++) {
-        tf[s.get(j)]++;
-        uniqueTerms.add(s.get(j));
+    for(int c = 0; c< this.corpora.length; c++) {
+      for(int i=0; i< this.corpora[c].getSize(); i++) {
+        Sentence s = this.corpora[c].get(i);
+        Set<Integer> uniqueTerms = new HashSet<Integer>();
+        for(int j=0; j<s.getSize(); j++) {
+          tf[s.get(j)]++;
+          uniqueTerms.add(s.get(j));
+        }
+        for(int j: uniqueTerms)
+          df[j]++;
       }
-      for(int j: uniqueTerms)
-        df[j]++;
     }
   }
 
   /** It will us the joint dictionary to create a parallel corpus of type Corpus with certain parameters*/
-  public void prepareParallelCorpus(Corpus corp1, Corpus corp2, int minLength, int maxSize) throws IOException {
+  public void prepareParallelCorpus(Corpus[] corp, int minLength, int maxSize) throws IOException {
     this.parallelCorp = new Corpus();
-    assert (corp1.getSize() == corp2.getSize()):System.out.printf("Both Corpora should have same length. Currently lengths, Corp1 = %d and Corp2 = %d", corp1.getSize(), corp2.getSize());
+    this.corpora = new Corpus[corp.length];
+    for(int c=0; c<this.corpora.length; c++)
+      this.corpora[c] = new Corpus();
+    int size = corp[0].getSize();
+    for(int i = 0; i< corp.length; i++) {
+      assert (corp[i].getSize() == size):System.out.printf("Both Corpora should have same length.");
+    }
     int count = 0;
-    PrintWriter pEn = new PrintWriter("data/fire/joint/subparallel-en.dat", "UTF-8");
-    PrintWriter pEnTest = new PrintWriter("data/fire/joint/subparallel-en-test.dat", "UTF-8");
+    PrintWriter pEn = new PrintWriter("data/fire/joint/OPCA_subparallel-en.dat", "UTF-8");
+    PrintWriter pEnTest = new PrintWriter("data/fire/joint/OPCA_subparallel-en-test.dat", "UTF-8");
     
-    PrintWriter pHi = new PrintWriter("data/fire/joint/subparallel-hi.dat", "UTF-8");
-    PrintWriter pHiTest = new PrintWriter("data/fire/joint/subparallel-hi-test.dat", "UTF-8");
+    PrintWriter pHi = new PrintWriter("data/fire/joint/OPCA_subparallel-hi.dat", "UTF-8");
+    PrintWriter pHiTest = new PrintWriter("data/fire/joint/OPCA_subparallel-hi-test.dat", "UTF-8");
 
-    for(int i=0; i<corp1.getSize(); i++) {
-      Sentence s = corp1.get(i);
-      Sentence s2 = corp2.get(i);
-      if(s.getSize()>=minLength && s2.getSize()>=minLength && count<maxSize) {
-        s.addSent(s2);
+    for(int i=0; i<corp[0].getSize(); i++) {
+      Sentence s1 = corp[0].get(i);
+      Sentence s2 = corp[1].get(i);
+      if(s1.getSize()>=minLength && s2.getSize()>=minLength && count<maxSize) {
         if(count < maxSize) {
-          this.parallelCorp.addSent(s);
-          pEn.println(corp1.get(i).toString());
-          pHi.println(corp2.get(i).toString());
+          this.corpora[0].addSent(s1);
+          this.corpora[1].addSent(s2);
+          pEn.println(corp[0].get(i).toString());
+          pHi.println(corp[1].get(i).toString());
           count++;
         }
         else {
-          pEnTest.println(corp1.get(i).toString());
-          pHiTest.println(corp2.get(i).toString());
+          pEnTest.println(corp[0].get(i).toString());
+          pHiTest.println(corp[1].get(i).toString());
         }
 
       }
@@ -111,7 +120,7 @@ public class CL_LSI {
 
     pHi.close();
     pHiTest.close();
-    System.out.printf("Parallel corpus created with size = %d\n", this.parallelCorp.getSize());
+    System.out.printf("Parallel corpus created with size = %d\n", this.corpora[0].getSize());
   }
 
   public void createCorrelationMatrix() {
@@ -119,33 +128,29 @@ public class CL_LSI {
     System.out.printf("Matrix D dim = %d x %d\n", d.rows, d.columns);
     for(int i=0; i< this.parallelCorp.getSize(); i++) {
       Sentence s = this.parallelCorp.get(i);
-//      FloatMatrix vec = FloatMatrix.zeros(1, this.dict.getSize());
       for(int j=0; j<s.getSize(); j++) {
-//        System.out.printf("indices (%d ,%d)\n", i, s.get(j));
-//        vec.put(s.get(j), (float)1.0);
-//        int index = d.columns*i+s.get(j);
-//        d.put(index, 1.0);
         d.put(i, s.get(j), (float)1.0);
       }
-//      d.putRow(i, vec);
     }
     this.C = d.transpose().mmul(d);
     d = new FloatMatrix(1, 1);
   }
 
-  public void createSparseDMatrix(File f) throws IOException {
-    SparseMatrix mat = new SparseMatrix(this.parallelCorp.getSize(), this.dict.getSize());
-    System.out.printf("Matrix D dim = %d x %d\n", mat.rows(), mat.columns());
+  public void createSparseDMatrix(File[] f) throws IOException {
+    for(int c=0; c<f.length; c++) {
+      SparseMatrix mat = new SparseMatrix(this.corpora[c].getSize(), this.dict.getSize());
+      System.out.printf("Matrix D dim = %d x %d\n", mat.rows(), mat.columns());
 
-    int N = this.parallelCorp.getSize();
-    for(int i=0; i< this.parallelCorp.getSize(); i++) {
-      Sentence s = this.parallelCorp.get(i);
-      for(int j=0; j<s.getSize(); j++) {
-        double v = (Math.log(1.0+this.tf[s.get(j)])/Math.log(2.0))*(Math.log(N/this.df[s.get(j)])/Math.log(2.0));
-        mat.put(i, s.get(j), v);
+      int N = this.corpora[c].getSize();
+      for(int i=0; i< this.corpora[c].getSize(); i++) {
+        Sentence s = this.corpora[c].get(i);
+        for(int j=0; j<s.getSize(); j++) {
+          double v = (Math.log(1.0+this.tf[s.get(j)])/Math.log(2.0))*(Math.log(N/this.df[s.get(j)])/Math.log(2.0));
+          mat.put(i, s.get(j), v);
+        }
       }
+      mat.print(f[c]);
     }
-    mat.print(f);
   }
 
   public void learnProjectionMatrix(int dim) {
@@ -160,7 +165,7 @@ public class CL_LSI {
 
 
   public static void main(String[] args) throws IOException {
-    CL_LSI model = new CL_LSI();
+    OPCA model = new OPCA();
 
     Language lang1 = Language.EN;
     Language lang2 = Language.HI;
@@ -171,7 +176,6 @@ public class CL_LSI {
     String enFile = "data/fire/en/train.low.eng.sub";
     String hiFile = "data/fire/hi/train.low.hin.sub";
 
-
     model.loadDictionary(dict1File, dict2File);
 
     String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
@@ -179,15 +183,16 @@ public class CL_LSI {
     pipeline.add(PreProcessTerm.SW_REMOVAL);
     pipeline.add(PreProcessTerm.STEM);
 
+    Corpus[] corp = new Corpus[2];
     Channel chEn = new SentFile(enFile);
     chEn.setup(TokenType.WORD, lang1, path_to_terrier, pipeline);
-    Corpus enCorp = model.loadCorpus(enFile, chEn);
+    corp[0] = model.loadCorpus(enFile, chEn);
 
     Channel chHi = new SentFile(hiFile);
     chHi.setup(TokenType.WORD, lang2, path_to_terrier, pipeline);
-    Corpus hiCorp = model.loadCorpus(hiFile, chHi);
+    corp[1] = model.loadCorpus(hiFile, chHi);
 
-    model.prepareParallelCorpus(enCorp, hiCorp, 3, 100000);
+    model.prepareParallelCorpus(corp, 3, 100000);
     chEn = new SentFile(enFile);
     chHi = new SentFile(hiFile);
     System.gc(); System.gc();
@@ -195,8 +200,12 @@ public class CL_LSI {
 
     // TODO: Prepare stats like TF and DF
     model.calculateStats();
-    model.createSparseDMatrix(new File("data/fire/joint/D.dat"));
-    model.dict.save("data/fire/joint/dict.txt");
+    File[] file = new File[2];
+    file[0] = new File("data/fire/joint/OPCA_D_en.dat");
+    file[1] = new File("data/fire/joint/OPCA_D_hi.dat");
+    model.createSparseDMatrix(file);
+    model.dict.save("data/fire/joint/OPCA_dict.txt");
+
 //    model.createCorrelationMatrix();
 //    model.learnProjectionMatrix(128);
   }
