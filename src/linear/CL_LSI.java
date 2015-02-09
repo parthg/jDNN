@@ -13,6 +13,8 @@ import common.Sentence;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.PrintWriter;
@@ -81,11 +83,11 @@ public class CL_LSI {
     this.parallelCorp = new Corpus();
     assert (corp1.getSize() == corp2.getSize()):System.out.printf("Both Corpora should have same length. Currently lengths, Corp1 = %d and Corp2 = %d", corp1.getSize(), corp2.getSize());
     int count = 0;
-    PrintWriter pEn = new PrintWriter("data/fire/joint/subparallel-en.dat", "UTF-8");
-    PrintWriter pEnTest = new PrintWriter("data/fire/joint/subparallel-en-test.dat", "UTF-8");
+    PrintWriter pEn = new PrintWriter("data/fire/joint/CL-LSI-subparallel-en.dat", "UTF-8");
+    PrintWriter pEnTest = new PrintWriter("data/fire/joint/CL-LSI-subparallel-en-test.dat", "UTF-8");
     
-    PrintWriter pHi = new PrintWriter("data/fire/joint/subparallel-hi.dat", "UTF-8");
-    PrintWriter pHiTest = new PrintWriter("data/fire/joint/subparallel-hi-test.dat", "UTF-8");
+    PrintWriter pHi = new PrintWriter("data/fire/joint/CL-LSI-subparallel-hi.dat", "UTF-8");
+    PrintWriter pHiTest = new PrintWriter("data/fire/joint/CL-LSI-subparallel-hi-test.dat", "UTF-8");
 
     for(int i=0; i<corp1.getSize(); i++) {
       Sentence s = corp1.get(i);
@@ -140,12 +142,29 @@ public class CL_LSI {
     int N = this.parallelCorp.getSize();
     for(int i=0; i< this.parallelCorp.getSize(); i++) {
       Sentence s = this.parallelCorp.get(i);
+      Map<Integer, Integer> docTf = new HashMap<Integer, Integer>();
       for(int j=0; j<s.getSize(); j++) {
-        double v = (Math.log(1.0+this.tf[s.get(j)])/Math.log(2.0))*(Math.log(N/this.df[s.get(j)])/Math.log(2.0));
-        mat.put(i, s.get(j), v);
+        if(docTf.containsKey(s.get(j)))
+          docTf.put(s.get(j), docTf.get(s.get(j))+1);
+        else
+          docTf.put(s.get(j), 1);
+      }
+      for(int j : docTf.keySet()) {
+        double v = (Math.log(1.0+(double)docTf.get(j))/Math.log(2.0))*(Math.log(N/this.df[j])/Math.log(2.0));
+        mat.put(i, j, v);
       }
     }
     mat.print(f);
+  }
+
+  public void printIDF(String f) throws IOException {
+    PrintWriter p = new PrintWriter(f);
+    int N = this.parallelCorp.getSize();
+    for(int i=0; i<this.df.length; i++) {
+      double idf = Math.log(N/this.df[i])/Math.log(2.0);
+      p.printf("%d\t%.8f\n", i, idf);
+    }
+    p.close();
   }
 
   public void learnProjectionMatrix(int dim) {
@@ -195,8 +214,9 @@ public class CL_LSI {
 
     // TODO: Prepare stats like TF and DF
     model.calculateStats();
-    model.createSparseDMatrix(new File("data/fire/joint/D.dat"));
-    model.dict.save("data/fire/joint/dict.txt");
+    model.createSparseDMatrix(new File("data/fire/joint/CL-LSI-D.dat"));
+    model.dict.save("data/fire/joint/CL-LSI-dict.txt");
+    model.printIDF("data/fire/joint/CL-LSI-idf.txt");
 //    model.createCorrelationMatrix();
 //    model.learnProjectionMatrix(128);
   }
