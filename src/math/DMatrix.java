@@ -238,6 +238,43 @@ public abstract class DMatrix implements Closeable {
     return DMath.createMatrix(1, this.columns(), rowData);
   }
 
+  public DMatrix concatVertically(DMatrix B) {
+    assert (this.columns == B.columns()): System.out.printf("Matrices don't have same number of columns (" + this.columns + " != " + B.columns() + ".");
+
+    double[] newData = new double[this.length+B.length()];
+
+    System.arraycopy(this.data, 0, newData, 0, this.length);
+    System.arraycopy(B.data(), 0, newData, this.length, B.length());
+
+    this.rows = this.rows+B.rows();
+    this.length = this.rows*this.columns;
+    this.data = newData;
+
+    return this;
+  }
+
+  public void truncateRows(int _rows, int _columns) {
+    assert (this.columns == _columns && this.rows > _rows);
+    double[] newData = new double[_rows*_columns];
+    System.arraycopy(this.data, 0, newData, 0, newData.length);
+
+    this.rows = _rows;
+    this.columns = _columns;
+    this.length = this.rows*this.columns;
+    this.data = newData;
+  }
+
+  public void inflateRows(int _rows, int _columns) {
+    assert (this.columns == _columns && this.rows< _rows);
+    double[] newData = new double[_rows*_columns];
+    System.arraycopy(this.data, 0, newData, 0, this.length);
+
+    this.rows = _rows;
+    this.columns = _columns;
+    this.length = this.rows*this.columns;
+    this.data = newData;
+  }
+
 //  public abstract DMatrix transpose();
 
   public abstract DMatrix add(DMatrix other);

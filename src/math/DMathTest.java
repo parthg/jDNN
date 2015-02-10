@@ -244,6 +244,33 @@ public class DMathTest {
     a.print();
   }
 
+  public static void testConcatVertically() {
+    DMatrix a = DMath.createMatrix(2, 5, new double[]{1,2,3,4,5,6,7,8,9,10});
+    DMatrix b = DMath.createMatrix(1, 5, new double[]{11, 12, 13, 14, 15});
+
+    a.print("A");
+    b.print("B");
+    a.concatVertically(b);
+    a.print("A (concat) B");
+  }
+
+  public static void testTruncateRows() {
+    DMatrix a = DMath.createMatrix(5, 3);
+    DMatrix b = DMath.createMatrix(3, 3, new double[]{1,2,3,4,5,6,7,8,9});
+    a.fillMatrix(0, b);
+    a.print("A");
+    a.truncateRows(3, 3);
+    a.print("A (truncated)");
+  }
+
+  public static void testInflateRows() {
+    DMatrix a = DMath.createMatrix(3, 3, new double[]{1,2,3,4,5,6,7,8,9});
+    a.print("A");
+    a.inflateRows(5, 3);
+    a.print("A (Inflated)");
+  }
+
+
   public static void main(String[] args) {
     System.out.println(System.getProperty("use_cuda"));
 //    testAddi();
@@ -258,7 +285,7 @@ public class DMathTest {
 //    testSumRows();
 //    testSumColumns();
 //    testInv();
-    testGetRow();
+//    testGetRow();
 //    testRowNorms();
 //    testSqrt();
 //    testDivRows();
@@ -268,5 +295,8 @@ public class DMathTest {
 //    testFillWithArray();
 //    testFillRow();
 //    testFillMatrix();   
+//    testConcatVertically();
+//    testTruncateRows();
+    testInflateRows();
   }
 }
