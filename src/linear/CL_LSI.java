@@ -160,10 +160,16 @@ public class CL_LSI {
   public void printIDF(String f) throws IOException {
     PrintWriter p = new PrintWriter(f);
     int N = this.parallelCorp.getSize();
+    int zeros = 0;
     for(int i=0; i<this.df.length; i++) {
-      double idf = Math.log(N/this.df[i])/Math.log(2.0);
+      double idf = 0.0;
+      if(df[i]!=0)
+        idf = Math.log(N/this.df[i])/Math.log(2.0);
+      else
+        zeros++;
       p.printf("%d\t%.8f\n", i, idf);
     }
+    System.out.printf("Total 0 df terms = %d\n", zeros);
     p.close();
   }
 

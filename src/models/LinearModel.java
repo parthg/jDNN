@@ -19,6 +19,10 @@ public class LinearModel {
     this.outSize = _outDim;
   }
 
+  public int inSize() {
+    return this.inSize;
+  }
+
   public int outSize() {
     return this.outSize;
   }
@@ -39,6 +43,6 @@ public class LinearModel {
   }
 
   public DMatrix project(DMatrix input) {
-    return input.mmul(false, false, input);
+    return input.mmul(false, false, this.operator);
   }
 }

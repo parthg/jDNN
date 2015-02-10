@@ -11,6 +11,8 @@ import common.Dictionary;
 import common.Corpus;
 import common.Sentence;
 
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
@@ -144,10 +146,24 @@ public class OPCA {
       int N = this.corpora[c].getSize();
       for(int i=0; i< this.corpora[c].getSize(); i++) {
         Sentence s = this.corpora[c].get(i);
+      
+        
+        Map<Integer, Integer> docTf = new HashMap<Integer, Integer>();
         for(int j=0; j<s.getSize(); j++) {
+          if(docTf.containsKey(s.get(j)))
+            docTf.put(s.get(j), docTf.get(s.get(j))+1);
+          else
+            docTf.put(s.get(j), 1);
+        }
+        for(int j : docTf.keySet()) {
+          double v = (Math.log(1.0+(double)docTf.get(j))/Math.log(2.0))*(Math.log(N/this.df[j])/Math.log(2.0));
+          mat.put(i, j, v);
+        }
+        
+        /*for(int j=0; j<s.getSize(); j++) {
           double v = (Math.log(1.0+this.tf[s.get(j)])/Math.log(2.0))*(Math.log(N/this.df[s.get(j)])/Math.log(2.0));
           mat.put(i, s.get(j), v);
-        }
+        }*/
       }
       mat.print(f[c]);
     }

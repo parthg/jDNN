@@ -116,6 +116,7 @@ public class LinearRetrieval {
           batch.put(j, k, v);
         }
       }
+      System.out.printf("Model dimension = %d x %d and Batch dimension %d x %d\n", this.model.inSize(), this.model.outSize(), batch.rows(), batch.columns());
       DMatrix proj = this.model.project(batch);
       this.index.fillMatrix(i, proj);
       i+=batchSize;
@@ -136,7 +137,7 @@ public class LinearRetrieval {
 		pipeline.add(PreProcessTerm.STEM);
 		
 		Channel ch = new SentFile(file);
-		ch.setup(TokenType.WORD, Language.HI, path_to_terrier, pipeline);
+		ch.setup(TokenType.WORD, Language.EN, path_to_terrier, pipeline);
     
     int i=0;
     for(Topic t: this.topics) {
@@ -191,15 +192,17 @@ public class LinearRetrieval {
     ret.loadQrel(qrelFile);
     System.out.printf("Qrel Loaded.\n");*/
 
-    String modelPrefix = "tanh-hi-dict-70k-b-150-h-128";
-    ret.loadDict("obj/"+modelPrefix+"/dict.txt");
+    String modelPrefix = "CL-LSI";
+    String dictFile = "data/fire/joint/OPCA_dict.txt";
+    ret.loadDict(dictFile);
 //    Dictionary dict = ret.loadDict("data/fire/hi/dict-400.txt");
     System.out.printf("Dictionary Loaded.\n");
 
-    int iter = 8;
-
-    ret.loadModel(new File("obj/"+modelPrefix+"/model_iter"+iter+".txt"));
+    String modelFile = "data/fire/joint/ProjMat-CL-LSI.mat";
+    ret.loadModel(new File(modelFile));
     System.out.printf("Model Loaded.\n");
+
+    ret.loadIDF("data/fire/joint/CL-LSI-idf.txt");
 
 /*    ret.projectVocabulary();
     System.out.printf("Vocabulary Projected.\n");*/
@@ -223,14 +226,14 @@ public class LinearRetrieval {
     System.out.printf("Index Prepared.\n");
 //    ret.index.print();
 
-    ret.loadQueries("/home/parth/workspace/data/fire/topics/hi.topics.126-175.2011.txt");
+    ret.loadQueries("/home/parth/workspace/data/fire/topics/en.topics.126-175.2011.txt");
     System.out.printf("Topics Loaded.\n");
 //    ret.topicsMat.print();
 
     ret.similarity();
     System.out.printf("Similarity Estimated.\n");
 
-    ret.printRankList("output/rl-"+modelPrefix+"-iter-"+iter+".txt",1000);
+    ret.printRankList("output/rl-cl-"+modelPrefix+".txt",1000);
 //    ret.sim.print();
 
   }
