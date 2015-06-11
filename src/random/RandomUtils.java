@@ -51,7 +51,7 @@ public class RandomUtils {
         map.put(i, a[i]);
 		return map;
 	}
-	
+
   public static void suffleArray(int[] arr) {
 		Random rand = new Random();
 		for(int i=arr.length-1; i>0; i--) {

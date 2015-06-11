@@ -10,11 +10,20 @@ public class Sentence {
   public List<Integer> words;
   int sentLength;
 
-  Sentence() {
+  public Sentence() {
     this.words = new ArrayList<Integer>();
     this.sentLength = 0;
   }
 
+  public Sentence copy() {
+    Sentence s = new Sentence();
+    s.words = new ArrayList<Integer>();
+    s.words.addAll(this.words);
+    s.id = this.id;
+    s.label = this.label;
+    s.sentLength = this.sentLength;
+    return s;
+  }
   // returns the ith word id
   public int get(int i) {
     assert (i<this.getSize());

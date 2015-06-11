@@ -51,7 +51,13 @@ public class DMathTest {
   public static void testVectorNorm() {
     DMatrix a = DMath.createMatrix(3, 2, new double[]{0, 1, 2, 3, 4, 5});
     DMatrix b = a.vectorNorm();
-    b.print();
+    a.print("Mat1");
+    b.print("Vector Norm of Mat1");
+
+    a = DMath.createRandnMatrix(300000, 128);
+    b = a.vectorNorm();
+    a.getRow(0).print("Mat2");
+    b.getRow(0).print("Vector Norm of Mat2");
   }
 
   public static void testDotRows() {
@@ -291,12 +297,12 @@ public class DMathTest {
 //    testDivRows();
 //    testMulRows();
 //    testDotRows();
-//    testVectorNorm();
+    testVectorNorm();
 //    testFillWithArray();
 //    testFillRow();
 //    testFillMatrix();   
 //    testConcatVertically();
 //    testTruncateRows();
-    testInflateRows();
+//    testInflateRows();
   }
 }

@@ -26,6 +26,12 @@ public class Datum {
     return this.negData;
   }
 
+  public Datum(int _id, Sentence _data) {
+    this.id = _id;
+    this.label = _id;
+    this.data = _data;
+  }
+
   public Datum(int _id, Sentence _data, Sentence _posData, List<Sentence> _negData) {
     this.id = _id;
     this.label = _id; // in absence of explicit labels, ids can be used as labels. e.g. retrieval tasks

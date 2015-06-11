@@ -1,6 +1,7 @@
 package common;
 
-
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,12 +17,31 @@ import math.DMatrix;
 public class Dictionary {
   Map<String, Integer> str2id;
   Map<Integer, String> id2str;
+  Map<Integer, Double> idf;
   int dictSize;
 
   public Dictionary() {
     this.str2id = new HashMap<String, Integer>();
     this.id2str = new HashMap<Integer, String>();
+    this.idf = new HashMap<Integer, Double>();
     this.dictSize = 0;
+  }
+
+  public void setIdf(String s, double val) {
+    assert (this.str2id.containsKey(s)): System.out.printf("Term: %s is not present in the dictionary", s);
+/*    if(val == 0.0)
+      val = 1.0;*/
+    this.idf.put(this.getId(s), val);
+  }
+
+  public double getIdf(String s) {
+    assert (this.str2id.containsKey(s)): System.out.printf("Term: %s is not present in the dictionary", s);
+    return this.idf.get(this.getId(s));
+  }
+
+  public double getIdf(int id) {
+    assert (this.id2str.containsKey(id)): System.out.printf("TermId: %d is not present in the dictionary", id);
+    return this.idf.get(id);
   }
 
   public void print() {
@@ -130,5 +150,14 @@ public class Dictionary {
       this.addWord(dict2.getTerm(i));
     }
     System.out.printf("Dictionary added. Total terms after addition = %d\n", this.getSize());
+  }
+
+  public List<Integer> getTermIds(List<String> tokens) {
+    List<Integer> tids = new ArrayList<Integer>();
+    for(String t: tokens) {
+      if(this.contains(t.trim()))
+        tids.add(this.getId(t.trim()));
+    }
+    return tids;
   }
 }

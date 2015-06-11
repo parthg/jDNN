@@ -18,7 +18,9 @@ import common.Dictionary;
 import common.RankList;
 import common.Qrel;
 import models.LinearModel;
-import models.AddModel;
+import models.Model;
+import models.S2Net;
+import models.Autoencoder;
 
 import math.DMath;
 import math.DMatrix;
@@ -39,6 +41,7 @@ public class LinearRetrieval {
   Qrel qrel;
   Dictionary dict;
   LinearModel model;
+  Model nnModel;
   List<Topic> topics;
   DMatrix vocab;
   Corpus corpus;
@@ -46,7 +49,7 @@ public class LinearRetrieval {
   DMatrix topicsMat;
   DMatrix sim;
   double[] idf;
-  
+  String modelType;  
   // load Qrel
   public void loadQrel(String file) throws IOException {
     this.qrel = new Qrel(file);
@@ -64,6 +67,14 @@ public class LinearRetrieval {
     this.model.load(file);
   }
 
+  public void loadAE(String file) throws IOException {
+    this.nnModel = new Autoencoder();
+    this.nnModel.load(file, this.dict);
+  }
+  public void loadS2Net(String file) throws IOException {
+    this.nnModel = new S2Net();
+    this.nnModel.load(file, this.dict);
+  }
 /*  // project vocab
   public void projectVocabulary() {
     this.vocab = this.model.projectVocabulary(5000);
@@ -95,7 +106,17 @@ public class LinearRetrieval {
 
   // prepare index
   public void prepareIndex() {
-    this.index = DMath.createMatrix(this.corpus.getSize(), this.model.outSize());
+    int modelInDim =0, modelOutDim = 0;
+    if(this.modelType.equals("S2Net") || this.modelType.equals("AE")) {
+      this.index = DMath.createMatrix(this.corpus.getSize(), this.nnModel.outSize());
+      modelInDim = this.nnModel.inSize();
+      modelOutDim = this.nnModel.outSize();
+    }
+    else {
+      this.index = DMath.createMatrix(this.corpus.getSize(), this.model.outSize());
+      modelInDim = this.model.inSize();
+      modelOutDim = this.model.outSize();
+    }
     int batchSize = 10000;
     for(int i=0; i<this.corpus.getSize(); ) {
       if(i+batchSize > this.corpus.getSize()) {
@@ -116,8 +137,13 @@ public class LinearRetrieval {
           batch.put(j, k, v);
         }
       }
-      System.out.printf("Model dimension = %d x %d and Batch dimension %d x %d\n", this.model.inSize(), this.model.outSize(), batch.rows(), batch.columns());
-      DMatrix proj = this.model.project(batch);
+      System.out.printf("Model dimension = %d x %d and Batch dimension %d x %d\n", modelInDim, modelOutDim, batch.rows(), batch.columns());
+//      DMatrix proj = this.model.project(batch);
+      DMatrix proj = null;
+      if(this.modelType.equals("S2Net") || this.modelType.equals("AE"))
+        proj = this.nnModel.fProp(batch);
+      else
+        proj = this.model.project(batch);
       this.index.fillMatrix(i, proj);
       i+=batchSize;
       
@@ -127,7 +153,17 @@ public class LinearRetrieval {
   // load queries
   public void loadQueries(String file) throws IOException {
     this.topics = FIRE.parseTopicFile(file);
-    this.topicsMat = DMath.createMatrix(this.topics.size(), this.model.outSize());
+    int modelOutDim=0, modelInDim=0;
+    if(this.modelType.equals("S2Net") || this.modelType.equals("AE")) {
+      this.topicsMat = DMath.createMatrix(this.topics.size(), this.nnModel.outSize());
+      modelInDim = this.nnModel.inSize();
+      modelOutDim = this.nnModel.outSize();
+    }
+    else {
+      this.topicsMat = DMath.createMatrix(this.topics.size(), this.model.outSize());
+      modelInDim = this.model.inSize();
+      modelOutDim = this.model.outSize();
+    }
 
     DMatrix topicRep = DMath.createMatrix(this.topics.size(), this.dict.getSize());
     
@@ -141,7 +177,7 @@ public class LinearRetrieval {
     
     int i=0;
     for(Topic t: this.topics) {
-      DMatrix row = DMath.createMatrix(1, this.model.outSize());
+      DMatrix row = DMath.createMatrix(1, modelOutDim);
       String text = t.get(Tag.TITLE);
       text = ch.getTokeniser().parse(text);
       text = ch.getTokeniser().clean(text);
@@ -161,7 +197,11 @@ public class LinearRetrieval {
       }
       i++;
     }
-    this.topicsMat = this.model.project(topicRep);
+//    this.topicsMat = this.model.project(topicRep);
+    if(this.modelType.equals("S2Net") || this.modelType.equals("AE"))
+      this.topicsMat = this.nnModel.fProp(topicRep);
+    else
+      this.topicsMat = this.model.project(topicRep);
   }
   
   // retrieve
@@ -192,17 +232,34 @@ public class LinearRetrieval {
     ret.loadQrel(qrelFile);
     System.out.printf("Qrel Loaded.\n");*/
 
-    String modelPrefix = "CL-LSI";
-    String dictFile = "data/fire/joint/OPCA_dict.txt";
+    ret.modelType = "CL-LSI";
+    String modelPrefix = "CL-LSI-T-2011-12";
+    String dictFile = "data/fire/joint/CL-LSI-dict.txt";
+    if(ret.modelType.equals("AE"))
+      dictFile = "data/fire/joint/AE-dict.txt";
     ret.loadDict(dictFile);
+    if(ret.modelType.equals("AE"))
+      ret.loadIDF("data/fire/joint/AE-idf.txt");
+    else
+      ret.loadIDF("data/fire/joint/CL-LSI-idf.txt");
 //    Dictionary dict = ret.loadDict("data/fire/hi/dict-400.txt");
     System.out.printf("Dictionary Loaded.\n");
 
     String modelFile = "data/fire/joint/ProjMat-CL-LSI.mat";
-    ret.loadModel(new File(modelFile));
+//    String modelFile = "data/fire/joint/ProjMat-OPCA-0.1.mat";
+//    String modelFile = "obj/s2net-cl-h-128-new/model_iter8.txt";
+//    String modelFile = "scripts/matlab/try"; // THIS IS AE
+    if(ret.modelType.equals("CL-LSI") || ret.modelType.equals("OPCA")) {
+      ret.loadModel(new File(modelFile));
+    }
+    else if(ret.modelType.equals("S2Net")) {
+      ret.loadS2Net(modelFile);
+    }
+    else if(ret.modelType.equals("AE")) {
+      ret.loadAE(modelFile);
+    }
     System.out.printf("Model Loaded.\n");
 
-    ret.loadIDF("data/fire/joint/CL-LSI-idf.txt");
 
 /*    ret.projectVocabulary();
     System.out.printf("Vocabulary Projected.\n");*/
@@ -226,7 +283,8 @@ public class LinearRetrieval {
     System.out.printf("Index Prepared.\n");
 //    ret.index.print();
 
-    ret.loadQueries("/home/parth/workspace/data/fire/topics/en.topics.126-175.2011.txt");
+//    ret.loadQueries("/home/parth/workspace/data/fire/topics/en.topics.126-175.2011.txt");
+    ret.loadQueries("/home/parth/workspace/data/fire/topics/en.topics.2011-12.txt");
     System.out.printf("Topics Loaded.\n");
 //    ret.topicsMat.print();
 

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.TreeMap;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -25,6 +26,7 @@ import es.upv.nlel.utils.Language;
 import es.upv.nlel.wrapper.TerrierWrapper;
 import org.terrier.matching.ResultSet;
 import es.upv.nlel.utils.FileIO;
+import es.upv.nlel.utils.ValueComparatorDesc;
 import random.RandomUtils;
 import data.CleanData;
 
@@ -106,6 +108,32 @@ public class PreparePosNegData {
     }
     p.close();
   }
+  
+  public void printTopNTerms(int n, TerrierWrapper terrier, String outDir) throws IOException {
+    Map<Integer, Integer> tfTable = terrier.getTFTable();
+    
+    ValueComparatorDesc bvc = new ValueComparatorDesc(tfTable);
+    TreeMap<Integer, Integer> sorted_scoremap = new TreeMap<Integer, Integer>(bvc);
+    sorted_scoremap.putAll(tfTable);
+    int count = 0;
+    
+    PrintWriter p = new PrintWriter(outDir+"dict-top"+n+".txt", "UTF-8");
+    Set<String> dict = new HashSet<String>();
+    int id=0;
+    for(int t: sorted_scoremap.keySet()) {
+//    for(int t: tfTable.keySet()) {
+      if(count<n) {
+        String term = CleanData.parse(terrier.getTerm(t), this.language);
+        if(term.length()>0 && !dict.contains(term)) {
+          p.printf("%d\t%s\n", id, term);
+          dict.add(term);
+          id++;
+          count++;
+        }
+      }
+    }
+    p.close();
+  }
 
   public static void main(String[] args) throws IOException, RecognitionException, TokenStreamException {
     PreparePosNegData prepare = new PreparePosNegData();
@@ -137,7 +165,7 @@ public class PreparePosNegData {
       System.exit(0);
     }*/
 
-/*    if(new File(outDir + "title-only.txt").exists())
+    if(new File(outDir + "title-only.txt").exists())
       prepare.loadTitleQueriesFromFile(outDir + "title-only.txt");
     else {
       prepare.loadTitleQueries(dataDir);
@@ -146,7 +174,7 @@ public class PreparePosNegData {
         p.printf("%s\n", s);
       }
       p.close();
-    }*/
+    }
 
 //    prepare.loadRandomSentences(dataDir, tempSentDir);
 
@@ -173,13 +201,14 @@ public class PreparePosNegData {
     }
 
     prepare.printDict(1000, terrier, outDir);
+    prepare.printTopNTerms(10000, terrier, outDir);
 
 
-/*    System.out.println("Drawing Samples...");
+    System.out.println("Drawing Samples...");
 
-    PrintWriter pData = new PrintWriter(outDir + "data.txt", "UTF-8");
-    PrintWriter pPos = new PrintWriter(outDir + "data-pos.txt", "UTF-8");
-    PrintWriter pNeg = new PrintWriter(outDir + "data-neg.txt", "UTF-8");
+    PrintWriter pData = new PrintWriter(outDir + "data-new.txt", "UTF-8");
+    PrintWriter pPos = new PrintWriter(outDir + "data-pos-new.txt", "UTF-8");
+    PrintWriter pNeg = new PrintWriter(outDir + "data-neg-new.txt", "UTF-8");
 
     int counter = 0;
     for(String s: prepare.queries) {
@@ -195,7 +224,16 @@ public class PreparePosNegData {
             String sentId = terrier.getDocName(docid[0]);
             String pos = FileIO.fileToString(new File(tempSentDir+sentId)).trim();
 
-            String negSentId = terrier.getDocName(RandomUtils.nextInt((int)terrier.getTotIndexedDocs()));
+            String negSentId = "";
+
+            if(docid.length<100) {
+              int randId = RandomUtils.nextInt((int)terrier.getTotIndexedDocs());
+              negSentId = terrier.getDocName(randId);
+            }
+            else
+              negSentId = terrier.getDocName(docid[(int)(docid.length/1.5)]); 
+  
+//            String negSentId = terrier.getDocName(RandomUtils.nextInt((int)terrier.getTotIndexedDocs()));
             String neg = FileIO.fileToString(new File(tempSentDir+negSentId)).trim();
             if(s.length()>10 && pos.length()>10 && neg.length()>10) {
               pData.println(s.replaceAll("\n", " "));
@@ -211,7 +249,7 @@ public class PreparePosNegData {
 
     pData.close();
     pPos.close();
-    pNeg.close();*/
+    pNeg.close();
     
   }
 
