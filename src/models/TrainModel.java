@@ -50,11 +50,11 @@ public class TrainModel {
    
     Language lang = Language.HI;
     String prefix = args[0];
-    boolean test = true;
-    boolean randomize = true;
-    boolean trainContinue=false;
-    int lastIter = 0;
-    boolean fillDict = true;
+    boolean test = true; // will skip or not the test module
+    boolean randomize = true; // should always be true if you don't have a reason
+    boolean trainContinue=false;	// it is to continue training the model but the mini-batches will change
+    int lastIter = 0;	// if Train continue, then specify from what iteration you want to continue
+    boolean fillDict = true;	// if true, it prepares the dictionary from the data
     String modelFile = "obj/tanh-hi-dict-400-b-100-h-128-new/model_iter33.txt";
 //    String dictFile = "obj/"+prefix+"/dict.txt";
     String useDict = "data/fire/hi/dict-400.txt";
@@ -96,7 +96,7 @@ public class TrainModel {
       fillDict = false;
     }
 
-    // *******  TRAIN ************* //
+    // *******  TRAIN DATA ************* //
 		Channel ch = new SentFile(file);
 		ch.setup(TokenType.WORD, lang, path_to_terrier, pipeline);
 		Corpus enCorp = new Corpus();
@@ -117,7 +117,7 @@ public class TrainModel {
 
     System.out.printf("Total Train Sentences = %d \n", enCorp.getSize());
 
-    // ********  TEST *************** //
+    // ********  TEST DATA *************** //
     Channel chTest = new SentFile(test_file);
     Corpus enTest = new Corpus();
 /*		pipeline.add(PreProcessTerm.SW_REMOVAL);
@@ -147,6 +147,7 @@ public class TrainModel {
     System.out.printf("#sentence = %d #tokens = %d\n", enCorp.getSize(), enDict.getSize());
     
 
+	/******* MODEL ********/
     if(trainContinue) {
       enModel.load(modelFile, enDict);
 /*      double[] params = enModel.getParameters();
@@ -174,6 +175,7 @@ public class TrainModel {
     if(randomize)
       RandomUtils.suffleArray(randArray);
 
+	/***** Train Instances ******/
     List<Datum> instances = new ArrayList<Datum>();
     int count = 0;
     for(int i=0; i<enCorp.getSize(); i++) {
@@ -188,7 +190,8 @@ public class TrainModel {
         count++;
       }
     }
-
+	
+	/***** TEST INSTANCES **********/
     List<Datum> test_instances = new ArrayList<Datum>();
     count = 0;
     for(int i=0; i<enTest.getSize(); i++) {

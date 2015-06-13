@@ -15,7 +15,9 @@ public abstract class DMatrix implements Closeable {
   double[] data;
 
   protected int offset = 0;
-  
+ 
+	/** Constructs the matrix with the elements initialised with zeros.
+ */ 
   public DMatrix(int _rows, int _columns) {
     this.rows = _rows;
     this.columns = _columns;
@@ -23,6 +25,8 @@ public abstract class DMatrix implements Closeable {
     this.data = new double[this.length];
   }
 
+	/** Constructs with the specific data array 
+ */
   public DMatrix(int _rows, int _columns, double[] _data) {
     this.rows = _rows;
     this.columns = _columns;
@@ -30,6 +34,8 @@ public abstract class DMatrix implements Closeable {
     this.data = _data;
   }
 
+	/** Copies the elements to a new array and returns a copy of it.
+ */
   public double[] toArray() {
     double[] array = new double[this.length];
     System.arraycopy(this.data, 0, array, 0, this.length);
@@ -40,7 +46,7 @@ public abstract class DMatrix implements Closeable {
     System.out.printf("%S: %d x %d\n", name, this.rows, this.columns);
   }
 
-  /** returns the array index for the given matrix position.
+  /** returns the array index for the given matrix position (row, column).
    */
   public int index(int i, int j) {
     return i*columns+j;

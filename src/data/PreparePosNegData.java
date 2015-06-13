@@ -33,6 +33,13 @@ import data.CleanData;
 import antlr.RecognitionException;
 import antlr.TokenStreamException;
 
+
+/** This class prepares the positive negative samples for the given Queries. 
+ * Currently the queries can be in form of line-by-line file or simply the titles of the
+ * documents in one of the known formats through the Channel. It also requires the collection. To be indexed.
+ * 
+ *
+ */
 public class PreparePosNegData {
   NEWSDocType docType;
   Language language;
@@ -69,7 +76,8 @@ public class PreparePosNegData {
 
   }
 
-  public void loadRandomSentences(String dir, String outDir) throws IOException{
+  public void loadRandomSentences(String dir, String outDir) throws IOException{ 
+	
 		String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
 		List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
 		pipeline.add(PreProcessTerm.SW_REMOVAL);
@@ -176,6 +184,8 @@ public class PreparePosNegData {
       p.close();
     }
 
+
+/*****  HERE: Here it will create the sentences from the file */
 //    prepare.loadRandomSentences(dataDir, tempSentDir);
 
     TerrierWrapper terrier = new TerrierWrapper(terrierPath);
