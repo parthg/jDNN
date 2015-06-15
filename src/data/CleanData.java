@@ -11,12 +11,27 @@ public class CleanData {
   public static Set<Integer> DE_CHARS = new HashSet<Integer>(Arrays.asList(0xc4, 0xe4, 0xc9, 0xe9, 0xd6, 0xf6, 0xdc, 0xfc, 0xdf, 0xab, 0xbb, 0x84, 0x93, 0x94, 0xb0, 0x80, 0xa3));
 	
 	public static String parse(String str, Language lang) {
-		if(lang == Language.EN)
+    switch(lang) {
+      case EN:
+        return parseEnglish(str);
+      case HI:
+        return parseHindi(str);
+      case ES:
+        return parseSpanish(str);
+      case DE:
+        return parseGerman(str);
+      default:
+        System.err.printf("Option not supported yet! Please set the proper support for language '%s' in CleanData\n", lang.getCode());
+        System.exit(0);
+        return null;
+
+    }
+/*		if(lang == Language.EN)
 			return parseEnglish(str);
 		else if(lang == Language.HI)
 			return parseHindi(str);
 		else 
-			return null;
+			return null;*/
 	}
 	public static String parseEnglish(String inString) {
 		StringBuffer sbf = new StringBuffer();

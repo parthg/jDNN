@@ -48,7 +48,7 @@ public class TrainModel {
     }
     Model enModel = new AddModel();
    
-    Language lang = Language.HI;
+    Language lang = Language.ES;
     String prefix = args[0];
     boolean test = true; // will skip or not the test module
     boolean randomize = true; // should always be true if you don't have a reason
@@ -57,7 +57,7 @@ public class TrainModel {
     boolean fillDict = true;	// if true, it prepares the dictionary from the data
     String modelFile = "obj/tanh-hi-dict-400-b-100-h-128-new/model_iter33.txt";
 //    String dictFile = "obj/"+prefix+"/dict.txt";
-    String useDict = "data/fire/hi/dict-400.txt";
+    String useDict = "data/fire/"+lang.getCode()+"/dict-top10000.txt";
 
     String modelDir = "obj/"+prefix+"/";
     if(!new File(modelDir).exists())
@@ -71,13 +71,13 @@ public class TrainModel {
     String test_posFile = "data/hi-fire-mono/pos-data-test.txt";
     String test_negFile = "data/hi-fire-mono/neg-data-test.txt";*/
 
-    String file = "data/fire/hi/data.txt";
-    String posFile = "data/fire/hi/data-pos.txt";
-    String negFile = "data/fire/hi/data-neg.txt";
+    String file = "data/fire/"+lang.getCode()+"/data.txt";
+    String posFile = "data/fire/"+lang.getCode()+"/data-pos.txt";
+    String negFile = "data/fire/"+lang.getCode()+"/data-neg.txt";
 
-    String test_file = "data/fire/hi/data-test.txt";
-    String test_posFile = "data/fire/hi/data-pos-test.txt";
-    String test_negFile = "data/fire/hi/data-neg-test.txt";
+    String test_file = "data/fire/"+lang.getCode()+"/data-test.txt";
+    String test_posFile = "data/fire/"+lang.getCode()+"/data-pos-test.txt";
+    String test_negFile = "data/fire/"+lang.getCode()+"/data-neg-test.txt";
 
 /*    String file = "sample/hindi.short";
     String posFile = "sample/hindi-pos.short";
@@ -214,7 +214,7 @@ public class TrainModel {
 
     try(Batch testBatch = new Batch(test_instances, 1, enModel.dict())) {
       
-      int batchsize = 100;
+      int batchsize = 200;
       int iterations = 100;
 
       for(int iter = lastIter+1; iter<=iterations; iter++) {
@@ -250,22 +250,22 @@ public class TrainModel {
           } 
           try(Batch matBatch = new Batch(batch, 1, enModel.dict());) {
             matBatch.copyHtoD();
-/*            GradientCalc trainer = new NoiseCosineGradientCalc(matBatch);
+            GradientCalc trainer = new NoiseCosineGradientCalc(matBatch);
             trainer.setModel(enModel);
             // MAXIMISER
             Optimizer optimizer = new ConjugateGradient(trainer);
             optimizer.optimize(1);
             double[] learntParams = new double[enModel.getThetaSize()];
             trainer.getParameters(learntParams);
-            enModel.setParameters(learntParams);*/
+            enModel.setParameters(learntParams);
             batchNum++;
-            GradientCheck gCheck = new GradientCheck(new NoiseCosineGradientCalc(matBatch));
-            gCheck.optimise(enModel);
+/*            GradientCheck gCheck = new GradientCheck(new NoiseCosineGradientCalc(matBatch));
+            gCheck.optimise(enModel);*/
             matBatch.close();
-/*            if(batchNum%100==0) {
+            if(batchNum%100==0) {
               trainer.testStats(testBatch);
               System.out.printf("\nAfter Batch %d Test Cost = %.6f and Test MRR = %.6f\n\n", batchNum, trainer.testLoss(), trainer.testMRR());
-            }*/
+            }
             if(SimpleCuBlas.cudaCount > 0)
               System.out.printf("At end of batch cudaCount = %d\n", SimpleCuBlas.cudaCount);
 

@@ -119,10 +119,14 @@ public class PreparePosNegData {
   
   public void printTopNTerms(int n, TerrierWrapper terrier, String outDir) throws IOException {
     Map<Integer, Integer> tfTable = terrier.getTFTable();
+    Map<Integer, Double> tfTableDouble = new HashMap<Integer, Double>();
+    for(int i : tfTable.keySet()) {
+      tfTableDouble.put(i, (double) tfTable.get(i).intValue());
+    }
     
-    ValueComparatorDesc bvc = new ValueComparatorDesc(tfTable);
-    TreeMap<Integer, Integer> sorted_scoremap = new TreeMap<Integer, Integer>(bvc);
-    sorted_scoremap.putAll(tfTable);
+    ValueComparatorDesc bvc = new ValueComparatorDesc(tfTableDouble);
+    TreeMap<Integer, Double> sorted_scoremap = new TreeMap<Integer, Double>(bvc);
+    sorted_scoremap.putAll(tfTableDouble);
     int count = 0;
     
     PrintWriter p = new PrintWriter(outDir+"dict-top"+n+".txt", "UTF-8");
@@ -147,21 +151,26 @@ public class PreparePosNegData {
     PreparePosNegData prepare = new PreparePosNegData();
     
     String terrierPath = "/home/parth/workspace/terrier-3.5/";
-    String lang = "hi";
+    String lang = "es";
     boolean sw_removal = true;
-    boolean stem = false;
+    boolean stem = true;
 
     if(lang.equals("en"))
       prepare.language = Language.EN;
     else if(lang.equals("hi"))
       prepare.language = Language.HI;
+    else if(lang.equals("es"))
+      prepare.language = Language.ES;
+
 
 //    String dataDir = "/home/parth/workspace/data/lrec-toi-and-nt/data/toi/2012/";
-    String dataDir = "/home/parth/workspace/data/fire/hi.docs.2011/docs/hi_NavbharatTimes/";
+//    String dataDir = "/home/parth/workspace/data/fire/hi.docs.2011/docs/hi_NavbharatTimes/";
+    String dataDir = "/home/parth/workspace/data/clef-data-jdnn/data-fire-format/spanishTitles/";
     String tempSentDir = "data/fire/"+lang+"/sent/";
     String outDir = "data/fire/"+lang+"/"; // for final files to be written
 
-    prepare.docType = NEWSDocType.NAVBHARAT;
+//    prepare.docType = NEWSDocType.NAVBHARAT;
+    prepare.docType = NEWSDocType.CLEF_FIRE;
 
 
     if(!new File(tempSentDir).exists())

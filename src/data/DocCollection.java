@@ -27,7 +27,12 @@ public class DocCollection extends Channel {
     this.titles = new ArrayList<String>();
     this.tokenFreq = new HashMap<String, Integer>();
     List<String> files = FileIO.getFilesRecursively(new File(this.dataPath), ext);
+    System.err.printf("Total files  = %d\n", files.size());
+    int count=0;
     for(String f: files) {
+      count++;
+//      if(count%1000==0)
+        System.out.printf("Count = %d\n", count);
     	String text = "";
     
 //			if(f.toLowerCase().contains("navbharattimes"))
