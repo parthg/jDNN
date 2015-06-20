@@ -260,6 +260,8 @@ public abstract class DMatrix implements Closeable {
   }
 
   public void truncateRows(int _rows, int _columns) {
+    if(this.rows == _rows)
+      return;
     assert (this.columns == _columns && this.rows > _rows);
     double[] newData = new double[_rows*_columns];
     System.arraycopy(this.data, 0, newData, 0, newData.length);
