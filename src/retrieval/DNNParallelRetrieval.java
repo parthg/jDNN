@@ -259,6 +259,11 @@ public class DNNParallelRetrieval {
   public double mrr() throws IOException {
     DMatrix enNorm = this.enProj.vectorNorm();
     DMatrix hiNorm = this.hiProj.vectorNorm();
+
+    enNorm.printDim("enNorm");
+    hiNorm.printDim("esNorm");
+    
+//    enNorm.print("enNormMatrixData");
 //    DMatrix hiNorm = (CLTrainModel.loadMatrix(128, "data/fire/joint/DNN-subparallel-projected-hi-test-part.dat")).vectorNorm();
 
     DMatrix sim = enNorm.mmul(false, true, hiNorm);
@@ -275,15 +280,15 @@ public class DNNParallelRetrieval {
     ret.canCorTranslate();
     System.out.printf("MRR = %.6f\n", ret.mrr());*/
    
-//    /***************
-    //The woring configurations:
+    /***************
+    //The working configurations:
     Dictionary qDict = ret.loadDict("data/fire/en/dict-100.txt");
     Dictionary dDict = ret.loadDict("data/fire/hi/dict-400.txt");
     System.out.printf("Dictionary Loaded.\n");
 
     String qModelFile = "obj/tanh-cl-w-0.1-b-100-h-300-128/model_iter37.txt";
     String dModelFile = "obj/tanh-hi-dict-400-b-100-h-128-new/model_iter20.txt";
-//    ***************/
+    ***************/
 
   
     /*********************
@@ -295,16 +300,27 @@ public class DNNParallelRetrieval {
     String qModelFile = "obj/tanh-cl-dict-40k-w-0.1-b-50-h-128/model_iter23.txt";
     String dModelFile = "obj/tanh-b-100-h-128/model_iter14.txt";
     **********************/
+
+    Dictionary qDict = ret.loadDict("data/clef/en/dict-top10000.txt");
+    Dictionary dDict = ret.loadDict("data/clef/es/dict-top10000.txt");
+    System.out.printf("Dictionary Loaded.\n");
+
+//    String qModelFile = "obj/tanh-clef-en-es-cl-w-0.5-10k-b-200-h-128/model_iter50.txt";
+//    String qModelFile = "obj/tanh-clef-en-es-cl-w-0.1-10k-b-100-h-128-bias-2.0/model_iter33.txt";
+    String qModelFile = "obj/tanh-clef-en-es-cl-w-0.1-10k-b-100-h-1000-128-bias-1.0-deep/model_iter10.txt";
+    String dModelFile = "obj/tanh-es-dict-top-10k-b-200-h-128/model_iter29.txt";
+
     ret.loadModel(qModelFile, qDict, dModelFile, dDict);
     System.out.printf("Model Loaded.\n");
 
-    ret.loadIdf("data/fire/joint/joint-idf.txt");
+    ret.loadIdf("data/clef/joint/joint-idf.txt");
     ret.updateDictIdf();
     
     ret.projectVocabulary();
     System.out.printf("Vocabulary Projected.\n");
     
-    ret.loadData("data/fire/joint/DNN-subparallel-en-test.dat", "data/fire/joint/DNN-subparallel-hi-test.dat");
+//    ret.loadData("data/clef/joint/DNN-subparallel-en-test.dat", "data/clef/joint/DNN-subparallel-hi-test.dat");
+    ret.loadData("data/clef/joint/en-test-25k.dat", "data/clef/joint/hi-test-25k.dat");
 //    ret.loadData("data/fire/joint-full/DNN-subparallel-en-test-21k.dat", "data/fire/joint-full/DNN-subparallel-hi-test-21k.dat");
     System.out.printf("Data Projected.\n");
     

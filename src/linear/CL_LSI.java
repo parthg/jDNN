@@ -78,7 +78,7 @@ public class CL_LSI {
     }
   }
 
-  /** It will us the joint dictionary to create a parallel corpus of type Corpus with certain parameters*/
+  /** It will use the joint dictionary to create a parallel corpus of type Corpus with certain parameters*/
   public void prepareParallelCorpus(Corpus corp1, Corpus corp2, int minLength, int maxSize) throws IOException {
     this.parallelCorp = new Corpus();
     assert (corp1.getSize() == corp2.getSize()):System.out.printf("Both Corpora should have same length. Currently lengths, Corp1 = %d and Corp2 = %d", corp1.getSize(), corp2.getSize());
@@ -137,7 +137,7 @@ public class CL_LSI {
   }
 
   public void createSparseDMatrix(File f) throws IOException {
-//    PrintWriter p = new PrintWriter("data/fire/joint/autoencoder.dat");
+//    PrintWriter p = new PrintWriter(f);
     SparseMatrix mat = new SparseMatrix(this.parallelCorp.getSize(), this.dict.getSize());
     System.out.printf("Matrix D dim = %d x %d\n", mat.rows(), mat.columns());
 
@@ -192,14 +192,19 @@ public class CL_LSI {
     CL_LSI model = new CL_LSI();
 
     Language lang1 = Language.EN;
-    Language lang2 = Language.HI;
+    Language lang2 = Language.ES;
 
-    String dict1File = "data/fire/en/dict-parallel.txt"; // en
+/*    String dict1File = "data/fire/en/dict-parallel.txt"; // en
     String dict2File = "data/fire/hi/dict-titles-full.txt"; // hi
 
     String enFile = "data/fire/en/train.low.eng.sub";
-    String hiFile = "data/fire/hi/train.low.hin.sub";
+    String hiFile = "data/fire/hi/train.low.hin.sub";*/
 
+    String dict1File = "data/clef/en/dict-top10000.txt"; // eno
+    String dict2File = "data/clef/es/dict-prefix-top10000.txt"; // hi
+
+    String enFile = "data/clef/en/en-parallel-corpus.txt";
+    String hiFile = "data/clef/es/es-parallel-corpus.txt";
 
     model.loadDictionary(dict1File, dict2File);
 
@@ -216,7 +221,7 @@ public class CL_LSI {
     chHi.setup(TokenType.WORD, lang2, path_to_terrier, pipeline);
     Corpus hiCorp = model.loadCorpus(hiFile, chHi);
 
-    model.prepareParallelCorpus(enCorp, hiCorp, 3, 100000);
+    model.prepareParallelCorpus(enCorp, hiCorp, 3, 250000);
     chEn = new SentFile(enFile);
     chHi = new SentFile(hiFile);
     System.gc(); System.gc();
@@ -224,9 +229,12 @@ public class CL_LSI {
 
     // TODO: Prepare stats like TF and DF
     model.calculateStats();
-    model.createSparseDMatrix(new File("data/fire/joint-full/CL-LSI-D.dat"));
+/*    model.createSparseDMatrix(new File("data/fire/joint-full/CL-LSI-D.dat"));
     model.dict.save("data/fire/joint-full/CL-LSI-dict.txt");
-    model.printIDF("data/fire/joint-full/CL-LSI-idf.txt");
+    model.printIDF("data/fire/joint-full/CL-LSI-idf.txt");*/
+    model.createSparseDMatrix(new File("data/clef/joint/CL-LSI-D.dat"));
+    model.dict.save("data/clef/joint/CL-LSI-dict.txt");
+    model.printIDF("data/clef/joint/CL-LSI-idf.txt");
 //    model.createCorrelationMatrix();
 //    model.learnProjectionMatrix(128);
   }

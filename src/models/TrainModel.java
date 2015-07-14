@@ -48,16 +48,18 @@ public class TrainModel {
     }
     Model enModel = new AddModel();
    
-    Language lang = Language.ES;
+    Language lang = Language.HI;
+    String corpus = "fire-new";
     String prefix = args[0];
     boolean test = true; // will skip or not the test module
     boolean randomize = true; // should always be true if you don't have a reason
     boolean trainContinue=false;	// it is to continue training the model but the mini-batches will change
     int lastIter = 0;	// if Train continue, then specify from what iteration you want to continue
-    boolean fillDict = true;	// if true, it prepares the dictionary from the data
+    boolean fillDict = false;	// if true, it prepares the dictionary from the data
+    
     String modelFile = "obj/tanh-hi-dict-400-b-100-h-128-new/model_iter33.txt";
 //    String dictFile = "obj/"+prefix+"/dict.txt";
-    String useDict = "data/fire/"+lang.getCode()+"/dict-top10000.txt";
+    String useDict = "data/"+corpus+"/"+lang.getCode()+"/dict-top10000.txt";
 
     String modelDir = "obj/"+prefix+"/";
     if(!new File(modelDir).exists())
@@ -71,13 +73,13 @@ public class TrainModel {
     String test_posFile = "data/hi-fire-mono/pos-data-test.txt";
     String test_negFile = "data/hi-fire-mono/neg-data-test.txt";*/
 
-    String file = "data/fire/"+lang.getCode()+"/data.txt";
-    String posFile = "data/fire/"+lang.getCode()+"/data-pos.txt";
-    String negFile = "data/fire/"+lang.getCode()+"/data-neg.txt";
+    String file = "data/"+corpus+"/"+lang.getCode()+"/data.txt";
+    String posFile = "data/"+corpus+"/"+lang.getCode()+"/data-pos.txt";
+    String negFile = "data/"+corpus+"/"+lang.getCode()+"/data-neg.txt";
 
-    String test_file = "data/fire/"+lang.getCode()+"/data-test.txt";
-    String test_posFile = "data/fire/"+lang.getCode()+"/data-pos-test.txt";
-    String test_negFile = "data/fire/"+lang.getCode()+"/data-neg-test.txt";
+    String test_file = "data/"+corpus+"/"+lang.getCode()+"/data-test.txt";
+    String test_posFile = "data/"+corpus+"/"+lang.getCode()+"/data-pos-test.txt";
+    String test_negFile = "data/"+corpus+"/"+lang.getCode()+"/data-neg-test.txt";
 
 /*    String file = "sample/hindi.short";
     String posFile = "sample/hindi-pos.short";
@@ -85,8 +87,8 @@ public class TrainModel {
 		
     String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
 		List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
-		pipeline.add(PreProcessTerm.SW_REMOVAL);
-		pipeline.add(PreProcessTerm.STEM);
+/*		pipeline.add(PreProcessTerm.SW_REMOVAL);
+		pipeline.add(PreProcessTerm.STEM);*/
 		
     
     // ********** DICTIONARY ************* //
@@ -165,7 +167,7 @@ public class TrainModel {
 /*      Layer l2 = new TanhLayer(128);
       enModel.addHiddenLayer(l2);*/
   
-      enModel.init(1.0, 0.0);
+      enModel.init(0.5, -1.0);
       enModel.printArchitecture();
     }
     int[] randArray = new int[enCorp.getSize()];
@@ -214,7 +216,7 @@ public class TrainModel {
 
     try(Batch testBatch = new Batch(test_instances, 1, enModel.dict())) {
       
-      int batchsize = 200;
+      int batchsize = 100;
       int iterations = 100;
 
       for(int iter = lastIter+1; iter<=iterations; iter++) {
@@ -254,7 +256,7 @@ public class TrainModel {
             trainer.setModel(enModel);
             // MAXIMISER
             Optimizer optimizer = new ConjugateGradient(trainer);
-            optimizer.optimize(1);
+            optimizer.optimize(3);
             double[] learntParams = new double[enModel.getThetaSize()];
             trainer.getParameters(learntParams);
             enModel.setParameters(learntParams);

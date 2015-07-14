@@ -184,13 +184,19 @@ public class OPCA {
     OPCA model = new OPCA();
 
     Language lang1 = Language.EN;
-    Language lang2 = Language.HI;
+    Language lang2 = Language.ES;
 
-    String dict1File = "data/fire/en/dict-100.txt"; // en
+/*    String dict1File = "data/fire/en/dict-100.txt"; // en
     String dict2File = "data/fire/hi/dict-400.txt"; // hi
 
     String enFile = "data/fire/en/train.low.eng.sub";
-    String hiFile = "data/fire/hi/train.low.hin.sub";
+    String hiFile = "data/fire/hi/train.low.hin.sub";*/
+
+    String dict1File = "data/clef/en/dict-top10000.txt"; // en
+    String dict2File = "data/clef/es/dict-top10000.txt"; // hi
+
+    String enFile = "data/clef/en/en-parallel-corpus.txt";
+    String hiFile = "data/clef/es/es-parallel-corpus.txt";
 
     model.loadDictionary(dict1File, dict2File);
 
@@ -208,7 +214,7 @@ public class OPCA {
     chHi.setup(TokenType.WORD, lang2, path_to_terrier, pipeline);
     corp[1] = model.loadCorpus(hiFile, chHi);
 
-    model.prepareParallelCorpus(corp, 3, 100000);
+    model.prepareParallelCorpus(corp, 3, 250000);
     chEn = new SentFile(enFile);
     chHi = new SentFile(hiFile);
     System.gc(); System.gc();
@@ -217,10 +223,10 @@ public class OPCA {
     // TODO: Prepare stats like TF and DF
     model.calculateStats();
     File[] file = new File[2];
-    file[0] = new File("data/fire/joint/OPCA_D_en.dat");
-    file[1] = new File("data/fire/joint/OPCA_D_hi.dat");
+    file[0] = new File("data/clef/joint/OPCA_D_en.dat");
+    file[1] = new File("data/clef/joint/OPCA_D_hi.dat");
     model.createSparseDMatrix(file);
-    model.dict.save("data/fire/joint/OPCA_dict.txt");
+    model.dict.save("data/clef/joint/OPCA_dict.txt");
 
 //    model.createCorrelationMatrix();
 //    model.learnProjectionMatrix(128);

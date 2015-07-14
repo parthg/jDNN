@@ -88,19 +88,21 @@ public class CLTrainModel {
       System.out.printf("Usage: sh run.sh models.CLTrainModel <prefix>\n");
       System.exit(0);
     }
-    Model enModel = new AddModel();
-   
-    Language lang = Language.EN;
+    Model lang1Model = new AddModel();
+  
+    String corpus = "fire-new";
+    Language lang1 = Language.EN;
+    Language lang2 = Language.HI;
     String prefix = args[0];
     boolean test = true;
     boolean randomize = true;
-    boolean trainContinue=true;
-    int lastIter = 10;
-    boolean fillDict = true;
+    boolean trainContinue=false;
+    int lastIter = 0;
+    boolean fillDict = false;
 //    String modelFile = "obj/tanh-cl-w-0.1-b-100-h-128/model_iter78.txt";
-    String modelFile = "obj/tanh-cl-w-0.1-40k-b-100-h-128/model_iter10.txt";
+    String modelFile = "obj/tanh-clef-en-es-cl-w-0.1-10k-b-100-h-128-bias-2.0/model_iter11.txt";
 //    String dictFile = "obj/"+prefix+"/dict.txt";
-    String useDict = "data/fire/en/dict-parallel.txt";
+    String useDict = "data/"+corpus+"/"+lang1.getCode()+"/dict-top10000.txt";
     double initialCGStepSize = 0.01, finalCGStepSize = 0.01;
 
 
@@ -108,47 +110,47 @@ public class CLTrainModel {
     if(!new File(modelDir).exists())
       new File(modelDir).mkdirs();
 
-    String enFile = "data/fire/joint-full/DNN-subparallel-en.dat";
-    String hiFile = "data/fire/joint-full/DNN-subparallel-projected-hi.dat";
+    String lang1File = "data/"+corpus+"/joint/DNN-subparallel-"+lang1.getCode()+".dat";
+    String lang2File = "data/"+corpus+"/joint/DNN-subparallel-projected-"+lang2.getCode()+".dat";
 
-    String enTestFile = "data/fire/joint-full/DNN-subparallel-en-test-part.dat";
-    String hiTestFile = "data/fire/joint-full/DNN-subparallel-projected-hi-test-part.dat";
+    String lang1TestFile = "data/"+corpus+"/joint/DNN-subparallel-"+lang1.getCode()+"-test-part.dat";
+    String lang2TestFile = "data/"+corpus+"/joint/DNN-subparallel-projected-"+lang2.getCode()+"-test-part.dat";
 
-    Corpus enCorp = loadCorpus(enFile);
-    DMatrix hiPos = loadMatrix(128, hiFile);
+    Corpus lang1Corp = loadCorpus(lang1File);
+    DMatrix lang2Pos = loadMatrix(128, lang2File);
 
-    Corpus enCorpTest = loadCorpus(enTestFile);
-    DMatrix hiTestPos = loadMatrix(128, hiTestFile);
+    Corpus lang1CorpTest = loadCorpus(lang1TestFile);
+    DMatrix lang2TestPos = loadMatrix(128, lang2TestFile);
     
-    System.out.printf("Total Train Sentences = %d \n", enCorp.getSize());
+    System.out.printf("Total Train Sentences = %d \n", lang1Corp.getSize());
 
-    System.out.printf("Total Test Sentences = %d \n", enCorpTest.getSize()); 
+    System.out.printf("Total Test Sentences = %d \n", lang1CorpTest.getSize()); 
 
     // ********** DICTIONARY ************* //
-    Dictionary enDict = new Dictionary();
+    Dictionary lang1Dict = new Dictionary();
     if(trainContinue || useDict.length()>0) {
-      enDict.load(useDict);
+      lang1Dict.load(useDict);
       fillDict = false;
     }
     
     if(trainContinue) {
-      enModel.load(modelFile, enDict);
+      lang1Model.load(modelFile, lang1Dict);
       System.out.printf("Model loaded to continue training from iteration = %d\n", (lastIter+1));
     }
     else {
-      enModel.setDict(enDict);
-      enDict.save(modelDir+"dict.txt");
-//      Layer l = new TanhLayer(300);
-//      enModel.addHiddenLayer(l);
+      lang1Model.setDict(lang1Dict);
+      lang1Dict.save(modelDir+"dict.txt");
+      Layer l = new TanhLayer(128);
+      lang1Model.addHiddenLayer(l);
 
-      Layer l2 = new TanhLayer(128);
-      enModel.addHiddenLayer(l2);
+/*      Layer l2 = new TanhLayer(128);
+      lang1Model.addHiddenLayer(l2);*/
   
-      enModel.init(0.1, 0.0);
-      enModel.printArchitecture();
+      lang1Model.init(0.1, -1.5);
+      lang1Model.printArchitecture();
     }
-    int[] randArray = new int[enCorp.getSize()];
-    for(int i=0; i<enCorp.getSize(); i++)
+    int[] randArray = new int[lang1Corp.getSize()];
+    for(int i=0; i<lang1Corp.getSize(); i++)
       randArray[i] = i;
     
 /*    if(randomize)
@@ -176,12 +178,11 @@ public class CLTrainModel {
       negIndex.add(negArray[i]);*/
 
 
-
     List<Datum> test_instances = new ArrayList<Datum>();
     List<Integer> posIndexTest = new ArrayList<Integer>();
     int count = 0;
-    for(int i=0; i<enCorpTest.getSize(); i++) {
-      Sentence s = enCorpTest.get(i);
+    for(int i=0; i<lang1CorpTest.getSize(); i++) {
+      Sentence s = lang1CorpTest.get(i);
       if(s.getSize()>0) {
         Datum d = new Datum(count, s);
         test_instances.add(d);
@@ -198,19 +199,19 @@ public class CLTrainModel {
     for(int i=0; i< negArrayTest.length; i++)
       negIndexTest.add(negArrayTest[i]);
 
-    DMatrix posMatTest = DMath.createMatrix(posIndexTest.size(), hiTestPos.columns());
-    DMatrix negMatTest = DMath.createMatrix(negIndexTest.size(), hiTestPos.columns());
+    DMatrix posMatTest = DMath.createMatrix(posIndexTest.size(), lang2TestPos.columns());
+    DMatrix negMatTest = DMath.createMatrix(negIndexTest.size(), lang2TestPos.columns());
     for(int i=0; i< posIndexTest.size(); i++) {
-      posMatTest.fillRow(i, hiTestPos.getRow(posIndexTest.get(i)));
-      negMatTest.fillRow(i, hiTestPos.getRow(negIndexTest.get(i)));
+      posMatTest.fillRow(i, lang2TestPos.getRow(posIndexTest.get(i)));
+      negMatTest.fillRow(i, lang2TestPos.getRow(negIndexTest.get(i)));
     }
 
 //    System.out.printf("Finally, train instances = %d and test instances = %d\n", instances.size(), test_instances.size());
 
-    try(Batch testBatch = new Batch(test_instances, 1, enModel.dict(), posMatTest, negMatTest)) {
+    try(Batch testBatch = new Batch(test_instances, 1, lang1Model.dict(), posMatTest, negMatTest)) {
       
-      int batchsize = 100;
-      int iterations = 400;
+      int batchsize =100;
+      int iterations = 100;
 
       for(int iter = lastIter+1; iter<=iterations; iter++) {
         int batchNum = 1;
@@ -221,8 +222,8 @@ public class CLTrainModel {
         List<Datum> instances = new ArrayList<Datum>();
         List<Integer> posIndex = new ArrayList<Integer>();
         count = 0;
-        for(int i=0; i<enCorp.getSize(); i++) {
-          Sentence s = enCorp.get(randArray[i]);
+        for(int i=0; i<lang1Corp.getSize(); i++) {
+          Sentence s = lang1Corp.get(randArray[i]);
           if(s.getSize()>0) {
             Datum d = new Datum(count, s);
             instances.add(d);
@@ -249,18 +250,18 @@ public class CLTrainModel {
             innerbatchsize=left;
           
           List<Datum> batch = new ArrayList<Datum>();
-          DMatrix batchPos = DMath.createMatrix(innerbatchsize, hiPos.columns());
-          DMatrix batchNeg = DMath.createMatrix(innerbatchsize, hiPos.columns());
+          DMatrix batchPos = DMath.createMatrix(innerbatchsize, lang2Pos.columns());
+          DMatrix batchNeg = DMath.createMatrix(innerbatchsize, lang2Pos.columns());
 
           for(int j=0; j<innerbatchsize; j++) {
             batch.add(instances.get(i+j));
-            batchPos.fillRow(j, hiPos.getRow(posIndex.get(i+j)));
-            batchNeg.fillRow(j, hiPos.getRow(negIndex.get(i+j)));
+            batchPos.fillRow(j, lang2Pos.getRow(posIndex.get(i+j)));
+            batchNeg.fillRow(j, lang2Pos.getRow(negIndex.get(i+j)));
           } 
-          try(Batch matBatch = new Batch(batch, 1, enModel.dict(), batchPos, batchNeg);) {
+          try(Batch matBatch = new Batch(batch, 1, lang1Model.dict(), batchPos, batchNeg);) {
             matBatch.copyHtoD();
             GradientCalc trainer = new CLNoiseCosineGradientCalcDeep(matBatch);
-            trainer.setModel(enModel);
+            trainer.setModel(lang1Model);
             // MAXIMISER
             Optimizer optimizer = null;
             if(iter>5)
@@ -268,12 +269,14 @@ public class CLTrainModel {
             else
               optimizer = new ConjugateGradient(trainer, initialCGStepSize);
             optimizer.optimize(3);
-            double[] learntParams = new double[enModel.getThetaSize()];
+            double[] learntParams = new double[lang1Model.getThetaSize()];
             trainer.getParameters(learntParams);
-            enModel.setParameters(learntParams);
+            lang1Model.setParameters(learntParams);
             batchNum++;
-/*            GradientCheck gCheck = new GradientCheck(new CLNoiseCosineGradientCalcDeep(matBatch));
-            gCheck.optimise(enModel);*/
+
+//            GradientCheck gCheck = new GradientCheck(new CLNoiseCosineGradientCalcDeep(matBatch));
+//            gCheck.optimise(lang1Model);
+
             matBatch.close();
             if(batchNum%100==0) {
               trainer.testStats(testBatch);
@@ -284,18 +287,18 @@ public class CLTrainModel {
 
             SimpleCuBlas.reset();
           } finally {
-            enModel.clearDevice();
+            lang1Model.clearDevice();
           }
            
         }
         if(test) {
           GradientCalc trainer = new CLNoiseCosineGradientCalcDeep(null);
-          trainer.setModel(enModel);
+          trainer.setModel(lang1Model);
           trainer.testStats(testBatch);
           System.out.printf("After Iteration %d Cost = %.6f and MRR = %.6f\n\n", (iter), trainer.testLoss(), trainer.testMRR());
         }
-        enModel.clearDevice();
-        enModel.save(modelDir+"model_iter"+iter+".txt");
+        lang1Model.clearDevice();
+        lang1Model.save(modelDir+"model_iter"+iter+".txt");
         SimpleCuBlas.reset();
       } // for iterations closed
 

@@ -80,7 +80,8 @@ public class LinearParallelRetrieval {
       }
       for(int k : docTf.keySet()) {
         double v = (Math.log(1.0+(double)docTf.get(k))/Math.log(2.0))*idf[k];
-        this.enData.put(count, k, v);
+        this.enData.put(count, k, v); // TF-IDF
+//        this.enData.put(count, k, docTf.get(k)); // TF
       }
       count++;
     }
@@ -113,7 +114,8 @@ public class LinearParallelRetrieval {
       }
       for(int k : docTf.keySet()) {
         double v = (Math.log(1.0+(double)docTf.get(k))/Math.log(2.0))*idf[k];
-        this.hiData.put(count, k, v);
+        this.hiData.put(count, k, v); // TF-IDF
+//        this.hiData.put(count, k, docTf.get(k)); // TF
       }
       count++;
     }
@@ -142,19 +144,26 @@ public class LinearParallelRetrieval {
 
   public static void main(String[] args) throws IOException {
     LinearParallelRetrieval ret = new LinearParallelRetrieval();
-    ret.modelType = "AE";
-    ret.loadDict("data/fire/joint/CL-LSI-dict.txt");
-    ret.loadIDF("data/fire/joint/CL-LSI-idf.txt");
-    if(ret.modelType.equals("CL-LSI") || ret.modelType.equals("OPCA")) {
-      ret.loadModel(new File("data/fire/joint/ProjMat-OPCA-0.05.mat"));
+    ret.modelType ="S2Net";
+    ret.loadDict("data/clef/joint/CL-LSI-dict.txt");
+    ret.loadIDF("data/clef/joint/CL-LSI-idf.txt");
+/*    if(ret.modelType.equals("CL-LSI") || ret.modelType.equals("OPCA")) {
+      ret.loadModel(new File("data/fire/joint/ProjMat-CL-LSI.mat"));
+//      ret.loadModel(new File("data/fire/joint/ProjMat-OPCA-0.05.mat"));
       ret.loadData("data/fire/joint/joint-test-en.dat", "data/fire/joint/joint-test-hi.dat");
+    }*/
+    if(ret.modelType.equals("CL-LSI") || ret.modelType.equals("OPCA")) {
+      ret.loadModel(new File("data/clef/joint/ProjMat-OPCA-0.05.mat"));
+      ret.loadData("data/clef/joint/CL-LSI-subparallel-en-test-25k.dat", "data/clef/joint/CL-LSI-subparallel-hi-test-25k.dat");
     }
     else if(ret.modelType.equals("AE")) {
       ret.loadAEProjData(128, "data/fire/joint/ae/projected-en.dat", "data/fire/joint/ae/projected-hi.dat");
     }
     else if(ret.modelType.equals("S2Net")) {
-      ret.loadS2Net("obj/s2net-cl-h-128-new/model_iter6.txt");
-      ret.loadData("data/fire/joint/joint-test-en.dat", "data/fire/joint/joint-test-hi.dat");
+/*      ret.loadS2Net("obj/s2net-cl-h-128-new/model_iter6.txt");
+      ret.loadData("data/fire/joint/joint-test-en.dat", "data/fire/joint/joint-test-hi.dat");*/
+      ret.loadS2Net("obj/clef-s2net-en-es-10k-w-0.1-b-100-h-128-bias-2.0/model_iter4.txt");     // clef-s2net-en-es-10k-w-0.5-b-200-h-128/model_iter23.txt");
+      ret.loadData("data/clef/joint/CL-LSI-subparallel-en-test-25k.dat", "data/clef/joint/CL-LSI-subparallel-hi-test-25k.dat");
     }
     else {
       System.out.printf("Not a proper Model Type %s\nExiting.", ret.modelType);
