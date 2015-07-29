@@ -5,6 +5,8 @@ public class TokeniserFactory {
 		switch(type) {
 		case WORD:
 			return new WordTokeniser();
+    case WORD_HASH:
+      return new WordHashTokeniser();
 		default:
 			return null;
 		}
