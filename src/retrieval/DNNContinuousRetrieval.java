@@ -59,6 +59,7 @@ public class DNNContinuousRetrieval {
   NEWSDocType docType;
   boolean useTitle = true, useContent = false;
   Map<String, Double> idf;
+  List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
   
   // load Qrel
   public void loadQrel(String file) throws IOException {
@@ -171,19 +172,18 @@ public class DNNContinuousRetrieval {
   
   public void calculateSimilarity(String dir) throws IOException {
     String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
-		List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
-		pipeline.add(PreProcessTerm.SW_REMOVAL);
-		pipeline.add(PreProcessTerm.STEM);
 
 		Channel ch = new SentFile("");
-		ch.setup(TokenType.WORD, this.dLang, path_to_terrier, pipeline);
+		this.pipeline.remove(PreProcessTerm.SW_REMOVAL);
+		this.pipeline.remove(PreProcessTerm.STEM);
+		ch.setup(TokenType.WORD, this.dLang, path_to_terrier, this.pipeline);
 
     this.parser = FIREParserFactory.getParser(this.docType);
     
     Splitter splitter = SplitterFactory.getSplitter(this.dLang);
     List<String> files = FileIO.getFilesRecursively(new File(dir), ".txt");
 
-    int batchSize = 30000;
+    int batchSize = 20000;
     this.ids = new String[files.size()];
     
     this.sim = DMath.createMatrix(files.size(), this.topics.size());
@@ -196,10 +196,12 @@ public class DNNContinuousRetrieval {
       int[] sentLength = new int[batchSize];
       int countLines = 0;
       for(int j=0; j< batchSize; j++) {
-        if(j%500==0)
+        if(j%1000==0)
           System.out.printf("Processed files = %d\n", j);
         FIREDoc doc = parser.parse(files.get(f+j));
         String title = doc.getTitle();
+//        if(this.useContent)
+          title += " " + doc.getContent();
         String[] sents = doc.getSentences(splitter);
         this.ids[f+j] = StringUtils.removeExt(StringUtils.fileName(files.get(f+j)));
         int docLength = 0;
@@ -272,19 +274,20 @@ public class DNNContinuousRetrieval {
     this.topicsMat = DMath.createMatrix(this.topics.size(), this.qModel.outSize());
     
     String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
-		List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
-		pipeline.add(PreProcessTerm.SW_REMOVAL);
-		pipeline.add(PreProcessTerm.STEM);
 		
 		Channel ch = new SentFile(file);
-		ch.setup(TokenType.WORD, this.qLang, path_to_terrier, pipeline);
+		ch.setup(TokenType.WORD, this.qLang, path_to_terrier, this.pipeline);
     
     int i=0;
     for(Topic t: this.topics) {
       DMatrix row = DMath.createMatrix(1, this.qModel.outSize());
       String text = t.get(Tag.TITLE);
+      text += " " + t.get(Tag.DESC);
+      System.out.printf("query %s = %s\n", t.getID(), text);
       text = ch.getTokeniser().parse(text);
+//      System.out.printf("query %s = %s\n", t.getID(), text);
       text = ch.getTokeniser().clean(text);
+      System.out.printf("query %s = %s\n\n", t.getID(), text);
       String[] tokens = text.split("_");
       for(String tok: tokens) {
         if(this.qModel.dict().contains(tok)) {
@@ -327,7 +330,7 @@ public class DNNContinuousRetrieval {
           scores[i]=0.0;
       }
       int[] rl = RankList.rankList(scores, N);
-      int qid = this.topics.get(c).getID();
+      String qid = this.topics.get(c).getID();
       for(int j=0; j<rl.length; j++) {
         p.println(qid+" Q0 "+this.ids[rl[j]]+" "+(j+1)+" "+ scores[rl[j]]);
       }
@@ -347,31 +350,52 @@ public class DNNContinuousRetrieval {
     ret.qLang = Language.EN;
     ret.dLang = Language.HI;
 
+		ret.pipeline = new ArrayList<PreProcessTerm>();
+		ret.pipeline.add(PreProcessTerm.SW_REMOVAL);
+		ret.pipeline.add(PreProcessTerm.STEM);
+    
+    String corpus = "fire-new"; // fire-new or clef
+
     ret.docType = NEWSDocType.NAVBHARAT;
+//    ret.docType = NEWSDocType.CLEF_FIRE;
 
     ret.useTitle = true;
-    ret.useContent = true;
+    ret.useContent = false;
 
-    String modelPrefix = "full-doc-idf";
+    String modelPrefix = "en-hi-title-10k-idf-new-content";
 //    Dictionary dict = ret.loadDict("obj/"+modelPrefix+"/dict.txt");
-    Dictionary dDict = ret.loadDict("data/fire/hi/dict-400.txt");
-    Dictionary qDict = ret.loadDict("data/fire/en/dict-100.txt");
+//    Dictionary dDict = ret.loadDict("data/"+corpus+"/"+ret.dLang.getCode()+"/dict-400.txt");
+//    Dictionary qDict = ret.loadDict("data/"+corpus+"/"+ret.qLang.getCode()+"/dict-100.txt");
+    Dictionary dDict = ret.loadDict("data/"+corpus+"/"+ret.dLang.getCode()+"/dict-top10000.txt");
+    Dictionary qDict = ret.loadDict("data/"+corpus+"/"+ret.qLang.getCode()+"/dict-top10000.txt");
     System.out.printf("Dictionary Loaded.\n");
 
-    int iter = 78;
+    int iter = 64;
+//    int iter = 65;
+//    String qModelFile = "obj/tanh-cl-w-0.1-b-100-h-128/model_iter78.txt";
+//    String dModelFile = "obj/tanh-hi-dict-400-b-100-h-128-new/model_iter20.txt";
 
-    String qModelFile = "obj/tanh-cl-w-0.1-b-100-h-128/model_iter78.txt";
-    String dModelFile = "obj/tanh-hi-dict-400-b-100-h-128-new/model_iter20.txt";
+    String qModelFile = "obj/tanh-fire-new-en-hi-cl-w-0.1-10k-b-100-h-128-bias-1.5/model_iter64.txt";
+    String dModelFile = "obj/tanh-fire-hi-w-0.5-10k-b-100-h-128-bias-1.0/model_iter5.txt";
+    
+//    String qModelFile = "obj/tanh-clef-es-en-cl-w-0.1-10k-b-100-h-128-bias-2.0/model_iter35.txt";
+//    String dModelFile = "obj/tanh-clef-en-w-0.5-10k-b-100-h-128-bias-1.0/model_iter8.txt";
+    
+//    String qModelFile = "obj/tanh-clef-es-en-cl-w-0.1-10k-b-100-h-128-bias-2.0/model_iter65.txt";
+//    String dModelFile = "obj/tanh-clef-en-w-0.5-10k-b-100-h-128-bias-1.0-new/model_iter6.txt";
+    
     ret.loadModel(qModelFile, qDict, dModelFile, dDict);
     System.out.printf("Model Loaded.\n");
 
-    ret.loadIdf("data/fire/joint/joint-idf.txt");
+    ret.loadIdf("data/"+corpus+"/joint/joint-idf.txt");
     ret.updateDictIdf();
     
     ret.projectVocabulary();
     System.out.printf("Vocabulary Projected.\n");
 
     ret.loadQueries("/home/parth/workspace/data/fire/topics/en.topics.126-175.2011.txt");
+//    ret.loadQueries("/home/parth/workspace/jDNN/data/clef/ad-hoc/Top-es04-new.txt");
+//    ret.loadQueries("/home/parth/workspace/jDNN/data/clef/ad-hoc/ESTopicsC301-C350.xml");
     System.out.printf("Topics Loaded.\n");
 /*    DMatrix term1 = DMath.createMatrix(1, dict.getSize());
     term1.put(2759, 1.0);
@@ -396,6 +420,7 @@ public class DNNContinuousRetrieval {
 
 //    ret.similarity();
     ret.calculateSimilarity("/home/parth/workspace/data/fire/hi.docs.2011/docs/");
+//    ret.calculateSimilarity("/home/parth/workspace/data/clef-data-jdnn/en-fire-format/gh-latimes94/");
     System.out.printf("Similarity Estimated.\n");
 
     ret.printRankList("output/rl-cl-dnn-"+modelPrefix+"-iter-"+iter+".txt",1000);

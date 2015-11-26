@@ -12,6 +12,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import java.util.List;
 
+/** Class to compute NoiseCostGradients in parallel on CPU. Gradients for each datum in the batch will be accumulated in the 'grads' which is thread-safe.
+ */ 
 public class MonoNoiseCost {
   Model model;
   double cost;

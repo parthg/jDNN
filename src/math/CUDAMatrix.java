@@ -272,7 +272,7 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
 
   //result = this*other
   public DMatrix mmul(boolean tA, boolean tB, DMatrix B, DMatrix C) {
-    
+
     int m = tA?this.columns():this.rows();
     int n = tB?B.rows():B.columns();
     int k = tA?this.rows():this.columns();

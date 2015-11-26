@@ -43,7 +43,7 @@ public class SimpleCuBlas {
         m.elemSize(),
         ret);
 //    assert(err == cublasStatus.CUBLAS_STATUS_INVALID_VALUE):"There was a problem in cuBlasAlloc: Either matrix length <= 0 or element size (float/double) <= 0.\n";
-    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cuBlasAlloc.\n";
+//    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cuBlasAlloc.\n";
     JCublas.cublasSetVector(
         m.length(),
         m.elemSize(),
@@ -65,7 +65,7 @@ public class SimpleCuBlas {
         m.elemSize(),
         ret);
 //    assert(err == cublasStatus.CUBLAS_STATUS_INVALID_VALUE):"There was a problem in cuBlasAlloc: Either matrix length <= 0 or element size (float/double) <= 0.\n";
-    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cuBlasAlloc.\n";
+//    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cuBlasAlloc.\n";
     JCublas.cublasSetVector(
         length,
         m.elemSize(),
@@ -86,7 +86,7 @@ public class SimpleCuBlas {
         Sizeof.DOUBLE,
         ret);
 //    assert(err == cublasStatus.CUBLAS_STATUS_INVALID_VALUE):"There was a problem in cuBlasAlloc: Either matrix length <= 0 or element size (float/double) <= 0.\n";
-    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cuBlasAlloc.\n";
+//    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cuBlasAlloc.\n";
     JCublas.cublasSetVector(
         arr.length, // size of array
         Sizeof.DOUBLE, // size of int
@@ -134,7 +134,7 @@ public class SimpleCuBlas {
     JCublas.cublasInit();
     for(Pointer arr : pointers) {
       int err = JCublas.cublasFree(arr);
-      assert (err == cublasStatus.CUBLAS_STATUS_SUCCESS):"Not successfully freed device memory";
+//      assert (err == cublasStatus.CUBLAS_STATUS_SUCCESS):"Not successfully freed device memory";
       cudaCount--;
     }
   }

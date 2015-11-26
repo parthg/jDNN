@@ -194,7 +194,6 @@ public class CleanData {
 		return sbf.toString().trim().replaceAll("[\\u0966-\\u096f\\u0030-\\u0039]+", " N ").replaceAll(" +", " ").replaceAll(" ", "_");
 	}
 	public static void main(String[] args) {
-		System.out.println(parseHindi("ईरान में शिया सफवी वंश(१५०१-१७२२और भारत में दिल्ली सुल्तानों (१२०६-१५२७) और बाद में मुग़ल साम्राज्१५२६-   हुकूमत हो गयी।"));
-		System.out.println(parseSpanish("España"));
+		System.out.println(parseSpanish("España Récord indígenas"));
 	}
 }

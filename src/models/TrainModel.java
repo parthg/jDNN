@@ -49,7 +49,7 @@ public class TrainModel {
     Model enModel = new AddModel();
    
     Language lang = Language.HI;
-    String corpus = "fire-new";
+    String corpus = "fire-new"; // "clef" OR "fire-new";
     String prefix = args[0];
     boolean test = true; // will skip or not the test module
     boolean randomize = true; // should always be true if you don't have a reason
@@ -87,8 +87,8 @@ public class TrainModel {
 		
     String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
 		List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
-/*		pipeline.add(PreProcessTerm.SW_REMOVAL);
-		pipeline.add(PreProcessTerm.STEM);*/
+//		pipeline.add(PreProcessTerm.SW_REMOVAL);
+//		pipeline.add(PreProcessTerm.STEM);
 		
     
     // ********** DICTIONARY ************* //
@@ -161,13 +161,13 @@ public class TrainModel {
     else {
       enModel.setDict(enDict);
       enDict.save(modelDir+"dict.txt");
-      Layer l = new TanhLayer(128);
+      Layer l = new TanhLayer(300);
       enModel.addHiddenLayer(l);
 
 /*      Layer l2 = new TanhLayer(128);
       enModel.addHiddenLayer(l2);*/
   
-      enModel.init(0.5, -1.0);
+      enModel.init(0.5, -0.5);
       enModel.printArchitecture();
     }
     int[] randArray = new int[enCorp.getSize()];

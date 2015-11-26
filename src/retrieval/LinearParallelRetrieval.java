@@ -16,6 +16,7 @@ import models.S2Net;
 import common.Dictionary;
 import common.Metric;
 
+
 /** This class provies facility to generate results of parallel sentence retrieval Task.
  *
  */
@@ -144,32 +145,44 @@ public class LinearParallelRetrieval {
 
   public static void main(String[] args) throws IOException {
     LinearParallelRetrieval ret = new LinearParallelRetrieval();
-    ret.modelType ="S2Net";
-    ret.loadDict("data/clef/joint/CL-LSI-dict.txt");
-    ret.loadIDF("data/clef/joint/CL-LSI-idf.txt");
+    String corpus = "clef";
+    String jointDir = "joint-de";
+
+//    ret.modelType ="CL-LSI";
+//    ret.modelType ="OPCA";
+//    ret.modelType ="S2Net";
+    ret.modelType ="AE";
+    ret.loadDict("data/"+corpus+"/"+jointDir+"/CL-LSI-dict.txt");
+    ret.loadIDF("data/"+corpus+"/"+jointDir+"/CL-LSI-idf.txt");
 /*    if(ret.modelType.equals("CL-LSI") || ret.modelType.equals("OPCA")) {
       ret.loadModel(new File("data/fire/joint/ProjMat-CL-LSI.mat"));
 //      ret.loadModel(new File("data/fire/joint/ProjMat-OPCA-0.05.mat"));
       ret.loadData("data/fire/joint/joint-test-en.dat", "data/fire/joint/joint-test-hi.dat");
     }*/
     if(ret.modelType.equals("CL-LSI") || ret.modelType.equals("OPCA")) {
-      ret.loadModel(new File("data/clef/joint/ProjMat-OPCA-0.05.mat"));
-      ret.loadData("data/clef/joint/CL-LSI-subparallel-en-test-25k.dat", "data/clef/joint/CL-LSI-subparallel-hi-test-25k.dat");
+//      ret.loadModel(new File("data/"+corpus+"/joint/ProjMat-CL-LSI.mat"));
+      ret.loadModel(new File("data/"+corpus+"/"+jointDir+"/ProjMat-OPCA-0.05.mat"));
+//      ret.loadData("data/"+corpus+"/"+jointDir+"/CL-LSI-subparallel-en-test-25k.dat", "data/"+corpus+"/"+jointDir+"/CL-LSI-subparallel-es-test-25k.dat");
+      ret.loadData("data/"+corpus+"/"+jointDir+"/CL-LSI-subparallel-en-test-25k.dat", "data/"+corpus+"/"+jointDir+"/CL-LSI-subparallel-de-test-25k.dat");
     }
     else if(ret.modelType.equals("AE")) {
-      ret.loadAEProjData(128, "data/fire/joint/ae/projected-en.dat", "data/fire/joint/ae/projected-hi.dat");
+      ret.loadAEProjData(128, "data/"+corpus+"/"+jointDir+"/ae/projected-en.dat", "data/"+corpus+"/"+jointDir+"/ae/projected-de.dat");
     }
     else if(ret.modelType.equals("S2Net")) {
 /*      ret.loadS2Net("obj/s2net-cl-h-128-new/model_iter6.txt");
       ret.loadData("data/fire/joint/joint-test-en.dat", "data/fire/joint/joint-test-hi.dat");*/
-      ret.loadS2Net("obj/clef-s2net-en-es-10k-w-0.1-b-100-h-128-bias-2.0/model_iter4.txt");     // clef-s2net-en-es-10k-w-0.5-b-200-h-128/model_iter23.txt");
-      ret.loadData("data/clef/joint/CL-LSI-subparallel-en-test-25k.dat", "data/clef/joint/CL-LSI-subparallel-hi-test-25k.dat");
+//      ret.loadS2Net("obj/clef-s2net-en-es-10k-w-0.1-b-100-h-128-bias-2.0/model_iter4.txt");     // clef-s2net-en-es-10k-w-0.5-b-200-h-128/model_iter23.txt");
+      ret.loadS2Net("obj/clef-s2net-en-es-10k-w-0.5-b-200-h-128/model_iter23.txt");     // clef-s2net-en-es-10k-w-0.5-b-200-h-128/model_iter23.txt");
+      System.out.printf("Model Loaded.\n");
+      ret.loadData("data/"+corpus+"/"+jointDir+"/CL-LSI-subparallel-en-test-25k.dat", "data/"+corpus+"/"+jointDir+"/CL-LSI-subparallel-es-test-25k.dat");
     }
     else {
       System.out.printf("Not a proper Model Type %s\nExiting.", ret.modelType);
       System.exit(0);
     }
     System.out.println("Data projected.\n");
+//    ret.model.printOperator(new File("data/"+corpus+"/joint/S2Net-operator.dat"));
+//    System.out.println("Operator wrote.\n");
     System.out.printf("MRR = %.6f\n", ret.mrr());
   }
 }

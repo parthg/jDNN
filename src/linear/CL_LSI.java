@@ -35,6 +35,9 @@ public class CL_LSI {
   FloatMatrix projectionMatrix;
   int[] tf;
   int[] df;
+
+  Language lang1;
+  Language lang2;
   // load dictionaries for both
   // load data with corpus class for both
   // create a parallel corpus class where you iterate over sentence list for both of them and retain certain sentences
@@ -79,15 +82,15 @@ public class CL_LSI {
   }
 
   /** It will use the joint dictionary to create a parallel corpus of type Corpus with certain parameters*/
-  public void prepareParallelCorpus(Corpus corp1, Corpus corp2, int minLength, int maxSize) throws IOException {
+  public void prepareParallelCorpus(Corpus corp1, Corpus corp2, int minLength, int maxSize, String outDir) throws IOException {
     this.parallelCorp = new Corpus();
     assert (corp1.getSize() == corp2.getSize()):System.out.printf("Both Corpora should have same length. Currently lengths, Corp1 = %d and Corp2 = %d", corp1.getSize(), corp2.getSize());
     int count = 0;
-    PrintWriter pEn = new PrintWriter("data/fire/joint-full/CL-LSI-subparallel-en.dat", "UTF-8");
-    PrintWriter pEnTest = new PrintWriter("data/fire/joint-full/CL-LSI-subparallel-en-test.dat", "UTF-8");
+    PrintWriter pEn = new PrintWriter(outDir + "CL-LSI-subparallel-"+this.lang1.getCode()+".dat", "UTF-8");
+    PrintWriter pEnTest = new PrintWriter(outDir + "CL-LSI-subparallel-"+this.lang1.getCode()+"-test.dat", "UTF-8");
     
-    PrintWriter pHi = new PrintWriter("data/fire/joint-full/CL-LSI-subparallel-hi.dat", "UTF-8");
-    PrintWriter pHiTest = new PrintWriter("data/fire/joint-full/CL-LSI-subparallel-hi-test.dat", "UTF-8");
+    PrintWriter pHi = new PrintWriter(outDir + "CL-LSI-subparallel-"+this.lang2.getCode()+".dat", "UTF-8");
+    PrintWriter pHiTest = new PrintWriter(outDir + "CL-LSI-subparallel-"+this.lang2.getCode()+"-test.dat", "UTF-8");
 
     for(int i=0; i<corp1.getSize(); i++) {
       Sentence s1 = corp1.get(i);
@@ -136,8 +139,8 @@ public class CL_LSI {
     d = new FloatMatrix(1, 1);
   }
 
-  public void createSparseDMatrix(File f) throws IOException {
-//    PrintWriter p = new PrintWriter(f);
+  public void createSparseDMatrix(File f, File countFile) throws IOException {
+    PrintWriter p = new PrintWriter(countFile);
     SparseMatrix mat = new SparseMatrix(this.parallelCorp.getSize(), this.dict.getSize());
     System.out.printf("Matrix D dim = %d x %d\n", mat.rows(), mat.columns());
 
@@ -154,11 +157,11 @@ public class CL_LSI {
       for(int j : docTf.keySet()) {
         double v = (Math.log(1.0+(double)docTf.get(j))/Math.log(2.0))*(Math.log(N/this.df[j])/Math.log(2.0));
         mat.put(i, j, v);
-//        p.printf("%d\t%d\t%.1f\n", i, j, (double)docTf.get(j));
+        p.printf("%d\t%d\t%.1f\n", i, j, (double)docTf.get(j));
       }
     }
     mat.print(f);
-//    p.close();
+    p.close();
   }
 
   public void printIDF(String f) throws IOException {
@@ -191,8 +194,13 @@ public class CL_LSI {
   public static void main(String[] args) throws IOException {
     CL_LSI model = new CL_LSI();
 
-    Language lang1 = Language.EN;
-    Language lang2 = Language.ES;
+    model.lang1 = Language.ES;
+    model.lang2 = Language.EN;
+
+    String corpus = "clef";
+    String jointDir = "joint-es";
+
+    int parallelSize = 200000; // for es-en = 250000, and en-hi = 125000
 
 /*    String dict1File = "data/fire/en/dict-parallel.txt"; // en
     String dict2File = "data/fire/hi/dict-titles-full.txt"; // hi
@@ -200,11 +208,11 @@ public class CL_LSI {
     String enFile = "data/fire/en/train.low.eng.sub";
     String hiFile = "data/fire/hi/train.low.hin.sub";*/
 
-    String dict1File = "data/clef/en/dict-top10000.txt"; // eno
-    String dict2File = "data/clef/es/dict-prefix-top10000.txt"; // hi
+    String dict1File = "data/"+corpus+"/"+model.lang1.getCode()+"/dict-top10000.txt"; // eno
+    String dict2File = "data/"+corpus+"/"+model.lang2.getCode()+"/dict-top10000.txt"; // hi
 
-    String enFile = "data/clef/en/en-parallel-corpus.txt";
-    String hiFile = "data/clef/es/es-parallel-corpus.txt";
+    String enFile = "data/"+corpus+"/"+model.lang1.getCode()+"/"+model.lang1.getCode()+"-parallel-corpus.txt";
+    String hiFile = "data/"+corpus+"/"+model.lang2.getCode()+"/"+model.lang2.getCode()+"-parallel-corpus.txt";
 
     model.loadDictionary(dict1File, dict2File);
 
@@ -214,14 +222,14 @@ public class CL_LSI {
     pipeline.add(PreProcessTerm.STEM);
 
     Channel chEn = new SentFile(enFile);
-    chEn.setup(TokenType.WORD, lang1, path_to_terrier, pipeline);
+    chEn.setup(TokenType.WORD, model.lang1, path_to_terrier, pipeline);
     Corpus enCorp = model.loadCorpus(enFile, chEn);
 
     Channel chHi = new SentFile(hiFile);
-    chHi.setup(TokenType.WORD, lang2, path_to_terrier, pipeline);
+    chHi.setup(TokenType.WORD, model.lang2, path_to_terrier, pipeline);
     Corpus hiCorp = model.loadCorpus(hiFile, chHi);
 
-    model.prepareParallelCorpus(enCorp, hiCorp, 3, 250000);
+    model.prepareParallelCorpus(enCorp, hiCorp, 3, parallelSize, "data/"+corpus+"/"+jointDir+"/");
     chEn = new SentFile(enFile);
     chHi = new SentFile(hiFile);
     System.gc(); System.gc();
@@ -232,9 +240,9 @@ public class CL_LSI {
 /*    model.createSparseDMatrix(new File("data/fire/joint-full/CL-LSI-D.dat"));
     model.dict.save("data/fire/joint-full/CL-LSI-dict.txt");
     model.printIDF("data/fire/joint-full/CL-LSI-idf.txt");*/
-    model.createSparseDMatrix(new File("data/clef/joint/CL-LSI-D.dat"));
-    model.dict.save("data/clef/joint/CL-LSI-dict.txt");
-    model.printIDF("data/clef/joint/CL-LSI-idf.txt");
+    model.createSparseDMatrix(new File("data/"+corpus+"/"+jointDir+"/CL-LSI-D.dat"), new File("data/"+corpus+"/"+jointDir+"/CL-LSI-Count.dat"));
+    model.dict.save("data/"+corpus+"/"+jointDir+"/CL-LSI-dict.txt");
+    model.printIDF("data/"+corpus+"/"+jointDir+"/CL-LSI-idf.txt");
 //    model.createCorrelationMatrix();
 //    model.learnProjectionMatrix(128);
   }

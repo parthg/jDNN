@@ -1,5 +1,10 @@
 package math;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.io.IOException;
+
 import jcuda.jcublas.JCublas;
 import jcuda.Pointer;
 import java.io.Closeable;
@@ -139,6 +144,19 @@ public abstract class DMatrix implements Closeable {
       }
       System.out.printf("]\n");
     }
+  }
+
+  public void printToFile(File f) throws IOException {
+    FileOutputStream fos = new FileOutputStream(f);
+    PrintStream p = new PrintStream(fos);
+    for(int i= 0; i<this.rows; i++) {
+      for(int j = 0; j<this.columns; j++) {
+        p.printf("%f ", this.data[i*this.columns+j]);
+      }
+      p.printf("\n");
+    }
+    p.close();
+    fos.close();
   }
   
   /** Changes the matrix to the new dimensions. Careful: It overwrites the original matrix.

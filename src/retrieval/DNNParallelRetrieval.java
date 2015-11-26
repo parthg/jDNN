@@ -19,6 +19,8 @@ import models.CanonicalCorrelation;
 import common.Dictionary;
 import common.Metric;
 
+import es.upv.nlel.utils.Language;
+
 public class DNNParallelRetrieval {
   Model qModel, dModel;
   DMatrix qVocab, dVocab;
@@ -80,6 +82,20 @@ public class DNNParallelRetrieval {
     this.dVocab = this.dModel.projectVocabulary(5000);*/
     this.qVocab = this.qModel.projectVocabularyWithIdf(5000);
     this.dVocab = this.dModel.projectVocabularyWithIdf(5000);
+
+/*    DMatrix idfMaskQ = DMath.createMatrix(this.qVocab.rows(), this.qVocab.cols());
+    DMatrix idfMaskD = DMath.createMatrix(this.dVocab.rows(), this.dVocab.cols());
+
+    for(int i=0; i<idfMaskQ.rows(); i++) {
+      idfMaskQ.fillRow(this.qModel.dict.getIdf(i));
+    }*/
+
+  }
+
+  // print dict embeddings
+  public void printEmbeddings(String file1, String file2) throws IOException {
+    this.qVocab.printToFile(new File(file1));
+    this.dVocab.printToFile(new File(file2));
   }
   
   // Loads the data for both languages from a sparse matrix respresntation file, 
@@ -106,6 +122,7 @@ public class DNNParallelRetrieval {
       for(int k=0; k<cols.length; k++) {
         int t = Integer.parseInt(cols[k].trim());
         row.addi(this.qVocab.getRow(t));
+//        row.addi(this.qVocab.getRow(t).mul(this.qModel.dict().getIdf(t)));
       }
       this.enProj.fillRow(count, row);
       count++;
@@ -134,6 +151,7 @@ public class DNNParallelRetrieval {
       for(int k=0; k<cols.length; k++) {
         int t = Integer.parseInt(cols[k].trim());
         row.addi(this.dVocab.getRow(t));
+//        row.addi(this.dVocab.getRow(t).mul(this.dModel.dict().getIdf(t)));
       }
       this.hiProj.fillRow(count, row);
       count++;
@@ -301,27 +319,47 @@ public class DNNParallelRetrieval {
     String dModelFile = "obj/tanh-b-100-h-128/model_iter14.txt";
     **********************/
 
-    Dictionary qDict = ret.loadDict("data/clef/en/dict-top10000.txt");
-    Dictionary dDict = ret.loadDict("data/clef/es/dict-top10000.txt");
+    Language lang1 = Language.DE; // query lang
+    Language lang2 = Language.EN; // doc lang
+
+    String corpus = "clef";
+    String testSuffix = "-25k";
+    String jointDir = "joint-de";
+
+    Dictionary qDict = ret.loadDict("data/"+corpus+"/"+lang1.getCode()+"/dict-top10000.txt");
+    Dictionary dDict = ret.loadDict("data/"+corpus+"/"+lang2.getCode()+"/dict-top10000.txt");
     System.out.printf("Dictionary Loaded.\n");
 
 //    String qModelFile = "obj/tanh-clef-en-es-cl-w-0.5-10k-b-200-h-128/model_iter50.txt";
 //    String qModelFile = "obj/tanh-clef-en-es-cl-w-0.1-10k-b-100-h-128-bias-2.0/model_iter33.txt";
-    String qModelFile = "obj/tanh-clef-en-es-cl-w-0.1-10k-b-100-h-1000-128-bias-1.0-deep/model_iter10.txt";
-    String dModelFile = "obj/tanh-es-dict-top-10k-b-200-h-128/model_iter29.txt";
+//    String qModelFile = "obj/tanh-clef-en-es-cl-w-0.1-10k-b-100-h-1000-128-bias-1.0-deep/model_iter10.txt";
+//    String dModelFile = "obj/tanh-es-dict-top-10k-b-200-h-128/model_iter29.txt";
+    
+//    String qModelFile = "obj/tanh-fire-new-en-hi-cl-w-0.1-10k-b-100-h-128-bias-1.5/model_iter64.txt";
+//    String dModelFile = "obj/tanh-fire-hi-w-0.5-10k-b-100-h-128-bias-1.0/model_iter5.txt";
+
+//    String qModelFile = "obj/tanh-clef-es-en-cl-w-0.1-10k-b-100-h-128-bias-2.0/model_iter35.txt";
+//    String dModelFile = "obj/tanh-clef-en-w-0.5-10k-b-100-h-128-bias-1.0/model_iter8.txt";
+
+//    String qModelFile = "obj/tanh-clef-es-en-cl-w-0.1-10k-b-100-h-128-bias-2.0/model_iter37.txt";
+    String qModelFile = "obj/tanh-clef-de-en-cl-w-0.1-10k-b-100-h-128-bias-1.5-new/model_iter44.txt";
+    String dModelFile = "obj/tanh-clef-en-w-0.5-10k-b-100-h-128-bias-1.0-new/model_iter6.txt";
 
     ret.loadModel(qModelFile, qDict, dModelFile, dDict);
     System.out.printf("Model Loaded.\n");
 
-    ret.loadIdf("data/clef/joint/joint-idf.txt");
+    ret.loadIdf("data/"+corpus+"/"+jointDir+"/joint-idf.txt");
     ret.updateDictIdf();
     
     ret.projectVocabulary();
+    ret.printEmbeddings("data/clef/"+jointDir+"/"+lang1.getCode()+"-embeddings.dat", "data/clef/"+jointDir+"/"+lang2.getCode()+"-embeddings.dat");
     System.out.printf("Vocabulary Projected.\n");
     
 //    ret.loadData("data/clef/joint/DNN-subparallel-en-test.dat", "data/clef/joint/DNN-subparallel-hi-test.dat");
-    ret.loadData("data/clef/joint/en-test-25k.dat", "data/clef/joint/hi-test-25k.dat");
+//    ret.loadData("data/clef/joint/en-test-25k.dat", "data/clef/joint/hi-test-25k.dat");
 //    ret.loadData("data/fire/joint-full/DNN-subparallel-en-test-21k.dat", "data/fire/joint-full/DNN-subparallel-hi-test-21k.dat");
+    ret.loadData("data/"+corpus+"/"+jointDir+"/DNN-subparallel-"+lang1.getCode()+"-test"+testSuffix+".dat", "data/"+corpus+"/"+jointDir+"/DNN-subparallel-"+lang2.getCode()+"-test"+testSuffix+".dat");
+    
     System.out.printf("Data Projected.\n");
     
     System.out.printf("MRR = %.6f\n", ret.mrr());

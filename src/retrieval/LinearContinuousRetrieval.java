@@ -204,8 +204,8 @@ public class LinearContinuousRetrieval {
   public void calculateSimilarity(String dir) throws IOException {
     String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
 		List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
-		pipeline.add(PreProcessTerm.SW_REMOVAL);
-		pipeline.add(PreProcessTerm.STEM);
+		pipeline.remove(PreProcessTerm.SW_REMOVAL);
+		pipeline.remove(PreProcessTerm.STEM);
 
 		Channel ch = new SentFile("");
 		ch.setup(TokenType.WORD, this.docLang, path_to_terrier, pipeline);
@@ -215,7 +215,7 @@ public class LinearContinuousRetrieval {
     Splitter splitter = SplitterFactory.getSplitter(this.docLang);
     List<String> files = FileIO.getFilesRecursively(new File(dir), ".txt");
 
-    int batchSize = 10000;
+    int batchSize = 20000;
     this.ids = new String[files.size()];
     
     this.sim = DMath.createMatrix(files.size(), this.topics.size());
@@ -246,7 +246,7 @@ public class LinearContinuousRetrieval {
             if(countLines<batch.rows())
               batch.fillRow(countLines, sMat);
             else {
-              batch.inflateRows(batch.rows()+3000, batch.columns());
+              batch.inflateRows(batch.rows()+10000, batch.columns());
               batch.fillRow(countLines, sMat);
             }
             docLength++;
@@ -262,7 +262,7 @@ public class LinearContinuousRetrieval {
               if(countLines<batch.rows())
                 batch.fillRow(countLines, sMat);
               else {
-                batch.inflateRows(batch.rows()+3000, batch.columns());
+                batch.inflateRows(batch.rows()+10000, batch.columns());
                 batch.fillRow(countLines, sMat);
               }
               docLength++;
@@ -451,7 +451,7 @@ public class LinearContinuousRetrieval {
           System.out.printf("%.4f ", scores[x]);
       }*/
       int[] rl = RankList.rankList(scores, N);
-      int qid = this.topics.get(c).getID();
+      String qid = this.topics.get(c).getID();
       for(int j=0; j<rl.length; j++) {
         p.println(qid+" Q0 "+this.ids[rl[j]]+" "+(j+1)+" "+ scores[rl[j]]);
       }
@@ -469,25 +469,27 @@ public class LinearContinuousRetrieval {
     ret.queryLang = Language.EN;
     ret.docLang = Language.HI;
 
+    String corpus = "fire-new";
+
     ret.useTitle = true;
     ret.useContent = false;
-    ret.useBoWDoc = true;
+    ret.useBoWDoc = false;
 
 /*    String qrelFile = "sample/sample-qrel.txt";
     ret.loadQrel(qrelFile);
     System.out.printf("Qrel Loaded.\n");*/
 
-    String modelPrefix = "OPCA-0.1";
+    String modelPrefix = "OPCA-0.05";
 
-    String dictFile = "data/fire/joint/OPCA_dict.txt";
+    String dictFile = "data/"+corpus+"/joint/OPCA_dict.txt";
     ret.loadDict(dictFile);
     System.out.printf("Dictionary Loaded.\n");
 
-    String modelFile = "data/fire/joint/ProjMat-OPCA-0.1.mat";
+    String modelFile = "data/"+corpus+"/joint/ProjMat-OPCA-0.05.mat";
     ret.loadModel(new File(modelFile));
     System.out.printf("Model Loaded.\n");
 
-    ret.loadIDF("data/fire/joint/CL-LSI-idf.txt");
+    ret.loadIDF("data/"+corpus+"/joint/CL-LSI-idf.txt");
 
     ret.loadQueries("sample/fire/topics/en.topics.126-175.2011.txt");
     System.out.printf("Topics Loaded.\n");

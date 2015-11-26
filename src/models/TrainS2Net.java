@@ -41,22 +41,23 @@ import java.io.File;
 public class TrainS2Net {
   public static void main(String[] args) throws IOException {
     if(args.length!=1) {
-      System.out.printf("Usage: sh run.sh models.TrainModel <prefix>\n");
+      System.out.printf("Usage: sh run.sh models.TrainS2Net <prefix>\n");
       System.exit(0);
     }
     Model enModel = new S2Net();
    
-    Language lang1 = Language.EN;
-    Language lang2 = Language.HI;
+    Language lang1 = Language.ES;
+    Language lang2 = Language.EN;
     String prefix = args[0];
     boolean test = true;
     boolean randomize = true;
-    boolean trainContinue=false;
-    int lastIter = 0;
-    boolean fillDict = true;
-    String modelFile = "obj/s2net-cl-h-128/model_iter6.txt";
+    boolean trainContinue=true;
+    int lastIter = 97;
+    boolean fillDict = false;
+//    String modelFile = "obj/clef-s2net-en-es-10k-w-0.5-b-200-h-128/model_iter10.txt";
+    String modelFile = "obj/s2net-cl-es-en-top-10k-h-128/model_iter97.txt";
 //    String dictFile = "obj/"+prefix+"/dict.txt";
-    String useDict = "data/fire/joint-full/CL-LSI-dict.txt";
+    String useDict = "data/clef/joint/CL-LSI-dict.txt";
 
     String modelDir = "obj/"+prefix+"/";
     if(!new File(modelDir).exists())
@@ -70,15 +71,21 @@ public class TrainS2Net {
     String test_posFile = "data/hi-fire-mono/pos-data-test.txt";
     String test_negFile = "data/hi-fire-mono/neg-data-test.txt";*/
 
-    String file = "data/fire/joint-full/DNN-subparallel-en-text.txt";
+/*    String file = "data/fire/joint-full/DNN-subparallel-en-text.txt";
     String posFile = "data/fire/joint-full/DNN-subparallel-hi-text.txt";
     String negFile = "data/fire/hi/data-neg.txt";
 
     String test_file = "data/fire/joint-full/DNN-subparallel-en-test-text-part.txt";
     String test_posFile = "data/fire/joint-full/DNN-subparallel-hi-test-text-part.txt";
-    String test_negFile = "data/fire/hi/data-neg-test.txt";
+    String test_negFile = "data/fire/hi/data-neg-test.txt";*/
 
-/*    String file = "sample/hindi.short";
+    String file = "data/clef/joint/DNN-subparallel-es-text.txt";
+    String posFile = "data/clef/joint/DNN-subparallel-en-text.txt";
+
+    String test_file = "data/clef/joint/DNN-subparallel-es-test-text-part.txt";
+    String test_posFile = "data/clef/joint/DNN-subparallel-en-test-text-part.txt";
+
+    /*    String file = "sample/hindi.short";
     String posFile = "sample/hindi-pos.short";
     String negFile = "sample/hindi-neg.short";*/
 		
@@ -182,7 +189,7 @@ public class TrainS2Net {
 /*      Layer l2 = new TanhLayer(128);
       enModel.addHiddenLayer(l2);*/
   
-      enModel.init(0.1, 0.0);
+      enModel.init(0.5, -1.5);
       enModel.printArchitecture();
     }
     randArray = new int[enCorp.getSize()];
@@ -230,11 +237,11 @@ public class TrainS2Net {
     try(Batch testBatch = new Batch(test_instances, 1, enModel.dict())) {
       
       int batchsize = 100;
-      int iterations = 100;
+      int iterations = 250;
 
       for(int iter = lastIter+1; iter<=iterations; iter++) {
         int batchNum = 1;
-/*        if(randomize)
+        if(randomize)
           RandomUtils.suffleArray(randArray);
 
         instances = new ArrayList<Datum>();
@@ -250,7 +257,7 @@ public class TrainS2Net {
             instances.add(d);
             count++;
           }
-        }*/
+        }
 
         System.out.printf("\n\nIteration = %d", iter);
         for(int i=0; i<instances.size(); i+=batchsize) {

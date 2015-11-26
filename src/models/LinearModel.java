@@ -42,6 +42,10 @@ public class LinearModel {
     br.close();
   }
 
+  public void printOperator(File f) throws IOException {
+    this.operator.printToFile(f);
+  }
+
   public DMatrix project(DMatrix input) {
     return input.mmul(false, false, this.operator);
   }

@@ -34,6 +34,8 @@ public class OPCA {
   FloatMatrix[] eigen;
   FloatMatrix projectionMatrix;
   Corpus[] corpora;
+  Language lang1;
+  Language lang2;
   int[] tf;
   int[] df;
   // load dictionaries for both
@@ -82,7 +84,7 @@ public class OPCA {
   }
 
   /** It will us the joint dictionary to create a parallel corpus of type Corpus with certain parameters*/
-  public void prepareParallelCorpus(Corpus[] corp, int minLength, int maxSize) throws IOException {
+  public void prepareParallelCorpus(Corpus[] corp, int minLength, int maxSize, String outDir) throws IOException {
     this.parallelCorp = new Corpus();
     this.corpora = new Corpus[corp.length];
     for(int c=0; c<this.corpora.length; c++)
@@ -92,11 +94,11 @@ public class OPCA {
       assert (corp[i].getSize() == size):System.out.printf("Both Corpora should have same length.");
     }
     int count = 0;
-    PrintWriter pEn = new PrintWriter("data/fire/joint/OPCA_subparallel-en.dat", "UTF-8");
-    PrintWriter pEnTest = new PrintWriter("data/fire/joint/OPCA_subparallel-en-test.dat", "UTF-8");
+    PrintWriter pEn = new PrintWriter(outDir + "OPCA_subparallel-"+this.lang1.getCode()+".dat", "UTF-8");
+    PrintWriter pEnTest = new PrintWriter(outDir + "OPCA_subparallel-"+this.lang1.getCode()+"-test.dat", "UTF-8");
     
-    PrintWriter pHi = new PrintWriter("data/fire/joint/OPCA_subparallel-hi.dat", "UTF-8");
-    PrintWriter pHiTest = new PrintWriter("data/fire/joint/OPCA_subparallel-hi-test.dat", "UTF-8");
+    PrintWriter pHi = new PrintWriter(outDir + "OPCA_subparallel-"+this.lang2.getCode()+".dat", "UTF-8");
+    PrintWriter pHiTest = new PrintWriter(outDir + "OPCA_subparallel-"+this.lang2.getCode()+"-test.dat", "UTF-8");
 
     for(int i=0; i<corp[0].getSize(); i++) {
       Sentence s1 = corp[0].get(i);
@@ -183,8 +185,13 @@ public class OPCA {
   public static void main(String[] args) throws IOException {
     OPCA model = new OPCA();
 
-    Language lang1 = Language.EN;
-    Language lang2 = Language.ES;
+    String corpus = "clef";
+    String jointDir = "joint-de";
+
+    model.lang1 = Language.DE;
+    model.lang2 = Language.EN;
+    
+    int parallelSize = 250000; // for es-en = 250000, and en-hi = 125000
 
 /*    String dict1File = "data/fire/en/dict-100.txt"; // en
     String dict2File = "data/fire/hi/dict-400.txt"; // hi
@@ -192,11 +199,11 @@ public class OPCA {
     String enFile = "data/fire/en/train.low.eng.sub";
     String hiFile = "data/fire/hi/train.low.hin.sub";*/
 
-    String dict1File = "data/clef/en/dict-top10000.txt"; // en
-    String dict2File = "data/clef/es/dict-top10000.txt"; // hi
+    String dict1File = "data/"+corpus+"/"+model.lang1.getCode()+"/dict-top10000.txt"; // en
+    String dict2File = "data/"+corpus+"/"+model.lang2.getCode()+"/dict-top10000.txt"; // hi
 
-    String enFile = "data/clef/en/en-parallel-corpus.txt";
-    String hiFile = "data/clef/es/es-parallel-corpus.txt";
+    String enFile = "data/"+corpus+"/"+model.lang1.getCode()+"/"+model.lang1.getCode()+"-parallel-corpus.txt";
+    String hiFile = "data/"+corpus+"/"+model.lang2.getCode()+"/"+model.lang2.getCode()+"-parallel-corpus.txt";
 
     model.loadDictionary(dict1File, dict2File);
 
@@ -207,14 +214,14 @@ public class OPCA {
 
     Corpus[] corp = new Corpus[2];
     Channel chEn = new SentFile(enFile);
-    chEn.setup(TokenType.WORD, lang1, path_to_terrier, pipeline);
+    chEn.setup(TokenType.WORD, model.lang1, path_to_terrier, pipeline);
     corp[0] = model.loadCorpus(enFile, chEn);
 
     Channel chHi = new SentFile(hiFile);
-    chHi.setup(TokenType.WORD, lang2, path_to_terrier, pipeline);
+    chHi.setup(TokenType.WORD, model.lang2, path_to_terrier, pipeline);
     corp[1] = model.loadCorpus(hiFile, chHi);
 
-    model.prepareParallelCorpus(corp, 3, 250000);
+    model.prepareParallelCorpus(corp, 3, parallelSize, "data/"+corpus+"/"+jointDir+"/");
     chEn = new SentFile(enFile);
     chHi = new SentFile(hiFile);
     System.gc(); System.gc();
@@ -223,10 +230,10 @@ public class OPCA {
     // TODO: Prepare stats like TF and DF
     model.calculateStats();
     File[] file = new File[2];
-    file[0] = new File("data/clef/joint/OPCA_D_en.dat");
-    file[1] = new File("data/clef/joint/OPCA_D_hi.dat");
+    file[0] = new File("data/"+corpus+"/"+jointDir+"/OPCA_D_"+model.lang1.getCode()+".dat");
+    file[1] = new File("data/"+corpus+"/"+jointDir+"/OPCA_D_"+model.lang2.getCode()+".dat");
     model.createSparseDMatrix(file);
-    model.dict.save("data/clef/joint/OPCA_dict.txt");
+    model.dict.save("data/"+corpus+"/"+jointDir+"/OPCA_dict.txt");
 
 //    model.createCorrelationMatrix();
 //    model.learnProjectionMatrix(128);

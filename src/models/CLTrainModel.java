@@ -90,17 +90,17 @@ public class CLTrainModel {
     }
     Model lang1Model = new AddModel();
   
-    String corpus = "fire-new";
-    Language lang1 = Language.EN;
-    Language lang2 = Language.HI;
+    String corpus = "clef"; // "fire-new" OR "fire-new"
+    Language lang1 = Language.DE; // query lang
+    Language lang2 = Language.EN; // doc lang
     String prefix = args[0];
     boolean test = true;
     boolean randomize = true;
-    boolean trainContinue=false;
-    int lastIter = 0;
+    boolean trainContinue=true;
+    int lastIter = 6;
     boolean fillDict = false;
 //    String modelFile = "obj/tanh-cl-w-0.1-b-100-h-128/model_iter78.txt";
-    String modelFile = "obj/tanh-clef-en-es-cl-w-0.1-10k-b-100-h-128-bias-2.0/model_iter11.txt";
+    String modelFile = "obj/tanh-clef-de-en-cl-w-0.1-10k-b-100-h-128-bias-1.5-new/model_iter6.txt";
 //    String dictFile = "obj/"+prefix+"/dict.txt";
     String useDict = "data/"+corpus+"/"+lang1.getCode()+"/dict-top10000.txt";
     double initialCGStepSize = 0.01, finalCGStepSize = 0.01;
@@ -110,11 +110,11 @@ public class CLTrainModel {
     if(!new File(modelDir).exists())
       new File(modelDir).mkdirs();
 
-    String lang1File = "data/"+corpus+"/joint/DNN-subparallel-"+lang1.getCode()+".dat";
-    String lang2File = "data/"+corpus+"/joint/DNN-subparallel-projected-"+lang2.getCode()+".dat";
+    String lang1File = "data/"+corpus+"/joint-de/DNN-subparallel-"+lang1.getCode()+".dat";
+    String lang2File = "data/"+corpus+"/joint-de/DNN-subparallel-projected-"+lang2.getCode()+".dat";
 
-    String lang1TestFile = "data/"+corpus+"/joint/DNN-subparallel-"+lang1.getCode()+"-test-part.dat";
-    String lang2TestFile = "data/"+corpus+"/joint/DNN-subparallel-projected-"+lang2.getCode()+"-test-part.dat";
+    String lang1TestFile = "data/"+corpus+"/joint-de/DNN-subparallel-"+lang1.getCode()+"-test-part.dat";
+    String lang2TestFile = "data/"+corpus+"/joint-de/DNN-subparallel-projected-"+lang2.getCode()+"-test-part.dat";
 
     Corpus lang1Corp = loadCorpus(lang1File);
     DMatrix lang2Pos = loadMatrix(128, lang2File);
