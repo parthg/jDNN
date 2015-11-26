@@ -1,4 +1,4 @@
-<project name="cl-autoencoder" basedir=".">
+<project name="jDNN" basedir=".">
     <description>
        build file
     </description>
@@ -10,7 +10,7 @@
   <property name="webdir" location="web/WEB-INF"/>
   <property name="lib" location="web/WEB-INF/lib"/>
   <property name="jcuda_home" location="/home/parth/workspace/JCuda-All-0.5.5-bin-linux-x86_64"/>
-  <property name="classpath" location="web/WEB-INF/classes:/home/parth/workspace/Nemo/web/WEB-INF/classes:/home/parth/workspace/cl-deep/bin/:${lib}/trove-3.0.1.jar:${lib}/jblas-1.2.3-SNAPSHOT.jar:${lib}/terrier-3.5-core.jar:${lib}/antlr.jar:${lib}/mallet.jar:${lib}/opennlp-tools-1.5.0.jar:${lib}/maxent-3.0.0.jar:${jcuda_home}/jcuda-0.5.5.jar:${jcuda_home}/jcublas-0.5.5.jar"/>
+  <property name="classpath" location="web/WEB-INF/classes:${lib}/trove-3.0.1.jar:${lib}/jblas-1.2.3-SNAPSHOT.jar:${lib}/terrier-3.5-core.jar:${lib}/antlr.jar:${lib}/mallet.jar:${lib}/opennlp-tools-1.5.0.jar:${lib}/maxent-3.0.0.jar:${lib}/Nemo-20150912.jar:${lib}/cl-deep-20150204.jar:${jcuda_home}/jcuda-0.5.5.jar:${jcuda_home}/jcublas-0.5.5.jar"/>
     
 
   <target name="init">
@@ -34,7 +34,7 @@
     <mkdir dir="${dist}"/>
 
     <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-    <jar jarfile="${dist}/cl-autoencoder-${DSTAMP}.jar" basedir="${bin}"/>
+    <jar jarfile="${dist}/jDNN-${DSTAMP}.jar" basedir="${bin}"/>
   </target>
 
   <target name="build-javadoc">
@@ -42,7 +42,7 @@
   </target>
 
   <target name="build-war">
-    <war destfile="cl-autoencoder.war" webxml="${webdir}/web.xml">
+    <war destfile="jDNN.war" webxml="${webdir}/web.xml">
       <fileset dir="${webdir}">
         <include name="**/*.*"/>
       </fileset>

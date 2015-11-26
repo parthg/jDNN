@@ -1,6 +1,7 @@
 package common;
 
-
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,19 +11,37 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.FileInputStream;
 
-//import org.jblas.DoubleMatrix;
 import math.DMath;
 import math.DMatrix;
 
 public class Dictionary {
   Map<String, Integer> str2id;
   Map<Integer, String> id2str;
+  Map<Integer, Double> idf;
   int dictSize;
 
   public Dictionary() {
     this.str2id = new HashMap<String, Integer>();
     this.id2str = new HashMap<Integer, String>();
+    this.idf = new HashMap<Integer, Double>();
     this.dictSize = 0;
+  }
+
+  public void setIdf(String s, double val) {
+    assert (this.str2id.containsKey(s)): System.out.printf("Term: %s is not present in the dictionary", s);
+/*    if(val == 0.0)
+      val = 1.0;*/
+    this.idf.put(this.getId(s), val);
+  }
+
+  public double getIdf(String s) {
+    assert (this.str2id.containsKey(s)): System.out.printf("Term: %s is not present in the dictionary", s);
+    return this.idf.get(this.getId(s));
+  }
+
+  public double getIdf(int id) {
+    assert (this.id2str.containsKey(id)): System.out.printf("TermId: %d is not present in the dictionary", id);
+    return this.idf.get(id);
   }
 
   public void print() {
@@ -33,8 +52,10 @@ public class Dictionary {
     }
   }
 
+  public Map<String, Integer> str2id() {
+    return this.str2id;
+  }
   
-
   public boolean contains(String token) {
     return this.str2id.containsKey(token);
   }
@@ -102,6 +123,10 @@ public class Dictionary {
     return this.str2id.containsKey(t)?this.str2id.get(t):-1;
   }
 
+  public String getTerm(int id) {
+    return this.id2str.containsKey(id)?this.id2str.get(id):null;
+  }
+
   public void save(String file) throws IOException {
     PrintWriter p = new PrintWriter(file, "UTF-8");
     for(int i=0; i<this.dictSize; i++)
@@ -120,4 +145,19 @@ public class Dictionary {
     br.close();
   }
 
+  public void mergeDict(Dictionary dict2) {
+    for(int i=0; i<dict2.getSize(); i++) {
+      this.addWord(dict2.getTerm(i));
+    }
+    System.out.printf("Dictionary added. Total terms after addition = %d\n", this.getSize());
+  }
+
+  public List<Integer> getTermIds(List<String> tokens) {
+    List<Integer> tids = new ArrayList<Integer>();
+    for(String t: tokens) {
+      if(this.contains(t.trim()))
+        tids.add(this.getId(t.trim()));
+    }
+    return tids;
+  }
 }

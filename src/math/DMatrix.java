@@ -1,5 +1,10 @@
 package math;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.io.IOException;
+
 import jcuda.jcublas.JCublas;
 import jcuda.Pointer;
 import java.io.Closeable;
@@ -15,7 +20,9 @@ public abstract class DMatrix implements Closeable {
   double[] data;
 
   protected int offset = 0;
-  
+ 
+	/** Constructs the matrix with the elements initialised with zeros.
+ */ 
   public DMatrix(int _rows, int _columns) {
     this.rows = _rows;
     this.columns = _columns;
@@ -23,6 +30,8 @@ public abstract class DMatrix implements Closeable {
     this.data = new double[this.length];
   }
 
+	/** Constructs with the specific data array 
+ */
   public DMatrix(int _rows, int _columns, double[] _data) {
     this.rows = _rows;
     this.columns = _columns;
@@ -30,6 +39,8 @@ public abstract class DMatrix implements Closeable {
     this.data = _data;
   }
 
+	/** Copies the elements to a new array and returns a copy of it.
+ */
   public double[] toArray() {
     double[] array = new double[this.length];
     System.arraycopy(this.data, 0, array, 0, this.length);
@@ -40,7 +51,7 @@ public abstract class DMatrix implements Closeable {
     System.out.printf("%S: %d x %d\n", name, this.rows, this.columns);
   }
 
-  /** returns the array index for the given matrix position.
+  /** returns the array index for the given matrix position (row, column).
    */
   public int index(int i, int j) {
     return i*columns+j;
@@ -133,6 +144,19 @@ public abstract class DMatrix implements Closeable {
       }
       System.out.printf("]\n");
     }
+  }
+
+  public void printToFile(File f) throws IOException {
+    FileOutputStream fos = new FileOutputStream(f);
+    PrintStream p = new PrintStream(fos);
+    for(int i= 0; i<this.rows; i++) {
+      for(int j = 0; j<this.columns; j++) {
+        p.printf("%f ", this.data[i*this.columns+j]);
+      }
+      p.printf("\n");
+    }
+    p.close();
+    fos.close();
   }
   
   /** Changes the matrix to the new dimensions. Careful: It overwrites the original matrix.
@@ -236,6 +260,45 @@ public abstract class DMatrix implements Closeable {
     double[] rowData = new double[this.columns];
     System.arraycopy(this.data(), r*this.columns(), rowData, 0, this.columns());
     return DMath.createMatrix(1, this.columns(), rowData);
+  }
+
+  public DMatrix concatVertically(DMatrix B) {
+    assert (this.columns == B.columns()): System.out.printf("Matrices don't have same number of columns (" + this.columns + " != " + B.columns() + ".");
+
+    double[] newData = new double[this.length+B.length()];
+
+    System.arraycopy(this.data, 0, newData, 0, this.length);
+    System.arraycopy(B.data(), 0, newData, this.length, B.length());
+
+    this.rows = this.rows+B.rows();
+    this.length = this.rows*this.columns;
+    this.data = newData;
+
+    return this;
+  }
+
+  public void truncateRows(int _rows, int _columns) {
+    if(this.rows == _rows)
+      return;
+    assert (this.columns == _columns && this.rows > _rows);
+    double[] newData = new double[_rows*_columns];
+    System.arraycopy(this.data, 0, newData, 0, newData.length);
+
+    this.rows = _rows;
+    this.columns = _columns;
+    this.length = this.rows*this.columns;
+    this.data = newData;
+  }
+
+  public void inflateRows(int _rows, int _columns) {
+    assert (this.columns == _columns && this.rows< _rows);
+    double[] newData = new double[_rows*_columns];
+    System.arraycopy(this.data, 0, newData, 0, this.length);
+
+    this.rows = _rows;
+    this.columns = _columns;
+    this.length = this.rows*this.columns;
+    this.data = newData;
   }
 
 //  public abstract DMatrix transpose();

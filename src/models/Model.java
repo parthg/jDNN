@@ -14,6 +14,7 @@ import java.util.Scanner;
 
 import nn.Layer;
 import nn.TanhLayer;
+import nn.SiameseLayer;
 import common.Sentence;
 import common.Dictionary;
 
@@ -39,6 +40,9 @@ public abstract class Model {
     this.inSize = this.dict.getSize();
   }
 
+  public int inSize() {
+    return this.inSize;
+  }
   public int outSize() {
     return outSize;
   }
@@ -59,7 +63,7 @@ public abstract class Model {
     System.out.printf("Model architecture = %d ", this.inSize);
 
     for(int i=0; i<this.layers.size(); i++)
-      System.out.printf("%d ", this.layers.get(i).getSize());
+      System.out.printf("%s:%d ", this.layers.get(i).name(),this.layers.get(i).getSize());
 
     System.out.printf(" Total number of parameters = %d\n", this.thetaSize);
 
@@ -149,6 +153,7 @@ public abstract class Model {
           String[] lSize = lCols[1].trim().split(" ");
           int lLength = Integer.parseInt(lSize[1].trim());
           Layer l = new TanhLayer(lLength);
+//          Layer l = new SiameseLayer(lLength);
           this.addHiddenLayer(l);
         }
       }
@@ -185,7 +190,6 @@ public abstract class Model {
       proj.fillMatrix(i, hBatch);
       i=i+b;
     }
-
 /*    DMatrix vBatch = DMath.createMatrix(2, this.dict.getSize());
     DMatrix v1 = DMath.createMatrix(1, this.dict.getSize());
     v1.put(2759, 1.0);
@@ -202,6 +206,25 @@ public abstract class Model {
     return proj;
   }
   
+  public DMatrix projectVocabularyWithIdf(int batchSize) {
+    DMatrix proj = DMath.createMatrix(this.dict.getSize(), this.outSize);
+    for(int i=0; i<this.dict.getSize(); ) {
+      int b = Math.min(this.dict.getSize()-i, batchSize); // basically for the last batch of smaller size
+      DMatrix vBatch = DMath.createMatrix(b, this.dict.getSize());
+     
+      for(int j=0; j<b; j++) {
+        DMatrix v = DMath.createMatrix(1, this.dict.getSize());
+        v.put(i+j, 1.0*this.dict.getIdf(i+j));
+        vBatch.fillRow(j, v);
+//        vBatch.put(j, i+j, 1.0);
+      }
+      DMatrix hBatch = this.fProp(vBatch);
+      proj.fillMatrix(i, hBatch);
+      i=i+b;
+    }
+    return proj;
+  }
+    
   public void copyHtoD() {
     Iterator<Layer> layerIt = this.layers.iterator();
     while(layerIt.hasNext()) {

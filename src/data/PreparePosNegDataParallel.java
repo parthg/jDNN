@@ -40,7 +40,7 @@ import antlr.TokenStreamException;
  * 
  *
  */
-public class PreparePosNegData {
+public class PreparePosNegDataParallel {
   NEWSDocType docType;
   Language language;
   // first load titles
@@ -74,16 +74,6 @@ public class PreparePosNegData {
     this.queries = chTitle.titles();
     System.out.printf("Total %d titles extracted.\n", this.queries.size());
 
-  }
-
-  public void writeSentFileToDirectory(String outDir) throws IOException {
-    int id=0;
-    for(String s: this.queries) {
-      PrintWriter p = new PrintWriter(outDir + id+".txt", "UTF-8");
-      p.println(s);
-      p.close();
-      id++;
-    }
   }
 
   public void loadRandomSentences(String dir, String outDir) throws IOException{ 
@@ -146,7 +136,7 @@ public class PreparePosNegData {
 //    for(int t: tfTable.keySet()) {
       if(count<n) {
         String term = CleanData.parse(terrier.getTerm(t), this.language);
-        if(term.length()>2 && !dict.contains(term) && term!= "N") {
+        if(term.length()>0 && !dict.contains(term)) {
           p.printf("%d\t%s\n", id, term);
           dict.add(term);
           id++;
@@ -161,11 +151,9 @@ public class PreparePosNegData {
     PreparePosNegData prepare = new PreparePosNegData();
     
     String terrierPath = "/home/parth/workspace/terrier-3.5/";
-    String lang = "de";
+    String lang = "en";
     boolean sw_removal = true;
     boolean stem = true;
-    String corpus =  "clef"; // "fire-new" OR "clef"
-    String indexName =  "clefsent"; // "firesent-new" OR "clefsent-new"
 
     if(lang.equals("en"))
       prepare.language = Language.EN;
@@ -173,46 +161,38 @@ public class PreparePosNegData {
       prepare.language = Language.HI;
     else if(lang.equals("es"))
       prepare.language = Language.ES;
-    else if(lang.equals("de"))
-      prepare.language = Language.DE;
 
-    String dataDir = "/home/parth/workspace/data/clef-data-jdnn/en-fire-format/";
+
 //    String dataDir = "/home/parth/workspace/data/lrec-toi-and-nt/data/toi/2012/";
 //    String dataDir = "/home/parth/workspace/data/fire/hi.docs.2011/docs/hi_NavbharatTimes/";
-//    String dataDir = "/home/parth/workspace/data/clef-data-jdnn/data-fire-format/englishTitles/";
-    String tempSentDir = "data/"+corpus+"/"+lang+"/sent/";
-    String outDir = "data/"+corpus+"/"+lang+"/"; // for final files to be written
-//    String queryFile = outDir + "title-only.txt";
-//    String queryFile = outDir + "title-only.txt";
-    String queryFile = "data/"+corpus+"/"+lang+"/"+lang+"-parallel-data.txt";
+    String dataDir = "/home/parth/workspace/data/clef-data-jdnn/data-fire-format/englishTitles/";
+    String tempSentDir = "data/clef/"+lang+"/sent/";
+    String outDir = "data/clef/"+lang+"/"; // for final files to be written
 
-//    prepare.docType = NEWSDocType.TOI;
 //    prepare.docType = NEWSDocType.NAVBHARAT;
     prepare.docType = NEWSDocType.CLEF_FIRE;
 
 
     if(!new File(tempSentDir).exists())
       (new File(tempSentDir)).mkdirs();
-
     
-/*    int existingFiles = (new File(tempSentDir)).list().length;
-    if(existingFiles>0) {
+    int existingFiles = (new File(tempSentDir)).list().length;
+/*    if(existingFiles>0) {
       System.out.println("There can not be any file in the tempSentDir, rather there exist " + existingFiles +" files. Please delete them.. Exiting..");
       System.exit(0);
     }*/
 
-    if(new File(queryFile).exists())
-      prepare.loadTitleQueriesFromFile(queryFile);
+    if(new File(outDir + "title-only.txt").exists())
+      prepare.loadTitleQueriesFromFile(outDir + "title-only.txt");
     else {
       prepare.loadTitleQueries(dataDir);
-      PrintWriter p = new PrintWriter(queryFile, "UTF-8");
+      PrintWriter p = new PrintWriter(outDir + "title-only.txt", "UTF-8");
       for(String s: prepare.queries) {
         p.printf("%s\n", s);
       }
       p.close();
     }
 
-    prepare.writeSentFileToDirectory(tempSentDir);
 
 /*****  HERE: Here it will create the sentences from the file */
 //    prepare.loadRandomSentences(dataDir, tempSentDir);
@@ -220,7 +200,7 @@ public class PreparePosNegData {
     TerrierWrapper terrier = new TerrierWrapper(terrierPath);
 
 
-    String indexPath = terrierPath+"var/index/"+indexName+"/";
+    String indexPath = terrierPath+"var/index/clefsent/";
     terrier.setIndex(indexPath, lang);
     terrier.setLanguage(lang);
 
@@ -243,12 +223,13 @@ public class PreparePosNegData {
     prepare.printTopNTerms(10000, terrier, outDir);
 
 
-/*    System.out.println("Drawing Samples...");
+    System.out.println("Drawing Samples...");
 
     PrintWriter pData = new PrintWriter(outDir + "data-new.txt", "UTF-8");
     PrintWriter pPos = new PrintWriter(outDir + "data-pos-new.txt", "UTF-8");
     PrintWriter pNeg = new PrintWriter(outDir + "data-neg-new.txt", "UTF-8");
 
+    // TODO: This needs to be made parallel becaue at this moment it is very slow.
     int counter = 0;
     for(String s: prepare.queries) {
 //      if(counter<1000) {
@@ -288,7 +269,7 @@ public class PreparePosNegData {
 
     pData.close();
     pPos.close();
-    pNeg.close();*/
+    pNeg.close();
     
   }
 

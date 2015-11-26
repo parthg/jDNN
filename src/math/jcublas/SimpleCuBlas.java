@@ -38,10 +38,12 @@ public class SimpleCuBlas {
     JCublas.cublasInit();
     Pointer ret = new Pointer();
     Pointer toData = Pointer.to(m.data()).withByteOffset(m.offset() * m.elemSize());
-    JCublas.cublasAlloc(
+    int err = JCublas.cublasAlloc(
         m.length(),
         m.elemSize(),
         ret);
+//    assert(err == cublasStatus.CUBLAS_STATUS_INVALID_VALUE):"There was a problem in cuBlasAlloc: Either matrix length <= 0 or element size (float/double) <= 0.\n";
+//    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cuBlasAlloc.\n";
     JCublas.cublasSetVector(
         m.length(),
         m.elemSize(),
@@ -58,10 +60,12 @@ public class SimpleCuBlas {
     JCublas.cublasInit();
     Pointer ret = new Pointer();
     Pointer toData = Pointer.to(m.data()).withByteOffset(offset * m.elemSize());
-    JCublas.cublasAlloc(
+    int err = JCublas.cublasAlloc(
         length,
         m.elemSize(),
         ret);
+//    assert(err == cublasStatus.CUBLAS_STATUS_INVALID_VALUE):"There was a problem in cuBlasAlloc: Either matrix length <= 0 or element size (float/double) <= 0.\n";
+//    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cuBlasAlloc.\n";
     JCublas.cublasSetVector(
         length,
         m.elemSize(),
@@ -77,10 +81,12 @@ public class SimpleCuBlas {
     JCublas.cublasInit();
     Pointer ret = new Pointer();
     Pointer toData = Pointer.to(arr).withByteOffset(0 * Sizeof.DOUBLE);
-    JCublas.cublasAlloc(
+    int err = JCublas.cublasAlloc(
         arr.length,
         Sizeof.DOUBLE,
         ret);
+//    assert(err == cublasStatus.CUBLAS_STATUS_INVALID_VALUE):"There was a problem in cuBlasAlloc: Either matrix length <= 0 or element size (float/double) <= 0.\n";
+//    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cuBlasAlloc.\n";
     JCublas.cublasSetVector(
         arr.length, // size of array
         Sizeof.DOUBLE, // size of int
@@ -128,7 +134,7 @@ public class SimpleCuBlas {
     JCublas.cublasInit();
     for(Pointer arr : pointers) {
       int err = JCublas.cublasFree(arr);
-      assert (err == cublasStatus.CUBLAS_STATUS_SUCCESS):"Not successfully freed device memory";
+//      assert (err == cublasStatus.CUBLAS_STATUS_SUCCESS):"Not successfully freed device memory";
       cudaCount--;
     }
   }
@@ -500,7 +506,7 @@ public class SimpleCuBlas {
     CUDAMatrix cA = (CUDAMatrix) A;
     CUDAMatrix cB = (CUDAMatrix) B;
     CUDAMatrix cC = (CUDAMatrix) C;
-    
+   
     Pointer cAPointer = (cA.persist())?cA.pointer():alloc(cA);
     Pointer cBPointer = (cB.persist())?cB.pointer():alloc(cB);
     Pointer cCPointer = (cC.persist())?cC.pointer():alloc(cC);

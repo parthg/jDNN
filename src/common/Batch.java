@@ -53,6 +53,22 @@ public class Batch implements AutoCloseable {
     this.neg = dict.getRepresentation(negSents);
   }
 
+  public Batch(List<Datum> instances, int _nSamples, Dictionary dict, DMatrix _pos, DMatrix _neg) {
+    this.listData = instances;
+    this.nSamples = _nSamples;
+    this.batchSize = instances.size();
+
+    Sentence[] dataSents = new Sentence[instances.size()];
+    this.dataWords = new int[this.batchSize];
+    for(int dp=0; dp<this.batchSize; dp++) {
+      dataSents[dp] = instances.get(dp).getData();
+      this.dataWords[dp] = instances.get(dp).getData().getSize();
+    }
+    this.data = dict.getRepresentation(dataSents);
+    this.pos = _pos;
+    this.neg = _neg;
+  }
+
   public List<Datum> listData() {
     return this.listData;
   }
