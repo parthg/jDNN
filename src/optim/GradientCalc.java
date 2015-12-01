@@ -7,6 +7,9 @@ import common.Datum;
 import common.Batch;
 import cc.mallet.optimize.Optimizable;
 
+/** Container class for model training.
+ * Contains instances of Model, Batch. Extend it to implement the learning algorithm with loss function and gradient calculation. Basically implement two methods: getValue(() and getValueGradient(). 
+ */
 public abstract class GradientCalc implements Optimizable.ByGradientValue {
 
   Model model;
