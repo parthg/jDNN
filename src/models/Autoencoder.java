@@ -60,11 +60,11 @@ public class Autoencoder extends Model {
   }
   
   public DMatrix fProp(Sentence sent) {
-    return null;
+    throw new UnsupportedOperationException("TODO");
   } 
 
   public DMatrix getRepresentation(DMatrix sentMatrix) {
-    return null;
+    throw new UnsupportedOperationException("TODO");
   }
 
   public DMatrix fProp(DMatrix input) {
@@ -78,10 +78,10 @@ public class Autoencoder extends Model {
   }
   
   public DMatrix bProp(Sentence s1, Sentence s2) {
-    return null;
+    throw new UnsupportedOperationException("TODO");
   }
   public DMatrix bProp(Sentence s1, DMatrix error) {
-    return null;
+    throw new UnsupportedOperationException("TODO");
   }
   
   /* input  = matrix
@@ -89,10 +89,10 @@ public class Autoencoder extends Model {
    * error  = matrix
    */
   public DMatrix bProp(DMatrix input, DMatrix rep, DMatrix error) { 
-    return null;
+    throw new UnsupportedOperationException("TODO");
   }
   
   public DMatrix bProp(DMatrix input, DMatrix error) {
-    return null;
+    throw new UnsupportedOperationException("TODO");
   }
 }

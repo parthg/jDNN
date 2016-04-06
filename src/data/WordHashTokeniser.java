@@ -37,7 +37,7 @@ public class WordHashTokeniser implements Tokeniser {
   public static List<String> getCharNGrams(String str, int n) {
     List<String> grams = new LinkedList<String>();
     char[] chars = str.toCharArray();
-    for(int i=0; i<str.length(); i++) {
+    for(int i=0; i<=str.length()-n; i++) {
       StringBuilder sb = new StringBuilder();
       for(int j=0; j<n; j++)
         sb.append(chars[i+j]);
@@ -49,11 +49,13 @@ public class WordHashTokeniser implements Tokeniser {
     StringBuilder grams = new StringBuilder();
     String[] terms = str.split(" ");
     for(String t: terms) {
-      t = "#"+t.trim()+"#";
-      List<String> hashes = getCharNGrams(t, 3);
-      for(String g: hashes) {
-        grams.append(g);
-        grams.append(" ");
+      if(t.trim().length()>0) {
+        t = "$"+t.trim()+"$";
+        List<String> hashes = getCharNGrams(t, 3);
+        for(String g: hashes) {
+          grams.append(g);
+          grams.append(" ");
+        }
       }
     }
     return grams.toString();
@@ -73,4 +75,19 @@ public class WordHashTokeniser implements Tokeniser {
 	public String clean(String str) {
 		return str.replaceAll(" +", " ").replaceAll(" ", "_");
 	}
+  public static void main(String[] args) {
+    Tokeniser tokeniser = new WordHashTokeniser();
+    List<PreProcessTerm> pipeline = new LinkedList<PreProcessTerm>();
+//		pipeline.add(PreProcessTerm.SW_REMOVAL);
+//		pipeline.add(PreProcessTerm.STEM);
+    
+    tokeniser.setup(Language.EN, "/home/parth/workspace/terrier-3.5/", pipeline);
+
+    String test = "# kill all men";
+    System.out.printf("Input: %s\n", test);
+    System.out.printf("Parsed Text: %s\n", tokeniser.parse(test));
+    System.out.printf("Cleaned Text: %s\n", tokeniser.clean(tokeniser.parse(test)));
+
+  }
+
 }
