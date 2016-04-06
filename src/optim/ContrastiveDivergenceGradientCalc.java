@@ -8,12 +8,14 @@ public class ContrastiveDivergenceGradientCalc extends GradientCalc {
   }
 
   public void testStats (Batch _batch) {
+    throw new UnsupportedOperationException("TODO");
   }
   
   public double getValue () {
-    return 0.0;
+    throw new UnsupportedOperationException("TODO");
   }
 
   public void getValueGradient (double[] buffer) {
+    throw new UnsupportedOperationException("TODO");
   }
 }
