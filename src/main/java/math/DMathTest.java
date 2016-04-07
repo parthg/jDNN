@@ -54,7 +54,7 @@ public class DMathTest {
     a.print("Mat1");
     b.print("Vector Norm of Mat1");
 
-    a = DMath.createRandnMatrix(300000, 128);
+    a = DMath.createRandnMatrix(300, 128);
     b = a.vectorNorm();
     a.getRow(0).print("Mat2");
     b.getRow(0).print("Vector Norm of Mat2");
@@ -286,7 +286,7 @@ public class DMathTest {
 //    testGemv();
 //    testFillWithArray();
 
-//    testMuli();
+    testMuli();
 //    testPow();
 //    testSumRows();
 //    testSumColumns();
@@ -297,7 +297,7 @@ public class DMathTest {
 //    testDivRows();
 //    testMulRows();
 //    testDotRows();
-    testVectorNorm();
+//    testVectorNorm();
 //    testFillWithArray();
 //    testFillRow();
 //    testFillMatrix();   

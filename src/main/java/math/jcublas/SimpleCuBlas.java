@@ -162,7 +162,7 @@ public class SimpleCuBlas {
   public static DMatrix fillWithArray(DMatrix A, DMatrix B) {
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, "src/main/java/math/jcublas/cuda_kernels.ptx");
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kFillArray");
 
@@ -196,7 +196,7 @@ public class SimpleCuBlas {
   public static DMatrix mulRows(DMatrix A, DMatrix B) {
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, "src/main/java/math/jcublas/cuda_kernels.ptx");
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kMulByColumnVector");
 
@@ -230,7 +230,7 @@ public class SimpleCuBlas {
   public static DMatrix divRows(DMatrix A, DMatrix B) {
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, "src/main/java/math/jcublas/cuda_kernels.ptx");
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kDivByColumnVector");
 
@@ -263,7 +263,7 @@ public class SimpleCuBlas {
 
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, "src/main/java/math/jcublas/cuda_kernels.ptx");
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kMul");
 
@@ -303,7 +303,7 @@ public class SimpleCuBlas {
   public static DMatrix sqrt(DMatrix A) {
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, "src/main/java/math/jcublas/cuda_kernels.ptx");
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kSqrt");
 
@@ -328,7 +328,7 @@ public class SimpleCuBlas {
   public static DMatrix inverseElements(DMatrix A) {
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, "src/main/java/math/jcublas/cuda_kernels.ptx");
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kInverseElements");
 
@@ -352,7 +352,7 @@ public class SimpleCuBlas {
   public static DMatrix tanh(DMatrix A, DMatrix B) {
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, "src/main/java/math/jcublas/cuda_kernels.ptx");
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kTanh");
 
@@ -388,7 +388,7 @@ public class SimpleCuBlas {
   public static DMatrix pow(DMatrix A, double v) {
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, "src/main/java/math/jcublas/cuda_kernels.ptx");
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kPow");
 
