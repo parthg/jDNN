@@ -1,5 +1,10 @@
 apply plugin: "java"
 
+test {
+  systemProperty 'use_cuda', 'true'
+  jvmArgs '-Xmx28G'
+}
+
 repositories {
     mavenCentral()
 }
