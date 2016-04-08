@@ -36,8 +36,9 @@ public class BLASMatrix extends DMatrix {
   }
   
   public DMatrix add(DMatrix other) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
+  
   public DMatrix addi(DMatrix other) {
     System.out.printf("Using jblas\n");
     SimpleBlas.axpy(other, this);
@@ -45,14 +46,14 @@ public class BLASMatrix extends DMatrix {
   }
 
   public DMatrix add(double v) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   public DMatrix addi(double v) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix addi(double a, DMatrix other) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
 /*  public DMatrix addMuli(DMatrix A, DMatrix B) {
@@ -60,60 +61,58 @@ public class BLASMatrix extends DMatrix {
   }*/
 
   public DMatrix inv() {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix invi() {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix sqrt() {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix sqrti() {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   
   public DMatrix subi(DMatrix other) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   public DMatrix sub(DMatrix other) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix sub(double v) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   public DMatrix subi(double v) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix mul(DMatrix other) {
-    System.err.printf("TODO\n\n");
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   public DMatrix muli(DMatrix other) {
-    System.err.printf("TODO\n\n");
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix mul(double v) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   public DMatrix muli(double v) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   
   public DMatrix pow(double v) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   public DMatrix powi(double v) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix mmul(DMatrix other, DMatrix result) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   public DMatrix mmul(boolean tA, boolean tB, DMatrix other, DMatrix result) {
     assert (this.columns()==other.rows());
@@ -148,18 +147,15 @@ public class BLASMatrix extends DMatrix {
   }
   
   public DMatrix mmul(boolean tA, boolean tB, DMatrix B) {
-    System.err.printf("TODO\n\n");
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   
   public DMatrix mmul(DMatrix other) {
-    System.err.printf("TODO\n\n");
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   
   public DMatrix mmuli(boolean tA, boolean tB, DMatrix B) {
-    System.err.printf("TODO\n\n");
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix mmuli(DMatrix other) {
@@ -167,34 +163,34 @@ public class BLASMatrix extends DMatrix {
   }
 
   public DMatrix fillWithArray(DMatrix other) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix divRows(DMatrix colVector) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   
   public DMatrix divRowsi(DMatrix colVector) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix mulRows(DMatrix colVector) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
   
   public DMatrix mulRowsi(DMatrix colVector) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix vectorNorm() {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix rowNorms() {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 
   public DMatrix dotRows(DMatrix B) {
-    return null;
+    throw new UnsupportedOperationException("UNIMPLEMENTED");
   }
 }
