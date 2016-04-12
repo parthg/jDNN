@@ -1,35 +1,46 @@
-package math;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
 
-public class DMathTest {
+import math.DMatrix;
+import math.DMath;
 
 
-  public static void testMuli() {
-    DMatrix a = DMath.createOnesMatrix(2,5);
-    DMatrix b = DMath.createOnesMatrix(2,5);
+public class DMatrixTest {
+
+  static final double DELTA = 0.0000001;
+
+  @Test
+  public void testMuli() {
+//    System.setProperty("use_cuda", "true");
+//    assertTrue("Please set use_cuda system property.", Boolean.parseBoolean(System.getProperty("use_cuda")));
+    DMatrix a = DMath.createOnesMatrix(2,3);
+    DMatrix b = DMath.createOnesMatrix(2,3);
 
     a.muli(2.0);
-    a.print();
-    b.muli(2.0);
-    a.muli(b);
-    a.print();
+    assertArrayEquals(new double[]{2.0, 2.0, 2.0, 2.0, 2.0, 2.0}, a.data(), DELTA);
 
     a = DMath.createMatrix(2, 4, new double[]{0, 1, 2,3, 4, 5, 6, 7});
     b = DMath.createMatrix(2, 4, new double[]{0, 1, 2, 3, 4,5, 6, 7});
 
-    a.mul(b).print();
-  
+    // A.*B
+    assertArrayEquals(new double[]{0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0}, a.mul(b).data(), DELTA);
   }
-
-  public static void testMulRows() {
+/*
+  @Test
+  public void testMulRows() {
     DMatrix a = DMath.createMatrix(3, 2, new double[]{0, 1, 2, 3, 4, 5});
     DMatrix b = a.mul(a);
+//    b.print();
     DMatrix col = b.sumColumns();
+//    col.print();
     a.mulRowsi(col);
     // Expected Output
     // [0.000000 1.000000 ]
     // [26.000000 39.000000 ]
     // [164.000000 205.000000 ]
-    a.print();
+//    a.print();
   }
   
   public static void testDivRows() {
@@ -126,11 +137,6 @@ public class DMathTest {
   }
 
   public static void testMMul() {
-/*    DMatrix a = DMath.createOnesMatrix(2, 8);
-    DMatrix b = DMath.createZerosMatrix(8, 2);
-    DMatrix c = DMath.createMatrix(2, 2);
-
-    a.mmul(b).print();*/
 
     DMatrix a = DMath.createMatrix(3,2, new double[]{1, 2, 3, 4, 5, 6});
     DMatrix b = DMath.createMatrix(2,4, new double[]{1, 2, 3, 4, 5, 6, 7, 8});
@@ -194,12 +200,13 @@ public class DMathTest {
     b.sumRows(1, 3).print();
   }
 
-  public static void testSumColumns() {
+  @Test
+  public void testSumColumns() {
     DMatrix a = DMath.createOnesMatrix(5, 5);
     a.sumColumns().print();
 
     DMatrix b = DMath.createMatrix(5, 3, new double[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
-    b.sumColumns().sumRows().print();
+    b.sumColumns().print();
   }
  
 
@@ -269,15 +276,16 @@ public class DMathTest {
     a.print("A (truncated)");
   }
 
-  public static void testInflateRows() {
+  @Test
+  public void testInflateRows() {
     DMatrix a = DMath.createMatrix(3, 3, new double[]{1,2,3,4,5,6,7,8,9});
     a.print("A");
     a.inflateRows(5, 3);
     a.print("A (Inflated)");
   }
+*/
 
-
-  public static void main(String[] args) {
+/*  public static void main(String[] args) {
     System.out.println(System.getProperty("use_cuda"));
 //    testAddi();
 //    testSub();
@@ -304,5 +312,5 @@ public class DMathTest {
 //    testConcatVertically();
 //    testTruncateRows();
 //    testInflateRows();
-  }
+  }*/
 }
