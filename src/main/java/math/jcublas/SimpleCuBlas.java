@@ -1,5 +1,7 @@
 package math.jcublas;
 
+import java.io.File;
+
 //import jcuda.*;
 //import jcuda.driver.JCudaDriver;
 import jcuda.jcublas.JCublas;
@@ -15,6 +17,7 @@ import math.CUDAMatrix;
 
 public class SimpleCuBlas {
   public static final int THREADS_PER_BLOCK = 1024;
+  public static final String CUDA_KERNELS = "src/main/java/math/jcublas/cuda_kernels.ptx";
   public static int cudaCount = 0;
   public static void close() {
     JCublas.cublasShutdown();
@@ -160,9 +163,12 @@ public class SimpleCuBlas {
   /** Fils B with A
    */
   public static DMatrix fillWithArray(DMatrix A, DMatrix B) {
+    if(!new File(CUDA_KERNELS).exists()) {
+      throw new RuntimeException("File not found:" + CUDA_KERNELS);
+    }
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, CUDA_KERNELS);
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kFillArray");
 
@@ -194,9 +200,12 @@ public class SimpleCuBlas {
   /** Mul rows of B by elemets of column vector A
    */
   public static DMatrix mulRows(DMatrix A, DMatrix B) {
+    if(!new File(CUDA_KERNELS).exists()) {
+      throw new RuntimeException("File not found:" + CUDA_KERNELS);
+    }
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, CUDA_KERNELS);
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kMulByColumnVector");
 
@@ -228,9 +237,12 @@ public class SimpleCuBlas {
   /** Div rows of B by elemets of column vector A
    */
   public static DMatrix divRows(DMatrix A, DMatrix B) {
+    if(!new File(CUDA_KERNELS).exists()) {
+      throw new RuntimeException("File not found:" + CUDA_KERNELS);
+    }
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, CUDA_KERNELS);
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kDivByColumnVector");
 
@@ -260,10 +272,12 @@ public class SimpleCuBlas {
   }
   
   public static DMatrix mul(DMatrix A, DMatrix B, DMatrix C) {
-
+    if(!new File(CUDA_KERNELS).exists()) {
+      throw new RuntimeException("File not found:" + CUDA_KERNELS);
+    }
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, CUDA_KERNELS);
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kMul");
 
@@ -301,9 +315,12 @@ public class SimpleCuBlas {
 
   // performs x^0.5 for each element x of the matrix
   public static DMatrix sqrt(DMatrix A) {
+    if(!new File(CUDA_KERNELS).exists()) {
+      throw new RuntimeException("File not found:" + CUDA_KERNELS);
+    }
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, CUDA_KERNELS);
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kSqrt");
 
@@ -326,9 +343,12 @@ public class SimpleCuBlas {
   
   // performs 1/x for each element x of the matrix
   public static DMatrix inverseElements(DMatrix A) {
+    if(!new File(CUDA_KERNELS).exists()) {
+      throw new RuntimeException("File not found:" + CUDA_KERNELS);
+    }
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, CUDA_KERNELS);
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kInverseElements");
 
@@ -350,9 +370,12 @@ public class SimpleCuBlas {
   }
 
   public static DMatrix tanh(DMatrix A, DMatrix B) {
+    if(!new File(CUDA_KERNELS).exists()) {
+      throw new RuntimeException("File not found:" + CUDA_KERNELS);
+    }
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, CUDA_KERNELS);
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kTanh");
 
@@ -386,9 +409,12 @@ public class SimpleCuBlas {
   }
   
   public static DMatrix pow(DMatrix A, double v) {
+    if(!new File(CUDA_KERNELS).exists()) {
+      throw new RuntimeException("File not found:" + CUDA_KERNELS);
+    }
     JCublas.cublasInit();
     CUmodule module = new CUmodule();
-    cuModuleLoad(module, "src/math/jcublas/cuda_kernels.ptx");
+    cuModuleLoad(module, CUDA_KERNELS);
     CUfunction function = new CUfunction();
     cuModuleGetFunction(function, module, "kPow");
 

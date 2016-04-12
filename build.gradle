@@ -1,0 +1,17 @@
+apply plugin: "java"
+
+test {
+  systemProperty 'use_cuda', 'true'
+  jvmArgs '-Xmx28G'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+  compile fileTree(dir: 'web/WEB-INF/lib', include: ['*.jar'])
+  testCompile "junit:junit:4.10"
+  compile fileTree(dir: '/home/parth/workspace/JCuda-All-0.5.5-bin-linux-x86_64', include: '*.jar')
+}
+

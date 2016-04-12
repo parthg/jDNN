@@ -1,5 +1,7 @@
 package math;
 
+import java.lang.RuntimeException;
+
 import math.jcublas.SimpleCuBlas;
 import random.RandomUtils;
 import java.lang. AutoCloseable;
@@ -9,6 +11,7 @@ import math.jblas.SimpleBlas;
 
 // TODO: proper assertions
 public class CUDAMatrix extends DMatrix implements AutoCloseable {
+  
   public CUDAMatrix(int r, int c) {
     super(r, c);
     this.persist = false;
@@ -67,6 +70,9 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
    
       this.cPointer = SimpleCuBlas.alloc(this.data());
     }
+    else {
+      throw new RuntimeException("Set \"use_cuda\" System property.");
+    }
   }
 
   public void copyDtoH() {
@@ -75,6 +81,9 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
 //        JCublas.cublasInit();
         SimpleCuBlas.getData(this,this.cPointer,Pointer.to(this.data()));
       }
+    }
+    else {
+      throw new RuntimeException("Set \"use_cuda\" System property.");
     }
   }
 
@@ -225,14 +234,14 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
   }
 
   public DMatrix mul(DMatrix other) {
-    assert (this.length()==other.length());
+    assert (this.length()==other.length()):"size mis-match with this and argument";
     DMatrix m = new CUDAMatrix(this.rows(), this.columns());
     SimpleCuBlas.mul(this, other, m);
     return m;
   }
 
   public DMatrix muli(DMatrix other) {
-    assert (this.length()==other.length());
+    assert (this.length()==other.length()):"size mis-match with this and argument";
     SimpleCuBlas.mul(this, other, this);
     return this;
   }
