@@ -119,7 +119,7 @@ public class Dictionary {
     return vec;
   }
 
-  public DMatrix getRepresentation(Sentence sent) {
+  public DMatrix getAddRepresentation(Sentence sent) {
     DMatrix mat = DMath.createZerosMatrix(sent.getSize(), dictSize);
     if(sent.getSize()==0) {
       throw new IllegalArgumentException("None of the sentence terms appear in the Dictionary.");
@@ -132,12 +132,39 @@ public class Dictionary {
     }
     return mat;    
   }
-
-  public DMatrix getBoWRepresentation(Sentence[] sents) {
-    throw new UnsupportedOperationException("UNIMPLEMENTED");
+  
+  public DMatrix getRepresentation(Sentence sent) {
+    if(System.getProperty("representation") ==  null)
+      throw new IllegalArgumentException("Please set \"representation\" System property: [bow|add].");
+    else if(System.getProperty("representation").equals("bow"))
+      return this.getBoWRepresentation(sent);
+    else if(System.getProperty("representation").equals("add"))
+      return this.getAddRepresentation(sent);
+    else
+      throw new IllegalArgumentException("Please set proper \"representation\" System property [bow|add]. Invalid value : " + System.getProperty("representation"));
   }
 
-  public DMatrix getRepresentation(Sentence[] sents) {
+  public DMatrix getBoWRepresentation(Sentence[] sents) {
+//    throw new UnsupportedOperationException("UNIMPLEMENTED");
+    int row = 0;
+    for(int i=0; i<sents.length; i++)
+      row+= (sents[i].getSize()>0)?1:0;
+    if(row==0) {
+      throw new IllegalArgumentException("None of the sentences appear in the Dictionary.");
+    }
+    DMatrix mat = DMath.createMatrix(row, dictSize);
+    row=0; 
+    for(int i=0; i<sents.length; i++) {
+      if(sents[i].getSize()>0) {
+        DMatrix sentMat = this.getBoWRepresentation(sents[i]);
+        mat.fillMatrix(row, sentMat);
+        row++;
+      }
+    }
+    return mat;
+  }
+
+  public DMatrix getAddRepresentation(Sentence[] sents) {
     int row = 0;
     for(int i=0; i<sents.length; i++)
       row+= sents[i].getSize();
@@ -148,7 +175,7 @@ public class Dictionary {
     row=0; 
     for(int i=0; i<sents.length; i++) {
       if(sents[i].getSize()>0) {
-        DMatrix sentMat = this.getRepresentation(sents[i]);
+        DMatrix sentMat = this.getAddRepresentation(sents[i]);
         mat.fillMatrix(row, sentMat);
         row+=sents[i].getSize();
       }
@@ -156,6 +183,14 @@ public class Dictionary {
     return mat;
   }
 
+  public DMatrix getRepresentation(Sentence[] sents) {
+    if(System.getProperty("representation").equals("bow"))
+      return this.getBoWRepresentation(sents);
+    else if(System.getProperty("representation").equals("add"))
+      return this.getAddRepresentation(sents);
+    else
+      throw new IllegalArgumentException("Please set proper \"representation\" System property: [bow|add].");
+  }
   public int getId(String t) {
     return this.str2id.containsKey(t)?this.str2id.get(t):-1;
   }

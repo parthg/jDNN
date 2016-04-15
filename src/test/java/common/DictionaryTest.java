@@ -90,8 +90,8 @@ public class DictionaryTest {
 		Corpus corp = new Corpus();
     corp.load(file, false, ch, dict, fillDict);
 
-    DMatrix vec = dict.getBoWRepresentation(corp.get(1)); // "today is sunday"
-    assertArrayEquals(new double[]{0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, vec.data(), DELTA);
+    DMatrix vec = dict.getRepresentation(corp.get(1)); // "today is sunday"
+    assertArrayEquals(new double[]{0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, vec.data(), DELTA);
 
 
 //    System.setProperty("use_cuda", "true");
