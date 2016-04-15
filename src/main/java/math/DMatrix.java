@@ -10,6 +10,14 @@ import jcuda.Pointer;
 import java.io.Closeable;
 import math.jcublas.SimpleCuBlas;
 
+/** DMatrix is row-major order matrix.
+ *
+ * passing [1 2 3 4] to 2x2 matrix will form following matrix.
+ * [
+ * 1  2
+ * 3  4
+ * ]
+ */
 public abstract class DMatrix implements Closeable {
 //  int devId;
   boolean persist = false; // flag to keep the matrix on GPU
