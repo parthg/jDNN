@@ -50,11 +50,12 @@ public class WordTokeniser implements Tokeniser {
     Tokeniser tokeniser = new WordTokeniser();
     List<PreProcessTerm> pipeline = new LinkedList<PreProcessTerm>();
 		pipeline.add(PreProcessTerm.SW_REMOVAL);
-		pipeline.add(PreProcessTerm.STEM);
+//		pipeline.add(PreProcessTerm.STEM);
     
-    tokeniser.setup(Language.ES, "/home/parth/workspace/terrier-3.5/", pipeline);
+    tokeniser.setup(Language.HI, "/home/parth/workspace/terrier-3.5/", pipeline);
 
-    String test = "Víctimas de Avalanchas";
+//    String test = "Víctimas de Avalanchas";
+    String test = "संयुक्त राष्ट्र में आतंकी संगठन जैश-ए-मोहम्मद के सरगना मसूद अजहर को काली सूची में डालने के भारत के प्रयास पर";
     System.out.printf("Input: %s\n", test);
     System.out.printf("Parsed Text: %s\n", tokeniser.parse(test));
     System.out.printf("Cleaned Text: %s\n", tokeniser.clean(tokeniser.parse(test)));
