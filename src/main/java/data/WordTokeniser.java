@@ -50,7 +50,7 @@ public class WordTokeniser implements Tokeniser {
     Tokeniser tokeniser = new WordTokeniser();
     List<PreProcessTerm> pipeline = new LinkedList<PreProcessTerm>();
 		pipeline.add(PreProcessTerm.SW_REMOVAL);
-//		pipeline.add(PreProcessTerm.STEM);
+		pipeline.add(PreProcessTerm.STEM);
     
     tokeniser.setup(Language.HI, "/home/parth/workspace/terrier-3.5/", pipeline);
 
