@@ -63,6 +63,7 @@ public class Dictionary {
   public int getSize() {
     return this.dictSize;
   }
+
   public void addWord(String t) {
     if(!this.str2id.containsKey(t) && t.trim().length()>0) {
       this.str2id.put(t,this.dictSize);
@@ -83,6 +84,8 @@ public class Dictionary {
     DMatrix vec = DMath.createZerosMatrix(1,dictSize);
     if(str2id.containsKey(t))
       vec.put(0,this.str2id.get(t),1.0);
+    else
+      throw new IllegalArgumentException("Term does not exist in the Dictionary: " + t);
     return vec;
   }
 
@@ -90,35 +93,104 @@ public class Dictionary {
     DMatrix vec = DMath.createZerosMatrix(1,dictSize);
     if(id2str.containsKey(t))
       vec.put(0,t, 1.0);
+    else
+      throw new IllegalArgumentException("Term id does not exist in the Dictionary: " + t);
     return vec;
   }
 
-  public DMatrix getRepresentation(Sentence sent) {
+  /** Converts the input sentence into a Bag-of-Words vector representation.
+   *
+   * @param sent  input text as Sentence
+   * @return  The BoW representation as DMatrix (vector)
+   */
+  public DMatrix getBoWRepresentation(Sentence sent) {
+//    throw new UnsupportedOperationException("UNIMPLEMENTED");
+    DMatrix vec = DMath.createZerosMatrix(1, dictSize);
+    if(sent.getSize()==0) {
+      throw new IllegalArgumentException("Sentence:\"" + sent.toString() + "\" does not have any Dictionary term.");
+    }
+    Iterator<Integer> sentIt = sent.words.iterator();
+    while(sentIt.hasNext()) {
+      int id = sentIt.next();
+      if(this.id2str.containsKey(id)) {
+        vec.put(0, id, vec.get(0, id)+1.0);
+      }
+    }
+    return vec;
+  }
+
+  public DMatrix getAddRepresentation(Sentence sent) {
     DMatrix mat = DMath.createZerosMatrix(sent.getSize(), dictSize);
+    if(sent.getSize()==0) {
+      throw new IllegalArgumentException("None of the sentence terms appear in the Dictionary.");
+    }
     Iterator<Integer> sentIt = sent.words.iterator();
     int i = 0;
-    //TODO: This will add all the words including OOV as Zero vector, do something to consider active vocab
     while(sentIt.hasNext()) {
       mat.fillRow(i, this.getRepresentation(sentIt.next()));
       i++;
+    }
+    return mat;    
+  }
+  
+  public DMatrix getRepresentation(Sentence sent) {
+    if(System.getProperty("representation") ==  null)
+      throw new IllegalArgumentException("Please set \"representation\" System property: [bow|add].");
+    else if(System.getProperty("representation").equals("bow"))
+      return this.getBoWRepresentation(sent);
+    else if(System.getProperty("representation").equals("add"))
+      return this.getAddRepresentation(sent);
+    else
+      throw new IllegalArgumentException("Please set proper \"representation\" System property [bow|add]. Invalid value : " + System.getProperty("representation"));
+  }
+
+  public DMatrix getBoWRepresentation(Sentence[] sents) {
+//    throw new UnsupportedOperationException("UNIMPLEMENTED");
+    int row = 0;
+    for(int i=0; i<sents.length; i++)
+      row+= (sents[i].getSize()>0)?1:0;
+    if(row==0) {
+      throw new IllegalArgumentException("None of the sentences appear in the Dictionary.");
+    }
+    DMatrix mat = DMath.createMatrix(row, dictSize);
+    row=0; 
+    for(int i=0; i<sents.length; i++) {
+      if(sents[i].getSize()>0) {
+        DMatrix sentMat = this.getBoWRepresentation(sents[i]);
+        mat.fillMatrix(row, sentMat);
+        row++;
+      }
+    }
+    return mat;
+  }
+
+  public DMatrix getAddRepresentation(Sentence[] sents) {
+    int row = 0;
+    for(int i=0; i<sents.length; i++)
+      row+= sents[i].getSize();
+    if(row==0) {
+      throw new IllegalArgumentException("None of the sentences appear in the Dictionary.");
+    }
+    DMatrix mat = DMath.createMatrix(row, dictSize);
+    row=0; 
+    for(int i=0; i<sents.length; i++) {
+      if(sents[i].getSize()>0) {
+        DMatrix sentMat = this.getAddRepresentation(sents[i]);
+        mat.fillMatrix(row, sentMat);
+        row+=sents[i].getSize();
+      }
     }
     return mat;
   }
 
   public DMatrix getRepresentation(Sentence[] sents) {
-    int row = 0;
-    for(int i=0; i<sents.length; i++)
-      row+= sents[i].getSize();
-    DMatrix mat = DMath.createMatrix(row, dictSize);
-    row=0; 
-    for(int i=0; i<sents.length; i++) {
-      DMatrix sentMat = this.getRepresentation(sents[i]);
-      mat.fillMatrix(row, sentMat);
-      row+=sents[i].getSize();
-    }
-    return mat;
+    if(System.getProperty("representation").equals("bow"))
+      return this.getBoWRepresentation(sents);
+    else if(System.getProperty("representation").equals("add"))
+      return this.getAddRepresentation(sents);
+    else
+      throw new IllegalArgumentException("Please set proper \"representation\" System property: [bow|add].");
   }
-
   public int getId(String t) {
     return this.str2id.containsKey(t)?this.str2id.get(t):-1;
   }

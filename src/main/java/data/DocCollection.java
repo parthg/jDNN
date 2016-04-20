@@ -36,20 +36,22 @@ public class DocCollection extends Channel {
     	String text = "";
     
 //			if(f.toLowerCase().contains("navbharattimes"))
-			text = this.parser.parse(f).getTitle();
-      this.titles.add(text);
+			text = this.parser.parse(f).getTitle().trim();
+      if(text.length()>0) {
+        this.titles.add(text);
 
-			text = this.tokeniser.parse(text);
-			text = this.tokeniser.clean(text);
-			String[] tokens = text.split("_");
-			for(String tok: tokens) {
-				if(tok.trim().equals("N") || tok.trim().length()>2) {
-					if(!this.tokenFreq.containsKey(tok.trim()))
-						this.tokenFreq.put(tok.trim(), 1);
-					else
-						this.tokenFreq.put(tok.trim(), this.tokenFreq.get(tok.trim())+1);
-				}
-			}
+        text = this.tokeniser.parse(text);
+        text = this.tokeniser.clean(text);
+        String[] tokens = text.split("_");
+        for(String tok: tokens) {
+          if(tok.trim().equals("N") || tok.trim().length()>2) {
+            if(!this.tokenFreq.containsKey(tok.trim()))
+              this.tokenFreq.put(tok.trim(), 1);
+            else
+              this.tokenFreq.put(tok.trim(), this.tokenFreq.get(tok.trim())+1);
+          }
+        }
+      }
     }
     return this.tokenFreq;
   }
@@ -72,13 +74,14 @@ public class DocCollection extends Channel {
       if(docid%20000==0)
         System.out.printf("Processed files: %d\n",docid);
 			String title = this.parser.parse(f).getTitle().trim();
-			
-      Map<Integer, Integer> inner = this.getVector(title);
-			if(inner.size()>=2) {
-				matrix.put(docid, inner);
-				this.docIndex.put(docid, new File(f).getName()+"__"+title);
-				docid++;
-			}
+			if(title.length()>0) {
+        Map<Integer, Integer> inner = this.getVector(title);
+        if(inner.size()>=2) {
+          matrix.put(docid, inner);
+          this.docIndex.put(docid, new File(f).getName()+"__"+title);
+          docid++;
+        }
+      }
     }
   	return matrix;
   }
