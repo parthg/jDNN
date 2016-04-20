@@ -31,7 +31,6 @@ import nn.TanhLayer;
 
 import random.RandomUtils;
 
-import optim.GradientCheck;
 import optim.GradientCalc;
 import optim.NoiseGradientCalc;
 import optim.NoiseCosineGradientCalcBoW;
@@ -48,6 +47,8 @@ public class NoiseCosineGradientCalcBoWTest {
 
   static final double DELTA = 0.00001;
 
+  /** creates the dictionary from the sample data.
+   */
   public static void createDictionary() throws IOException {
 
 
@@ -83,6 +84,9 @@ public class NoiseCosineGradientCalcBoWTest {
   public static void createModel() throws IOException {
   }
 
+  /** Does gradient check.
+   * g(\theta) == J(\theta + eps) - J(\theta - eps) / 2*eps
+   */
   @Test 
   public void testGradientCalc() throws IOException {
     Dictionary dict = new Dictionary();
@@ -147,18 +151,29 @@ public class NoiseCosineGradientCalcBoWTest {
 
     try(Batch matBatch = new Batch(instances, 1, model.dict());) {
       matBatch.copyHtoD();
-/*        GradientCalc trainer = new NoiseCosineGradientCalcBoW(matBatch);
-      trainer.setModel(model);
-      // MAXIMISER
-      Optimizer optimizer = new ConjugateGradient(trainer);
-      optimizer.optimize(3);
-      double[] learntParams = new double[enModel.getThetaSize()];
-      trainer.getParameters(learntParams);
-      enModel.setParameters(learntParams);
-      batchNum++;*/
-      GradientCheck gCheck = new GradientCheck(new NoiseCosineGradientCalcBoW(matBatch));
-      gCheck.optimise(model);
+      GradientCalc gradFunc = new NoiseCosineGradientCalcBoW(matBatch);
+      gradFunc.setModel(model);
+
+      // gradient checks
+      for(int j=0; j< model.getThetaSize();j++) {
+        double epsilon = 1e-2;
+        
+        gradFunc.setParameter(j, gradFunc.getParameter(j)+epsilon);
+        double err1 = gradFunc.getValue();
+
+        gradFunc.setParameter(j, gradFunc.getParameter(j)-2*epsilon);
+        double err2 = gradFunc.getValue();
+
+        double trueGrad = ((err1-err2)/(2*epsilon));
+
+        gradFunc.setParameter(j, gradFunc.getParameter(j)+epsilon);
+        double[] grads = new double[model.getThetaSize()];
+        gradFunc.getValueGradient(grads);
+
+        assertEquals(trueGrad, grads[j], DELTA);
+        j = Math.min(j+(int)(model.getThetaSize()/3), model.getThetaSize()-1);
+
+      }
     }
   }
-
 }
