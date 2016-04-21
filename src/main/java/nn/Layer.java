@@ -9,6 +9,9 @@ public abstract class Layer {
   DMatrix w, b;
   DMatrix data;
 
+  double LAMBDA = 0.0; // default no regularization
+  int collectionSize=1;
+
   int wSize, bSize;
   int thetaSize; // basically wSize+bSize
   int inSize, size;
@@ -25,6 +28,22 @@ public abstract class Layer {
     this.size = _size;
   }
 
+  public void setRegularization(double _lambda, int _collectionSize) {
+    this.LAMBDA = _lambda;
+    this.collectionSize = _collectionSize;
+  }
+
+  public void setCollectionSize(int _collectionSize) {
+    this.collectionSize = _collectionSize;
+  }
+
+  /** Returns Squared sum of weight parameters.
+   * Mainly useful for refularization.
+   */
+  public double weightSquaredSum() {
+    return this.w.mul(this.w).sumRows().sumColumns().get(0);
+  }
+
   public double[] getParameters() {
 //    System.out.printf("Num of Parametrs in Layer = %d\n", this.getThetaSize());
     double[] params = new double[this.thetaSize];
@@ -32,10 +51,24 @@ public abstract class Layer {
     System.arraycopy(this.b.toArray(), 0, params, this.wSize, this.bSize);
     return params;
   }
+  
+  public double[] getWeightOnlyParameters() {
+//    System.out.printf("Num of Parametrs in Layer = %d\n", this.getThetaSize());
+    double[] params = new double[this.thetaSize];
+    System.arraycopy(this.w.toArray(), 0, params, 0, this.wSize);
+//    System.arraycopy(this.b.toArray(), 0, params, this.wSize, this.bSize);
+    return params;
+  }
 
   public double[] getParamGradients(DMatrix myInData, DMatrix mygrad) {
+    assert (this.collectionSize>0):"Collection Size = 0";
     double[] paramGrads = new double[this.thetaSize];
     // TODO: check if blas expression fits here: -> YES: the boolean transpose needs to be passed. Check with the correctness.
+/*    DMatrix gradPart = myInData.mmul(true, false, mygrad);
+    double regCoeff = (this.LAMBDA);
+    DMatrix regPart = this.getWeights().mul(regCoeff); // (\lamda / n)
+    DMatrix dW = gradPart.sub(regPart);
+    double[] mydW = dW.toArray();*/
     double[] mydW = (myInData.mmul(true, false, mygrad)).toArray();
     double[] mydB = mygrad.sumRows().toArray();
 
