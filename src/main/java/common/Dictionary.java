@@ -184,7 +184,10 @@ public class Dictionary {
   }
 
   public DMatrix getRepresentation(Sentence[] sents) {
-    if(System.getProperty("representation").equals("bow"))
+    if(System.getProperty("representation") == null) {
+      throw new IllegalArgumentException("Please set \"representation\" System property: [bow|add].");
+    }
+    else if(System.getProperty("representation").equals("bow"))
       return this.getBoWRepresentation(sents);
     else if(System.getProperty("representation").equals("add"))
       return this.getAddRepresentation(sents);

@@ -20,6 +20,8 @@ import common.Sentence;
 public class BoWModel extends Model {
   public BoWModel() {
     super();
+    if(System.getProperty("representation") == null || !System.getProperty("representation").equals("bow"))
+      throw new IllegalArgumentException("Set \"representation\" system property to \"bow\". Currenlty : " + System.getProperty("representation")); 
   }
   public DMatrix fProp(Sentence sent) {
     if(!System.getProperty("representation").equals("bow"))
