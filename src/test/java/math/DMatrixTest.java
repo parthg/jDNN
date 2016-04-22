@@ -111,8 +111,17 @@ public class DMatrixTest {
 
     a.sub(b).print();
     
+  }*/
+  @Test
+  public void testAddi() {
+    DMatrix a = DMath.createOnesMatrix(2,3);
+    DMatrix b = DMath.createOnesMatrix(2,3);
+
+    a.addi(b);
+    assertArrayEquals(new double[]{2.0, 2.0, 2.0, 2.0, 2.0, 2.0}, a.data(), DELTA);
   }
-  public static void testAddi() {
+
+/*  public static void testAddi() {
     DMatrix a = DMath.createOnesMatrix(2,5);
     DMatrix b = DMath.createOnesMatrix(2,5);
 
