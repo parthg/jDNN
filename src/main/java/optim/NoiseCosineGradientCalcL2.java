@@ -257,7 +257,6 @@ public class NoiseCosineGradientCalcL2 extends GradientCalc {
         AN.copyHtoD();
         NA.copyHtoD();
 
-        this.model.setCollectionSize(this.batch.size());
         // df/dA = (A, B) - (A, N)
         DMatrix tempGrad = this.model.bProp(this.batch.data(), A, AB);
         grads.addi(tempGrad);

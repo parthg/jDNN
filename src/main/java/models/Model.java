@@ -57,23 +57,15 @@ public abstract class Model {
 
   /** Set regularization parameter.
    */
-  public void setRegularization(double _lambda, int collectionSize) {
+  public void setRegularization(double _lambda) {
     this.LAMBDA = _lambda;
     Iterator<Layer> layerIt = this.layers.iterator();
     while(layerIt.hasNext()) {
       Layer l = layerIt.next();
-      l.setRegularization(_lambda, collectionSize);
+      l.setRegularization(_lambda);
     }
   }
   
-  public void setCollectionSize(int collectionSize) {
-    Iterator<Layer> layerIt = this.layers.iterator();
-    while(layerIt.hasNext()) {
-      Layer l = layerIt.next();
-      l.setCollectionSize(collectionSize);
-    }
-  }
-
   /** obtain squared sum of weights from all the layers.
    */
   public double weightSquaredSum() {

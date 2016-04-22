@@ -10,7 +10,6 @@ public abstract class Layer {
   DMatrix data;
 
   double LAMBDA = 0.0; // default no regularization
-  int collectionSize=1;
 
   int wSize, bSize;
   int thetaSize; // basically wSize+bSize
@@ -28,13 +27,8 @@ public abstract class Layer {
     this.size = _size;
   }
 
-  public void setRegularization(double _lambda, int _collectionSize) {
+  public void setRegularization(double _lambda) {
     this.LAMBDA = _lambda;
-    this.collectionSize = _collectionSize;
-  }
-
-  public void setCollectionSize(int _collectionSize) {
-    this.collectionSize = _collectionSize;
   }
 
   /** Returns Squared sum of weight parameters.
@@ -45,34 +39,27 @@ public abstract class Layer {
   }
 
   public double[] getParameters() {
-//    System.out.printf("Num of Parametrs in Layer = %d\n", this.getThetaSize());
     double[] params = new double[this.thetaSize];
     System.arraycopy(this.w.toArray(), 0, params, 0, this.wSize);
     System.arraycopy(this.b.toArray(), 0, params, this.wSize, this.bSize);
     return params;
   }
   
+  /** Returns the weight parameters of the network with bias as zero.
+   * Useful for regularization gradient.
+   */
   public double[] getWeightOnlyParameters() {
-//    System.out.printf("Num of Parametrs in Layer = %d\n", this.getThetaSize());
     double[] params = new double[this.thetaSize];
+    // copying only weights. Biases will be zero anyway.
     System.arraycopy(this.w.toArray(), 0, params, 0, this.wSize);
-//    System.arraycopy(this.b.toArray(), 0, params, this.wSize, this.bSize);
     return params;
   }
 
   public double[] getParamGradients(DMatrix myInData, DMatrix mygrad) {
-    assert (this.collectionSize>0):"Collection Size = 0";
     double[] paramGrads = new double[this.thetaSize];
-    // TODO: check if blas expression fits here: -> YES: the boolean transpose needs to be passed. Check with the correctness.
-/*    DMatrix gradPart = myInData.mmul(true, false, mygrad);
-    double regCoeff = (this.LAMBDA);
-    DMatrix regPart = this.getWeights().mul(regCoeff); // (\lamda / n)
-    DMatrix dW = gradPart.sub(regPart);
-    double[] mydW = dW.toArray();*/
     double[] mydW = (myInData.mmul(true, false, mygrad)).toArray();
     double[] mydB = mygrad.sumRows().toArray();
 
-//    System.out.printf("dW = %d, dB = %d\n", mydW.length, mydB.length);
     System.arraycopy(mydW, 0, paramGrads, 0, this.wSize);
     System.arraycopy(mydB, 0, paramGrads, this.wSize, this.bSize);
     return paramGrads;

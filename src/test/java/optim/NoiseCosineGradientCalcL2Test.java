@@ -45,7 +45,7 @@ public class NoiseCosineGradientCalcL2Test {
   static final String path_to_terrier = "/home/parth/workspace/terrier-3.5/";
   static final Language lang = Language.EN;
 
-  static final double DELTA = 0.00001;
+  static final double DELTA = 0.0001;
 
   /** creates the dictionary from the sample data.
    */
@@ -106,6 +106,7 @@ public class NoiseCosineGradientCalcL2Test {
     model.addHiddenLayer(l);
 
     model.init();
+    model.setRegularization(0.1);
     
     List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
 		pipeline.add(PreProcessTerm.SW_REMOVAL);
@@ -126,7 +127,6 @@ public class NoiseCosineGradientCalcL2Test {
 		Corpus enNeg = new Corpus();
     enNeg.load(negFile, false, chNeg, dict, fillDict);
    
-    model.setRegularization(0.1, enCorp.getSize());
     
     
     int[] randArray = new int[enCorp.getSize()];
@@ -171,8 +171,8 @@ public class NoiseCosineGradientCalcL2Test {
         double[] grads = new double[model.getThetaSize()];
         gradFunc.getValueGradient(grads);
 
-//        assertEquals(trueGrad, grads[j], DELTA);
-        System.out.printf("True Grad: %.10f Calc Grad: %.10f ?multiple = %.6f\n", trueGrad, grads[j], grads[j]/trueGrad);
+        assertEquals(trueGrad, grads[j], DELTA);
+//        System.out.printf("True Grad: %.10f Calc Grad: %.10f ?multiple = %.6f\n", trueGrad, grads[j], grads[j]/trueGrad);
         j = Math.min(j+(int)(model.getThetaSize()/10), model.getThetaSize()-1);
 
       }
