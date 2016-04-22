@@ -29,6 +29,8 @@ public abstract class Model {
   int inSize;
   int outSize;
 
+  double LAMBDA = 0.0; // default no regularisation
+
   public Model() {
     this.layers = new ArrayList<Layer>();
     this.inSize = 0;
@@ -48,6 +50,32 @@ public abstract class Model {
   }
   public Dictionary dict() {
     return this.dict;
+  }
+  public double lambda() {
+    return this.LAMBDA;
+  }
+
+  /** Set regularization parameter.
+   */
+  public void setRegularization(double _lambda) {
+    this.LAMBDA = _lambda;
+    Iterator<Layer> layerIt = this.layers.iterator();
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      l.setRegularization(_lambda);
+    }
+  }
+  
+  /** obtain squared sum of weights from all the layers.
+   */
+  public double weightSquaredSum() {
+    double sum = 0.0;
+    Iterator<Layer> layerIt = this.layers.iterator();
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      sum += l.weightSquaredSum();
+    }
+    return sum;
   }
 
   public void addHiddenLayer(Layer l) {
@@ -116,6 +144,24 @@ public abstract class Model {
     }
     return params;
   }
+
+  /** Get parameters keeping only weights.
+   * It sets biases to be zero.
+   */
+  public double[] getWeightOnlyParameters() {
+    double[] params = new double[this.thetaSize];
+    int start = 0;
+    Iterator<Layer> layerIt = this.layers.iterator();
+    while(layerIt.hasNext()) {
+      Layer l = layerIt.next();
+      double[] lParams = l.getWeightOnlyParameters();
+
+      System.arraycopy(lParams, 0, params, start, lParams.length);
+      start = l.getThetaSize();
+    }
+    return params;
+  }
+
   public void save(String modelFile) throws IOException {
     PrintWriter p = new PrintWriter(modelFile);
     p.printf("#numLayers=%d\n",this.layers.size());

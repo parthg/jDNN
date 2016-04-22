@@ -9,6 +9,8 @@ public abstract class Layer {
   DMatrix w, b;
   DMatrix data;
 
+  double LAMBDA = 0.0; // default no regularization
+
   int wSize, bSize;
   int thetaSize; // basically wSize+bSize
   int inSize, size;
@@ -25,21 +27,39 @@ public abstract class Layer {
     this.size = _size;
   }
 
+  public void setRegularization(double _lambda) {
+    this.LAMBDA = _lambda;
+  }
+
+  /** Returns Squared sum of weight parameters.
+   * Mainly useful for refularization.
+   */
+  public double weightSquaredSum() {
+    return this.w.mul(this.w).sumRows().sumColumns().get(0);
+  }
+
   public double[] getParameters() {
-//    System.out.printf("Num of Parametrs in Layer = %d\n", this.getThetaSize());
     double[] params = new double[this.thetaSize];
     System.arraycopy(this.w.toArray(), 0, params, 0, this.wSize);
     System.arraycopy(this.b.toArray(), 0, params, this.wSize, this.bSize);
     return params;
   }
+  
+  /** Returns the weight parameters of the network with bias as zero.
+   * Useful for regularization gradient.
+   */
+  public double[] getWeightOnlyParameters() {
+    double[] params = new double[this.thetaSize];
+    // copying only weights. Biases will be zero anyway.
+    System.arraycopy(this.w.toArray(), 0, params, 0, this.wSize);
+    return params;
+  }
 
   public double[] getParamGradients(DMatrix myInData, DMatrix mygrad) {
     double[] paramGrads = new double[this.thetaSize];
-    // TODO: check if blas expression fits here: -> YES: the boolean transpose needs to be passed. Check with the correctness.
     double[] mydW = (myInData.mmul(true, false, mygrad)).toArray();
     double[] mydB = mygrad.sumRows().toArray();
 
-//    System.out.printf("dW = %d, dB = %d\n", mydW.length, mydB.length);
     System.arraycopy(mydW, 0, paramGrads, 0, this.wSize);
     System.arraycopy(mydB, 0, paramGrads, this.wSize, this.bSize);
     return paramGrads;

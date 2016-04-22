@@ -2,7 +2,7 @@ apply plugin: "java"
 
 test {
   systemProperty 'use_cuda', 'true'
-  systemProperty 'representation', 'bow'
+  systemProperty 'representation', 'add'
   jvmArgs '-Xmx28G'
 }
 

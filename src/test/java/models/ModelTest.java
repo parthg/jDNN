@@ -22,11 +22,11 @@ import common.Dictionary;
 import common.Sentence;
 import common.Corpus;
 import models.Model;
-import models.BoWModel;
+import models.AddModel;
 import nn.Layer;
 import nn.TanhLayer;
 
-public class BoWModelTest {
+public class ModelTest {
 
   static final String dir = "data/test/";
   static final String file = dir+"english";
@@ -72,7 +72,7 @@ public class BoWModelTest {
 
   @Test
   public void testFProp() throws IOException {
-    System.setProperty("representation", "bow");
+    System.setProperty("representation", "add");
     Dictionary dict = new Dictionary();
     String dictFile = dir+"dict.txt";
     boolean fillDict = false;
@@ -85,7 +85,7 @@ public class BoWModelTest {
 
     assertEquals(13, dict.getSize());
     
-    Model model = new BoWModel();
+    Model model = new AddModel();
     model.setDict(dict);
     
     Layer l = new TanhLayer(2);
@@ -98,8 +98,7 @@ public class BoWModelTest {
     
     List<PreProcessTerm> pipeline = new ArrayList<PreProcessTerm>();
 		pipeline.add(PreProcessTerm.SW_REMOVAL);
-		pipeline.add(PreProcessTerm.STEM);
-		
+		pipeline.add(PreProcessTerm.STEM);		
     
     Channel ch = new SentFile(file);
 		ch.setup(TokenType.WORD, lang, path_to_terrier, pipeline);
@@ -107,6 +106,7 @@ public class BoWModelTest {
     corp.load(file, false, ch, dict, fillDict);
 
     double[] params = model.getParameters();
+    // 0.1 .. 2.6
     for(int i=0; i<26; i++) {
       params[i] = 0.1*((double)i+1);
     }
@@ -115,10 +115,6 @@ public class BoWModelTest {
 
     model.setParameters(params);
 
-    DMatrix vec = dict.getRepresentation(corp.get(1)); // "today is sunday"
-    
-    DMatrix rep = model.fProp(vec);
-    
-    assertArrayEquals(new double[]{0.291313, 0.099668}, rep.data(), DELTA);
+    assertEquals(62.010, model.weightSquaredSum(), DELTA);
   }
 }
