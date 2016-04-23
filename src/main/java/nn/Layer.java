@@ -3,10 +3,12 @@ package nn;
 import java.util.Arrays;
 import math.DMath;
 import math.DMatrix;
-//import org.jblas.DoubleMatrix;
 
+/** Layer class (abstract) for Neural Network.
+ * Contains main layer utilities.
+ */
 public abstract class Layer {
-  DMatrix w, b;
+  DMatrix w, b; // parameters
   DMatrix data;
 
   double LAMBDA = 0.0; // default no regularization
@@ -15,18 +17,29 @@ public abstract class Layer {
   int thetaSize; // basically wSize+bSize
   int inSize, size;
 
-
-  public int getInSize() {
-    return this.inSize;
-  }
-
-  public int getSize() {
-    return this.size;
-  }
+  /** Constructor with layer size.
+   */
   public Layer(int _size) {
     this.size = _size;
   }
 
+  /** Get input data dimension.
+   * @return input dimension
+   */
+  public int getInSize() {
+    return this.inSize;
+  }
+
+  /** Get layer size (output dimension).
+   * @return  output dimension
+   */ 
+  public int getSize() {
+    return this.size;
+  }
+
+  /** Sets regularization.
+   * @param _lambda regularization parameter \lambda.
+   */
   public void setRegularization(double _lambda) {
     this.LAMBDA = _lambda;
   }
