@@ -35,19 +35,6 @@ public class SimpleCuBlas {
     return Math.min(n,THREADS_PER_BLOCK);
   }
 
-  public static String getCudaErrorName(int code) {
-    String errName = "";
-    switch(code) {
-      case CUresult.CUDA_ERROR_INVALID_VALUE: errName = "CUDA_ERROR_INVALID_VALUE";
-                                        break;
-      case CUresult.CUDA_ERROR_LAUNCH_OUT_OF_RESOURCES: errName = "CUDA_ERROR_LAUNCH_OUT_OF_RESOURCES";
-                                               break;
-      default: errName = "CUDA_ERROR";
-               break;
-    }
-    return errName;
-  }
-
   // cublasAlloc &  cublasSetVector H->D
   public static Pointer alloc(DMatrix m) {
 //    System.out.printf("Allocationg memory\n");
@@ -58,7 +45,7 @@ public class SimpleCuBlas {
         m.length(),
         m.elemSize(),
         ret);
-    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cublasAlloc.\n";
+    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):System.out.printf("There was a problem in cublasAlloc: %s",cublasStatus.stringFor(err));
     err = JCublas.cublasSetVector(
         m.length(),
         m.elemSize(),
@@ -66,7 +53,7 @@ public class SimpleCuBlas {
         1,
         ret,
         1);
-    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cublasSetVector.\n";
+    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):System.out.printf("There was a problem in cublasSetVector: %s",cublasStatus.stringFor(err));
     cudaCount++;
     return ret;
   }
@@ -80,7 +67,7 @@ public class SimpleCuBlas {
         length,
         m.elemSize(),
         ret);
-    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cublasAlloc.\n";
+    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):System.out.printf("There was a problem in cublasAlloc: %s",cublasStatus.stringFor(err));
     err = JCublas.cublasSetVector(
         length,
         m.elemSize(),
@@ -89,7 +76,7 @@ public class SimpleCuBlas {
         ret,
         1);
     
-    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cublasSetVector.\n";
+    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):System.out.printf("There was a problem in cublasSetVector: %s",cublasStatus.stringFor(err));
     cudaCount++;
     return ret;
   }
@@ -102,7 +89,7 @@ public class SimpleCuBlas {
         arr.length,
         Sizeof.DOUBLE,
         ret);
-    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cublasAlloc.\n";
+    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):System.out.printf("There was a problem in cublasAlloc: %s",cublasStatus.stringFor(err));
     err = JCublas.cublasSetVector(
         arr.length, // size of array
         Sizeof.DOUBLE, // size of int
@@ -110,7 +97,7 @@ public class SimpleCuBlas {
         1,
         ret,
         1);
-    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cublasSetVector.\n";
+    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):System.out.printf("There was a problem in cublasSetVector: %s",cublasStatus.stringFor(err));
     cudaCount++;
     return ret;
   }
@@ -132,7 +119,7 @@ public class SimpleCuBlas {
         1,
         ptr,
         1);
-    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cublasSetVector.\n";
+    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):System.out.printf("There was a problem in cublasSetVector: %s",cublasStatus.stringFor(err));
   }
 
   // cublasGetVector D->H
@@ -146,14 +133,14 @@ public class SimpleCuBlas {
           1,
           to.withByteOffset(arr.offset() * arr.elemSize()),
           1);
-    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):"There was a problem in cublasGetVector.\n";
+    assert(err == cublasStatus.CUBLAS_STATUS_SUCCESS):System.out.printf("There was a problem in cublasGetVector: %s",cublasStatus.stringFor(err));
   }
 
   public static void free(Pointer...pointers) {
     JCublas.cublasInit();
     for(Pointer arr : pointers) {
       int err = JCublas.cublasFree(arr);
-      assert (err == cublasStatus.CUBLAS_STATUS_SUCCESS):"Not successfully freed device memory";
+      assert (err == cublasStatus.CUBLAS_STATUS_SUCCESS):System.out.printf("Not successfully freed device memory: %s", cublasStatus.stringFor(err));
       cudaCount--;
     }
   }
@@ -201,7 +188,7 @@ public class SimpleCuBlas {
         );
 
     int err = cuLaunchKernel(function, getGridDim(cB.length()), 1, 1, getBlockDim(cB.length()), 1, 1, 0, null, kernelParameters, null);
-    assert (err == CUresult.CUDA_SUCCESS):getCudaErrorName(err);
+    assert (err == CUresult.CUDA_SUCCESS):System.out.printf("Error in kernel launch:%s", CUresult.stringFor(err));
     if(!cB.persist()) {
       getData(cB,cBPointer,Pointer.to(cB.data()));
       free(cBPointer);
@@ -238,7 +225,7 @@ public class SimpleCuBlas {
         );
 
     int err = cuLaunchKernel(function, getGridDim(cB.length()), 1, 1, getBlockDim(cB.length()), 1, 1, 0, null, kernelParameters, null);
-    assert (err == CUresult.CUDA_SUCCESS):getCudaErrorName(err);
+    assert (err == CUresult.CUDA_SUCCESS):System.out.printf("Error in kernel launch:%s", CUresult.stringFor(err));
     
     if(!cB.persist()) {
       getData(cB,cBPointer,Pointer.to(cB.data()));
@@ -276,7 +263,7 @@ public class SimpleCuBlas {
         );
 
     int err = cuLaunchKernel(function, getGridDim(cB.length()), 1, 1, getBlockDim(cB.length()), 1, 1, 0, null, kernelParameters, null);
-    assert (err == CUresult.CUDA_SUCCESS):getCudaErrorName(err);
+    assert (err == CUresult.CUDA_SUCCESS):System.out.printf("Error in kernel launch:%s", CUresult.stringFor(err));
     
     if(!cB.persist()) {
       getData(cB,cBPointer,Pointer.to(cB.data()));
@@ -315,7 +302,7 @@ public class SimpleCuBlas {
         );
     // get dimensions right
     int err = cuLaunchKernel(function, getGridDim(cA.length()), 1, 1, getBlockDim(A.length()), 1, 1, 0, null, kernelParameters, null);
-    assert (err == CUresult.CUDA_SUCCESS):getCudaErrorName(err);
+    assert (err == CUresult.CUDA_SUCCESS):System.out.printf("Error in kernel launch:%s", CUresult.stringFor(err));
     
     if(!cC.persist()) {
       getData(cC,cCPointer,Pointer.to(cC.data()));
@@ -351,7 +338,7 @@ public class SimpleCuBlas {
         );
   
     int err = cuLaunchKernel(function, getGridDim(cA.length()), 1, 1, getBlockDim(cA.length()), 1, 1, 0, null, kernelParameters, null);
-    assert (err == CUresult.CUDA_SUCCESS):getCudaErrorName(err);
+    assert (err == CUresult.CUDA_SUCCESS):System.out.printf("Error in kernel launch:%s", CUresult.stringFor(err));
     
     if(!cA.persist()) {
       getData(cA,cAPointer,Pointer.to(cA.data()));
@@ -380,7 +367,7 @@ public class SimpleCuBlas {
         );
   
     int err = cuLaunchKernel(function, getGridDim(cA.length()), 1, 1, getBlockDim(cA.length()), 1, 1, 0, null, kernelParameters, null);
-    assert (err == CUresult.CUDA_SUCCESS):getCudaErrorName(err);
+    assert (err == CUresult.CUDA_SUCCESS):System.out.printf("Error in kernel launch:%s", CUresult.stringFor(err));
     
     if(!cA.persist()) {
       getData(cA,cAPointer,Pointer.to(cA.data()));
@@ -414,7 +401,7 @@ public class SimpleCuBlas {
         );
   
     int err = cuLaunchKernel(function, getGridDim(cA.length()), 1, 1, getBlockDim(cA.length()), 1, 1, 0, null, kernelParameters, null);
-    assert (err == CUresult.CUDA_SUCCESS):getCudaErrorName(err);
+    assert (err == CUresult.CUDA_SUCCESS):System.out.printf("Error in kernel launch:%s", CUresult.stringFor(err));
     
     if(!cB.persist()) {
       getData(cB,cBPointer,Pointer.to(cB.data()));
@@ -449,7 +436,7 @@ public class SimpleCuBlas {
         );
   
     int err = cuLaunchKernel(function, getGridDim(cA.length()), 1, 1, getBlockDim(cA.length()), 1, 1, 0, null, kernelParameters, null);
-    assert (err == CUresult.CUDA_SUCCESS):getCudaErrorName(err);
+    assert (err == CUresult.CUDA_SUCCESS):System.out.printf("Error in kernel launch:%s", CUresult.stringFor(err));
     
     if(!cA.persist()) {
       getData(cA,cAPointer,Pointer.to(cA.data()));

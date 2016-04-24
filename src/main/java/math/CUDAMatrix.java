@@ -10,8 +10,8 @@ import jcuda.Pointer;
 import math.jblas.SimpleBlas;
 
 // TODO: proper assertions
-public class CUDAMatrix extends DMatrix implements AutoCloseable {
-  
+public class CUDAMatrix extends DMatrix implements AutoCloseable { 
+ 
   public CUDAMatrix(int r, int c) {
     super(r, c);
     this.persist = false;
@@ -44,8 +44,6 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
 //      System.out.printf("Releasing the CUDA Pointer\n");
       this.persist = false;
       SimpleCuBlas.free(this.cPointer);
-//      JCublas.cublasInit();
-//      JCublas.cublasFree(this.cPointer);
       this.cPointer = null;
     }
   }
@@ -63,8 +61,6 @@ public class CUDAMatrix extends DMatrix implements AutoCloseable {
         this.persist = true;
       if(this.cPointer != null) {
         SimpleCuBlas.free(this.cPointer);
-//        JCublas.cublasInit();
-//        JCublas.cublasFree(this.cPointer);
         this.cPointer = null;
       }
    
